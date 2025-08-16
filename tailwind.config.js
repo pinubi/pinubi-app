@@ -1,0 +1,71 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  // NOTE: Update this to include the paths to all of your component files.
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  presets: [require('nativewind/preset')],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#f4e6ff',
+          100: '#e6ccff',
+          200: '#d9b3ff',
+          300: '#cc99ff',
+          400: '#bf80ff',
+          500: '#b13bff', // Main primary color
+          600: '#9f33e6',
+          700: '#8d2bcc',
+          800: '#7b23b3',
+          900: '#691b99',
+          950: '#4d1470',
+        },
+        secondary: {
+          50: '#f0f0ff',
+          100: '#e0e0ff',
+          200: '#c7c7ff',
+          300: '#a5a5ff',
+          400: '#8080ff',
+          500: '#5555ff',
+          600: '#4040ff',
+          700: '#2b2bff',
+          800: '#1a1aff',
+          900: '#0f0fff',
+          950: '#080880',
+        },
+        accent: {
+          50: '#fff0f8',
+          100: '#ffe0f1',
+          200: '#ffc7e6',
+          300: '#ffa5d4',
+          400: '#ff80c2',
+          500: '#ff55b0',
+          600: '#ff409e',
+          700: '#e6298a',
+          800: '#cc1a76',
+          900: '#b30f62',
+          950: '#800847',
+        },
+        neutral: {
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
+          950: '#09090b',
+        },
+      },
+      fontFamily: {
+        Poppins_400Regular: ['Poppins_400Regular'],
+        Poppins_500Medium: ['Poppins_500Medium'],
+        Poppins_600SemiBold: ['Poppins_600SemiBold'],
+        Poppins_700Bold: ['Poppins_700Bold'],
+      },
+    },
+  },
+  plugins: [],
+};
