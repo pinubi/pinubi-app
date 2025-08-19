@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import PinubiMapView from '@/components/PinubiMapView';
 import { FilterTabs, Header, ViewModeDropdown, type ViewMode } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -77,6 +78,21 @@ const DiscoverScreen = () => {
     </TouchableOpacity>
   );
 
+  const renderContent = () => {
+    if (viewMode === 'map') {
+      return <PinubiMapView />;
+    }
+
+    // Render list view (placeholder for now)
+    return (
+      <View className="flex-1 p-4">
+        <Text className="text-center text-gray-600 mt-8">
+          Lista de lugares será implementada aqui
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -97,6 +113,9 @@ const DiscoverScreen = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
+
+      {/* Content based on view mode */}
+      {renderContent()}
     </View>
   );
 };
