@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
+import SerperTestComponent from '@/components/SerperTestComponent';
 import { FilterTabs, Header, ViewModeDropdown, type ViewMode } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
+import { SerperPlace } from '@/types/places';
 
 interface Place {
   id: string;
@@ -30,6 +32,19 @@ const DiscoverScreen = () => {
   const handleProfilePress = () => {
     // Navigate to profile or show profile menu
     console.log('Profile pressed');
+  };
+
+  const handlePlacePress = (place: SerperPlace) => {
+    // TODO: Implement place details modal or navigation
+    Alert.alert(
+      place.title,
+      `${place.address}\n\n${place.rating ? `⭐ ${place.rating}` : ''}${place.category ? `\n📍 ${place.category}` : ''}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Ver Detalhes', onPress: () => console.log('Ver detalhes:', place) },
+        { text: 'Salvar Local', onPress: () => console.log('Salvar local:', place) },
+      ]
+    );
   };
 
   const renderPlaceCard = (place: Place) => (
@@ -80,15 +95,19 @@ const DiscoverScreen = () => {
 
   const renderContent = () => {
     if (viewMode === 'map') {
-      return <PinubiMapView />;
+      return <PinubiMapView onPlacePress={handlePlacePress} />;
     }
 
-    // Render list view (placeholder for now)
+    // Render list view with API test for debugging
     return (
       <View className="flex-1 p-4">
-        <Text className="text-center text-gray-600 mt-8">
-          Lista de lugares será implementada aqui
-        </Text>
+        {__DEV__ ? (
+          <SerperTestComponent />
+        ) : (
+          <Text className="text-center text-gray-600 mt-8">
+            Lista de lugares será implementada aqui
+          </Text>
+        )}
       </View>
     );
   };
