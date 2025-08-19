@@ -1,27 +1,78 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
 import SerperTestComponent from '@/components/SerperTestComponent';
-import { FilterTabs, Header, ViewModeDropdown, type ViewMode } from '@/components/ui';
+import {
+  BottomSheet,
+  FilterTabs,
+  Header,
+  PlacesList,
+  SearchInput,
+  ViewModeDropdown,
+  type BottomSheetRef,
+  type ViewMode
+} from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { SerperPlace } from '@/types/places';
 
-interface Place {
-  id: string;
-  name: string;
-  category: string;
-  status: 'open' | 'closed';
-  rating: number;
-  distance: string;
-  emoji: string;
-}
-
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [activeTab, setActiveTab] = useState<'amigos' | 'tendencias' | 'reservas'>('amigos');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bottomSheetIndex, setBottomSheetIndex] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Keyboard listeners
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+      // Force BottomSheet to top position when keyboard opens
+      bottomSheetRef.current?.snapToIndex(2);
+    });
+
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
+  
+  // Mock data for demonstration - replace with real data
+  const [places] = useState<SerperPlace[]>([
+    {
+      title: 'Café da Manhã',
+      placeId: 'place-1',
+      address: 'Rua das Flores, 123 - Centro',
+      latitude: -23.550520,
+      longitude: -46.633308,
+      rating: 4.5,
+      category: 'Cafeteria'
+    },
+    {
+      title: 'Restaurante Italiano',
+      placeId: 'place-2',
+      address: 'Av. Paulista, 456 - Bela Vista',
+      latitude: -23.561684,
+      longitude: -46.656139,
+      rating: 4.8,
+      category: 'Restaurante'
+    },
+    {
+      title: 'Parque Ibirapuera',
+      placeId: 'place-3',
+      address: 'Av. Pedro Álvares Cabral - Vila Mariana',
+      latitude: -23.587416,
+      longitude: -46.657834,
+      rating: 4.6,
+      category: 'Parque'
+    }
+  ]);
 
   const tabs = [
     { id: 'amigos' as const, label: 'Amigos', icon: 'people' as const },
@@ -33,6 +84,27 @@ const DiscoverScreen = () => {
     // Navigate to profile or show profile menu
     console.log('Profile pressed');
   };
+
+  const handleSearchFocus = useCallback(() => {
+    // Expand bottom sheet to full height when search is focused
+    bottomSheetRef.current?.snapToIndex(2);
+  }, []);
+
+  const handleSearchBlur = useCallback(() => {
+    // Optionally collapse to middle position when search loses focus
+    if (searchQuery.length === 0) {
+      bottomSheetRef.current?.snapToIndex(0);
+    }
+  }, [searchQuery]);
+
+  const handleBottomSheetChange = useCallback((index: number) => {
+    // Prevent sheet changes when keyboard is visible (except allowing top position)
+    if (isKeyboardVisible && index !== 2) {
+      bottomSheetRef.current?.snapToIndex(2);
+      return;
+    }
+    setBottomSheetIndex(index);
+  }, [isKeyboardVisible]);
 
   const handlePlacePress = (place: SerperPlace) => {
     // TODO: Implement place details modal or navigation
@@ -47,50 +119,11 @@ const DiscoverScreen = () => {
     );
   };
 
-  const renderPlaceCard = (place: Place) => (
-    <TouchableOpacity
-      key={place.id}
-      className="bg-white rounded-2xl p-4 mb-4 flex-row items-center shadow-sm border border-gray-100"
-    >
-      {/* Place emoji/icon */}
-      <View className="w-16 h-16 bg-primary-500 rounded-2xl items-center justify-center mr-4">
-        <Text className="text-2xl">{place.emoji}</Text>
-      </View>
-
-      {/* Place info */}
-      <View className="flex-1">
-        <View className="flex-row items-center mb-1">
-          <Text className="text-lg font-semibold text-gray-900 mr-2">
-            {place.name}
-          </Text>
-          <View className={`px-2 py-1 rounded-full ${
-            place.status === 'open' ? 'bg-green-100' : 'bg-red-100'
-          }`}>
-            <Text className={`text-xs font-medium ${
-              place.status === 'open' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {place.status === 'open' ? 'Aberto' : 'Fechado'}
-            </Text>
-          </View>
-        </View>
-        
-        <Text className="text-gray-600 text-sm mb-2">{place.category}</Text>
-        
-        <View className="flex-row items-center">
-          <View className="flex-row items-center mr-4">
-            <Ionicons name="star" size={14} color="#FFA500" />
-            <Text className="text-sm text-gray-700 ml-1">{place.rating}</Text>
-          </View>
-          <View className="flex-row items-center">
-            <Ionicons name="location-outline" size={14} color="#6B7280" />
-            <Text className="text-sm text-gray-600 ml-1">{place.distance}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Arrow */}
-      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-    </TouchableOpacity>
+  // Filter places based on search query
+  const filteredPlaces = places.filter(place =>
+    place.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    place.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    place.category?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderContent = () => {
@@ -108,6 +141,49 @@ const DiscoverScreen = () => {
             Lista de lugares será implementada aqui
           </Text>
         )}
+      </View>
+    );
+  };
+
+  const renderBottomSheetContent = () => {
+    return (
+      <View className="flex-1 bg-white">
+        {/* Search Input - Always visible */}
+        <View className="p-2">
+          <SearchInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+            placeholder="Buscar lugares incríveis..."
+          />
+        </View>
+        
+        {/* Content Area - Always present but may be clipped at first snap point */}
+        <View className="flex-1 px-2">
+          {/* Header for places list */}
+          <View className="px-2 py-2 border-b border-gray-100">
+            <Text className="text-lg font-semibold text-gray-900 mb-1">
+              {searchQuery ? 'Resultados da busca' : 'Lugares recomendados'}
+            </Text>
+            <Text className="text-sm text-gray-600">
+              {filteredPlaces.length} {filteredPlaces.length === 1 ? 'lugar encontrado' : 'lugares encontrados'}
+            </Text>
+          </View>
+          
+          {/* Places List */}
+          <View className="flex-1 mt-2">
+            <PlacesList
+              places={filteredPlaces}
+              onPlacePress={handlePlacePress}
+              emptyMessage={
+                searchQuery 
+                  ? 'Nenhum lugar encontrado para sua busca' 
+                  : 'Nenhum lugar recomendado no momento'
+              }
+            />
+          </View>
+        </View>
       </View>
     );
   };
@@ -134,7 +210,24 @@ const DiscoverScreen = () => {
       />
 
       {/* Content based on view mode */}
-      {renderContent()}
+      <View className="flex-1">
+        {renderContent()}
+        
+        {/* Bottom Sheet - only show in map mode */}
+        {viewMode === 'map' && (
+          <BottomSheet
+            ref={bottomSheetRef}
+            snapPoints={['25%', '65%', '98%']}
+            index={bottomSheetIndex}
+            onChange={handleBottomSheetChange}
+            enablePanDownToClose={false}
+            enableHandlePanningGesture={!isKeyboardVisible}
+            enableContentPanningGesture={true}
+          >
+            {renderBottomSheetContent()}
+          </BottomSheet>
+        )}
+      </View>
     </View>
   );
 };
