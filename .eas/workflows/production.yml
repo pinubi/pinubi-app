@@ -1,0 +1,21 @@
+name: Production Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  build_ios_production:
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  # Uncomment when ready for store submissions
+  # submit_ios:
+  #   type: submit
+  #   params:
+  #     platform: ios
+  #     profile: production
+  #   needs: [build_ios_production]
