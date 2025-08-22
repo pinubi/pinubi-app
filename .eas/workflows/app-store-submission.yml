@@ -1,0 +1,19 @@
+name: App Store Submission
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build_and_submit_ios:
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  submit_to_app_store:
+    type: submit
+    params:
+      platform: ios
+      profile: production
+    needs: [build_and_submit_ios]
