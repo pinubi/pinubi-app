@@ -9,6 +9,7 @@ export const useAuth = () => {
     error,
     isAuthenticated,
     signInWithGoogle,
+    signInWithEmailAndPassword,
     signInWithMock,
     signOut,
     checkAuthState,
@@ -29,6 +30,7 @@ export const useAuth = () => {
     
     // Actions
     signInWithGoogle,
+    signInWithEmailAndPassword,
     signInWithMock,
     signOut,
     clearError,

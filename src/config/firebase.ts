@@ -32,41 +32,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
-const autoLoginWithSeedUser = async () => {
-  if (!isDevelopment) return;
-  
-  try {
-    const { signInWithEmailAndPassword } = await import('firebase/auth');
-    
-    // Usar um usuário existente do seed (admin ou user1)
-    const seedUser = {
-      email: 'user1@test.com',
-      password: 'password123'
-    };
-    
-    try {
-      const result = await signInWithEmailAndPassword(
-        auth, 
-        seedUser.email, 
-        seedUser.password
-      );
-      
-      console.log('🔐 Login automático realizado com usuário do seed:', seedUser.email);
-      console.log('👤 Usuário logado:', result.user.displayName || result.user.email);
-      
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        console.log('⚠️ Usuário do seed não encontrado. Execute: bun run seed');
-      } else {
-        console.log('Erro no login automático:', error.message);
-      }
-    }
-    
-  } catch (error) {
-    console.log('Erro no auto login:', error);
-  }
-};
-
 // Conectar aos emuladores apenas em desenvolvimento
 if (isDevelopment) {
   // Conectar ao Functions Emulator
@@ -78,12 +43,7 @@ if (isDevelopment) {
   import('firebase/auth').then(({ connectAuthEmulator }) => {
     try {
       connectAuthEmulator(auth, "http://127.0.0.1:9099");
-      console.log("🔧 Auth Emulator conectado - use usuários do seed");
-
-      // Mock de usuário Google para desenvolvimento
-      setTimeout(() => {
-        autoLoginWithSeedUser();
-      }, 3000); // Increased delay to 3 seconds
+      console.log("🔧 Auth Emulator conectado - use usuários do seed");      
     } catch (error) {
       console.log("Auth emulator já conectado");
     }

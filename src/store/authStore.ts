@@ -1,6 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { GoogleAuthProvider, signOut as firebaseSignOut, onAuthStateChanged, signInWithCredential } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  signInWithCredential
+} from 'firebase/auth';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -61,6 +67,31 @@ const mapGoogleSignInErrorToAuthError = (error: any): AuthError => {
   }
 };
 
+const mapFirebaseAuthErrorToAuthError = (error: any): AuthError => {
+  const errorCode = error.code;
+  
+  console.log('Firebase Auth Error:', { code: errorCode, message: error.message });
+  
+  switch (errorCode) {
+    case 'auth/invalid-credential':
+    case 'auth/invalid-email':
+    case 'auth/invalid-password':
+      return 'invalid_credentials';
+    case 'auth/user-not-found':
+      return 'user_not_found';
+    case 'auth/wrong-password':
+      return 'wrong_password';
+    case 'auth/too-many-requests':
+      return 'too_many_requests';
+    case 'auth/user-disabled':
+      return 'user_disabled';
+    case 'auth/network-request-failed':
+      return 'network_error';
+    default:
+      return 'unknown_error';
+  }
+};
+
 const getErrorMessage = (error: AuthError): string => {
   switch (error) {
     case 'sign_in_cancelled':
@@ -71,6 +102,16 @@ const getErrorMessage = (error: AuthError): string => {
       return 'Erro de rede. Verifique sua conexão';
     case 'developer_error':
       return 'Erro de configuração. Tente novamente';
+    case 'invalid_credentials':
+      return 'Email ou senha incorretos';
+    case 'user_not_found':
+      return 'Usuário não encontrado';
+    case 'wrong_password':
+      return 'Senha incorreta';
+    case 'too_many_requests':
+      return 'Muitas tentativas. Tente novamente mais tarde';
+    case 'user_disabled':
+      return 'Conta desabilitada. Entre em contato com o suporte';
     case 'unknown_error':
     default:
       return 'Ocorreu um erro inesperado';
@@ -134,6 +175,40 @@ export const useAuthStore = create<AuthStore>()(
           console.error('Google Sign-In Error:', error);
           
           const authError = mapGoogleSignInErrorToAuthError(error);
+          const errorMessage = getErrorMessage(authError);
+          
+          set({
+            loading: false,
+            error: errorMessage,
+            user: null,
+            isAuthenticated: false,
+          });
+        }
+      },
+
+      signInWithEmailAndPassword: async (email: string, password: string) => {
+        try {
+          set({ loading: true, error: null });
+
+          console.log('Firebase email/password sign-in started for:', email);
+
+          // Sign in with Firebase
+          const userCredential = await firebaseSignInWithEmailAndPassword(auth, email, password);
+          
+          console.log('Firebase email/password sign-in successful:', userCredential.user.uid);
+          
+          const user = mapFirebaseUserToUser(userCredential.user);
+          
+          set({
+            user,
+            isAuthenticated: true,
+            loading: false,
+            error: null,
+          });
+        } catch (error: any) {
+          console.error('Email/Password Sign-In Error:', error);
+          
+          const authError = mapFirebaseAuthErrorToAuthError(error);
           const errorMessage = getErrorMessage(authError);
           
           set({

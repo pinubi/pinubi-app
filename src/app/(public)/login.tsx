@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { ActivityIndicator, Alert, Dimensions, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import GoogleLogo from '@/components/GoogleLogo';
@@ -13,10 +12,13 @@ const { width, height } = Dimensions.get('window');
 
 const LoginScreen = () => {
   const router = useRouter();
-  const { signInWithGoogle, signInWithMock, loading, error, isSignedIn, isAuthenticated, clearError } = useAuth();
+  const { signInWithGoogle, signInWithEmailAndPassword, loading, error, isSignedIn, isAuthenticated, clearError } = useAuth();
 
-  // Check if we're running in Expo Go
-  const isExpoGo = Constants.appOwnership === 'expo';
+  // State for email/password login
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isEmailLogin, setIsEmailLogin] = useState(false);
 
   // Navigate to protected route when user is signed in (including mock)
   useEffect(() => {
@@ -53,14 +55,27 @@ const LoginScreen = () => {
     }
   };
 
-  const handleMockSignIn = async () => {
-    try {
-      console.log('Iniciando login de teste...');
-      await signInWithMock();
-      console.log('Login de teste concluído');
-    } catch (err) {
-      console.error('Erro de login de teste:', err);
+  const handleEmailSignIn = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
     }
+
+    try {
+      console.log('Iniciando login com email...');
+      await signInWithEmailAndPassword(email, password);
+      console.log('Login com email concluído');
+    } catch (err) {
+      console.error('Erro de login com email:', err);
+      // Error is handled by the auth store and useEffect above
+    }
+  };
+
+  const toggleLoginMethod = () => {
+    setIsEmailLogin(!isEmailLogin);
+    setEmail('');
+    setPassword('');
+    clearError();
   };
 
   return (
@@ -111,110 +126,213 @@ const LoginScreen = () => {
             </Text>
           </View>
 
-          {/* Benefits Section */}
+          {/* Login Form Section */}
           <View className="mb-10 w-full max-w-sm">
-            <View className="flex-row items-center mb-4">
-              <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3">
-                <Ionicons name="compass" size={16} color="#b13bff" />
+            {isEmailLogin ? (
+              <View className="space-y-4">
+                {/* Email Input */}
+                <View className="space-y-2">
+                  <Text className="text-neutral-700 font-medium text-sm ml-1">Email</Text>
+                  <View className="bg-white border-2 border-neutral-200 rounded-xl px-4 py-3 flex-row items-center">
+                    <Ionicons name="mail-outline" size={20} color="#6b7280" />
+                    <TextInput
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="seu@email.com"
+                      placeholderTextColor="#9ca3af"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      className="flex-1 ml-3 text-neutral-800 text-base"
+                    />
+                  </View>
+                </View>
+
+                {/* Password Input */}
+                <View className="space-y-2">
+                  <Text className="text-neutral-700 font-medium text-sm ml-1">Senha</Text>
+                  <View className="bg-white border-2 border-neutral-200 rounded-xl px-4 py-3 flex-row items-center">
+                    <Ionicons name="lock-closed-outline" size={20} color="#6b7280" />
+                    <TextInput
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Sua senha"
+                      placeholderTextColor="#9ca3af"
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      className="flex-1 ml-3 text-neutral-800 text-base"
+                    />
+                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                      <Ionicons 
+                        name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                        size={20} 
+                        color="#6b7280" 
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Email Sign In Button */}
+                <TouchableOpacity
+                  onPress={handleEmailSignIn}
+                  disabled={loading}
+                  className="bg-primary-500 rounded-xl px-6 py-4 items-center justify-center shadow-lg mt-4"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                    transform: loading ? [{ scale: 0.98 }] : [{ scale: 1 }],
+                  }}
+                >
+                  {loading ? (
+                    <View className="flex-row items-center">
+                      <ActivityIndicator size="small" color="white" />
+                      <Text className="ml-3 text-white font-semibold text-base">
+                        Entrando...
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text className="text-white font-semibold text-base">
+                      Entrar
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View className="flex-row items-center my-6">
+                  <View className="flex-1 h-px bg-neutral-300" />
+                  <Text className="px-4 text-neutral-500 text-sm">ou</Text>
+                  <View className="flex-1 h-px bg-neutral-300" />
+                </View>
+
+                {/* Google Sign In Button */}
+                <TouchableOpacity
+                  onPress={handleGoogleSignIn}
+                  disabled={loading}
+                  className="bg-white border-2 border-neutral-200 rounded-xl px-6 py-4 flex-row items-center justify-center shadow-lg"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                    transform: loading ? [{ scale: 0.98 }] : [{ scale: 1 }],
+                  }}
+                >
+                  <GoogleLogo size={20} />
+                  <Text className="ml-3 text-neutral-800 font-semibold text-base">
+                    Continuar com Google
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <Text className="text-neutral-700 flex-1 text-sm">Descubra lugares especiais</Text>
-            </View>
-            
-            <View className="flex-row items-center mb-4">
-              <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3">
-                <Ionicons name="people" size={16} color="#b13bff" />
+            ) : (
+              <View className="space-y-4">
+                {/* Google Sign In Button */}
+                <TouchableOpacity
+                  onPress={handleGoogleSignIn}
+                  disabled={loading}
+                  className="bg-white border-2 border-primary-200 rounded-2xl px-6 py-4 flex-row items-center justify-center shadow-lg"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                    transform: loading ? [{ scale: 0.98 }] : [{ scale: 1 }],
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <ActivityIndicator size="small" color="#b13bff" />
+                      <Text className="ml-3 text-primary-600 font-semibold text-base">
+                        Entrando...
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleLogo size={20} />
+                      <Text className="ml-3 text-neutral-800 font-semibold text-base">
+                        Continuar com Google
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View className="flex-row items-center my-4">
+                  <View className="flex-1 h-px bg-neutral-300" />
+                  <Text className="px-4 text-neutral-500 text-sm">ou</Text>
+                  <View className="flex-1 h-px bg-neutral-300" />
+                </View>
+
+                {/* Email Login Button */}
+                <TouchableOpacity
+                  onPress={toggleLoginMethod}
+                  disabled={loading}
+                  className="bg-primary-500 rounded-2xl px-6 py-4 flex-row items-center justify-center shadow-lg"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  }}
+                >
+                  <Ionicons name="mail" size={20} color="white" />
+                  <Text className="ml-3 text-white font-semibold text-base">
+                    Entrar com Email
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <Text className="text-neutral-700 flex-1 text-sm">Conecte-se com amigos através de lugares</Text>
-            </View>
-            
-            <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3">
-                <Ionicons name="heart" size={16} color="#b13bff" />
-              </View>
-              <Text className="text-neutral-700 flex-1 text-sm">Crie coleções das suas memórias</Text>
-            </View>
+            )}
+
+            {/* Toggle Login Method */}
+            <TouchableOpacity 
+              onPress={toggleLoginMethod}
+              className="mt-6 items-center"
+            >
+              <Text className="text-primary-600 font-medium text-sm">
+                {isEmailLogin ? 'Voltar para opções de login' : 'Já tem uma conta? Entre com email'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Sign In Button */}
-          <TouchableOpacity
-            onPress={handleGoogleSignIn}
-            disabled={loading}
-            className="bg-white border-2 border-primary-200 rounded-2xl px-6 py-4 flex-row items-center justify-center shadow-lg w-full max-w-sm mb-4"
-            style={{
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
-              transform: loading ? [{ scale: 0.98 }] : [{ scale: 1 }],
-            }}
-          >
-            {loading ? (
-              <>
-                <ActivityIndicator size="small" color="#b13bff" />
-                <Text className="ml-3 text-primary-600 font-semibold text-base">
-                  Entrando...
-                </Text>
-              </>
-            ) : (
-              <>
-                <GoogleLogo size={20} />
-                <Text className="ml-3 text-neutral-800 font-semibold text-base">
-                  Continuar com Google
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          {/* Mock Sign In Button - Only show in Expo Go */}
-          {isExpoGo && (
-            <TouchableOpacity
-              onPress={handleMockSignIn}
-              disabled={loading}
-              className="bg-primary-500 rounded-2xl px-6 py-4 flex-row items-center justify-center shadow-lg w-full max-w-sm"
-              style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 3,
-                transform: loading ? [{ scale: 0.98 }] : [{ scale: 1 }],
-              }}
-            >
-              {loading ? (
-                <>
-                  <ActivityIndicator size="small" color="white" />
-                  <Text className="ml-3 text-white font-semibold text-base">
-                    Entrando...
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="rocket" size={20} color="white" />
-                  <Text className="ml-3 text-white font-semibold text-base">
-                    Entrar no Modo Teste (Expo Go)
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
+          {/* Benefits Section - Only show when not in email login mode */}
+          {!isEmailLogin && (
+            <View className="mb-10 w-full max-w-sm">
+              <View className="flex-row items-center mb-4">
+                <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3">
+                  <Ionicons name="compass" size={16} color="#b13bff" />
+                </View>
+                <Text className="text-neutral-700 flex-1 text-sm">Descubra lugares especiais</Text>
+              </View>
+              
+              <View className="flex-row items-center mb-4">
+                <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3">
+                  <Ionicons name="people" size={16} color="#b13bff" />
+                </View>
+                <Text className="text-neutral-700 flex-1 text-sm">Conecte-se com amigos através de lugares</Text>
+              </View>
+              
+              <View className="flex-row items-center">
+                <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3">
+                  <Ionicons name="heart" size={16} color="#b13bff" />
+                </View>
+                <Text className="text-neutral-700 flex-1 text-sm">Crie coleções das suas memórias</Text>
+              </View>
+            </View>
           )}
+
+          {/* Sign In Button - Remove this section as it's now handled above */}
+          {/* This section is replaced by the Login Form Section above */}
 
           {/* Additional Call to Action */}
           <Text className="text-neutral-500 text-center mt-6 px-6 leading-5 text-xs">
             Comece sua jornada de descoberta e transforme cada lugar em uma história que vale a pena compartilhar
           </Text>
-
-          {/* Expo Go Note */}
-          {isExpoGo && (
-            <View className="mt-4 px-4 py-3 bg-blue-50 rounded-xl border border-blue-200 w-full max-w-sm">
-              <View className="flex-row items-center">
-                <Ionicons name="information-circle" size={18} color="#3b82f6" />
-                <Text className="text-blue-600 text-xs ml-2 flex-1">
-                  Você está usando o Expo Go. Use o "Modo Teste" para navegar pelo app.
-                </Text>
-              </View>
-            </View>
-          )}
 
           {/* Error Display */}
           {error && (
