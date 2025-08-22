@@ -20,9 +20,6 @@ interface TabConfig {
 }
 
 const TabsLayout = () => {
-  // Force light mode - no more dark mode support
-  const isDark = false;
-
   // Haptic feedback for tab presses
   const handleTabPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -31,16 +28,16 @@ const TabsLayout = () => {
   // Tab configuration - more contextual to Pinubi's purpose
   const tabsConfig: TabConfig[] = [
     {
-      name: 'discover',
-      title: 'Descobrir',
-      icon: 'search-outline',
-      iconFocused: 'search',
-    },
-    {
       name: 'social',
       title: 'Social',
       icon: 'people-outline',
       iconFocused: 'people',
+    },
+    {
+      name: 'discover',
+      title: 'Descobrir',
+      icon: 'search-outline',
+      iconFocused: 'search',
     },
     {
       name: 'lists',
@@ -50,14 +47,14 @@ const TabsLayout = () => {
     },
   ];
 
-  // Light mode colors only
+  // App colors (light mode only)
   const colors = {
     background: '#ffffff',
     headerBackground: '#ffffff',
     headerTitle: '#18181b',
     tabBarBorder: '#e4e4e7',
     tabBarActive: '#b13bff', // Primary-500 from theme
-    tabBarInactive: '#a1a1aa', // Light mode neutral color
+    tabBarInactive: '#a1a1aa', // Neutral color
   };
 
   const TabIcon = ({ name, iconFocused, color, size, focused }: TabIconProps & { name: IconName; iconFocused: IconName }) => (

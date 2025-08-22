@@ -83,9 +83,9 @@ const DiscoverScreen = () => {
   ]);
 
   const tabs = [
-    { id: 'amigos' as const, label: 'Amigos', icon: 'people' as const },
-    { id: 'tendencias' as const, label: 'Tendências', icon: 'trending-up' as const },
-    { id: 'reservas' as const, label: 'Reservas', icon: 'calendar' as const },
+    { id: 'amigos' as const, label: 'Lista da Pinubi', icon: 'star' as const },
+    { id: 'tendencias' as const, label: 'Em Alta', icon: 'flame' as const },
+    { id: 'reservas' as const, label: 'Meus Locais', icon: 'bookmark' as const },
   ];
 
   const handleProfilePress = () => {

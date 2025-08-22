@@ -25,9 +25,7 @@ class FirebaseService {
       // Handle the actual response format from Firebase
       const responseData = result.data as any;
       
-      if (responseData && responseData.places && Array.isArray(responseData.places)) {
-        console.log('🔥 Raw responseData.places:', JSON.stringify(responseData.places, null, 2));
-        
+      if (responseData && responseData.places && Array.isArray(responseData.places)) {                
         // Map the Firebase response format to Place format (based on Database Schema)
         const mappedPlaces: Place[] = responseData.places.map((place: any, index: number) => {
           console.log(`🔥 Processing place ${index + 1}:`, place);

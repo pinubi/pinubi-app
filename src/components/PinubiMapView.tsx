@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
+import { ActivityIndicator, Platform, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 
 import { useLocation } from '@/hooks/useLocation';
 import { usePlaces } from '@/hooks/usePlaces';
@@ -20,6 +21,9 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
   const [showSearchButton, setShowSearchButton] = useState(false);
   const [hasInitialSearch, setHasInitialSearch] = useState(false);
   const mapRef = useRef<MapView>(null);
+
+  // Check if running in Expo Go on iOS simulator
+  const isExpoGoSimulator = Constants.appOwnership === 'expo' && Platform.OS === 'ios' && !Constants.isDevice;
 
   // Automatic search when location is available
   useEffect(() => {
@@ -77,6 +81,53 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
   const handlePlacePress = useCallback((place: Place) => {
     onPlacePress?.(place);
   }, [onPlacePress]);
+
+  // Function to calculate distance between two coordinates in meters
+  const calculateDistance = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+  }, []);
+
+  // Function to get nearby places (within 50 meters of user location)
+  const getNearbyPlaces = useCallback((): Place[] => {
+    if (!latitude || !longitude || !places) return [];
+    
+    return places.filter(place => {
+      const distance = calculateDistance(
+        latitude, 
+        longitude, 
+        place.coordinates.lat, 
+        place.coordinates.lng
+      );
+      return distance <= 50; // 50 meters threshold
+    });
+  }, [latitude, longitude, places, calculateDistance]);
+
+  const handleUserLocationPress = useCallback(() => {
+    const nearbyPlaces = getNearbyPlaces();
+    
+    if (nearbyPlaces.length === 1) {
+      // If only one nearby place, open it directly
+      onPlacePress?.(nearbyPlaces[0]);
+    } else if (nearbyPlaces.length > 1) {
+      // If multiple nearby places, you could show a modal/list
+      // For now, we'll just log them - you can implement a modal later
+      console.log('📍 Lugares próximos:', nearbyPlaces.map(p => p.googleData.name));
+      
+      // Optional: Show the first one or implement a selection modal
+      // onPlacePress?.(nearbyPlaces[0]);
+    }
+  }, [getNearbyPlaces, onPlacePress]);
 
   // Function to get appropriate food emoji based on place category/type
   const getFoodEmoji = useCallback((place: Place): string => {
@@ -185,9 +236,22 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
 
   return (
     <View className="flex-1">
+      {/* Warning banner for iOS Simulator with Expo Go */}
+      {isExpoGoSimulator && (
+        <View className="absolute top-0 left-0 right-0 z-50 bg-yellow-100 border-b border-yellow-200 p-3">
+          <View className="flex-row items-center">
+            <Ionicons name="warning" size={20} color="#f59e0b" />
+            <Text className="text-yellow-800 text-sm font-medium ml-2 flex-1">
+              O mapa pode aparecer vermelho no simulador iOS com Expo Go. Teste no dispositivo físico.
+            </Text>
+          </View>
+        </View>
+      )}
+      
       <MapView
         ref={mapRef}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginTop: isExpoGoSimulator ? 56 : 0 }}
+        provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
         initialRegion={{
           latitude,
           longitude,
@@ -209,25 +273,81 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
         zoomEnabled={true}
         pitchEnabled={false}
         onRegionChangeComplete={handleRegionChangeComplete}
+        // Fallback for iOS simulator issues
+        loadingEnabled={true}
+        loadingIndicatorColor="#b13bff"
+        loadingBackgroundColor="#fafafa"
+        // Additional props for better simulator compatibility
+        onMapReady={() => {
+          if (isExpoGoSimulator) {
+            console.log('📍 Map ready in iOS Simulator with Expo Go - red tiles are expected');
+          }
+        }}
       >
-        {/* Custom marker for user's current location */}
+        {/* Custom marker for user's current location with nearby places indicator */}
         <Marker
           coordinate={{ latitude, longitude }}
-          title="Você está aqui"
-          description="Sua localização atual"
+          title="Você está aqui 📍"
+          description={`Sua localização atual${getNearbyPlaces().length > 0 ? ` • ${getNearbyPlaces().length} lugar(es) próximo(s)` : ''}`}
+          onPress={handleUserLocationPress}
         >
-          <View className="relative">
-            {/* Outer glow effect */}
-            <View className="absolute w-12 h-12 bg-primary-500/20 rounded-full -top-2 -left-2" />
-            {/* Main marker */}
-            <View className="w-8 h-8 bg-primary-500 rounded-full items-center justify-center border-2 border-white shadow-lg">
-              <View className="w-3 h-3 bg-white rounded-full" />
+          <View className="relative items-center justify-center">
+            {/* Animated pulse ring - outermost */}
+            <View className="absolute w-20 h-20 bg-blue-400/15 rounded-full animate-pulse" />
+            
+            {/* Second pulse ring */}
+            <View className="absolute w-16 h-16 bg-blue-400/25 rounded-full animate-pulse" 
+                  style={{ animationDelay: '0.5s' }} />
+            
+            {/* Third pulse ring */}
+            <View className="absolute w-12 h-12 bg-blue-500/35 rounded-full animate-pulse" 
+                  style={{ animationDelay: '1s' }} />
+            
+            {/* Main marker container with shadow */}
+            <View className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-lg border-3 border-blue-500"
+                  style={{
+                    shadowColor: '#3b82f6',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 10,
+                  }}>
+              
+              {/* Inner blue dot */}
+              <View className="w-6 h-6 bg-blue-500 rounded-full items-center justify-center">
+                <View className="w-3 h-3 bg-white rounded-full" />
+              </View>
             </View>
+            
+            {/* Friendly emoji on top */}
+            <View className="absolute -top-3 bg-white rounded-full w-8 h-8 items-center justify-center border-2 border-blue-500 shadow-md">
+              <Text style={{ fontSize: 16 }}>👋</Text>
+            </View>
+            
+            {/* Nearby places indicator */}
+            {getNearbyPlaces().length > 0 && (
+              <View className="absolute -bottom-6 bg-orange-500 rounded-full px-3 py-1 border-2 border-white shadow-lg">
+                <Text className="text-white text-xs font-bold">
+                  {getNearbyPlaces().length} 🍽️
+                </Text>
+              </View>
+            )}
           </View>
         </Marker>
 
-        {/* Places markers */}
-        {places && places.length > 0 && places.map((place) => {
+        {/* Places markers - Filter out nearby places to avoid overlap */}
+        {places && places.length > 0 && places
+          .filter(place => {
+            // Only show places that are NOT within 50 meters of user location
+            const distance = calculateDistance(
+              latitude, 
+              longitude, 
+              place.coordinates.lat, 
+              place.coordinates.lng
+            );
+            return distance > 50;
+          })
+          .map((place) => {
           
           // Only render markers with valid coordinates
           const lat = place.coordinates.lat;
@@ -260,7 +380,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
 
       {/* Search in area button */}
       {showSearchButton && (
-        <View className="absolute top-6 left-0 right-0 items-center">
+        <View className={`absolute left-0 right-0 items-center ${isExpoGoSimulator ? 'top-20' : 'top-6'}`}>
           <TouchableOpacity
             onPress={handleSearchInArea}
             disabled={placesLoading}
@@ -290,7 +410,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
 
       {/* Error message for places */}
       {placesError && (
-        <View className="absolute top-6 left-4 right-4">
+        <View className={`absolute left-4 right-4 ${isExpoGoSimulator ? 'top-20' : 'top-6'}`}>
           <View className="bg-red-100 border border-red-200 rounded-lg p-3 flex-row items-center">
             <Ionicons name="alert-circle" size={20} color="#dc2626" />
             <Text className="text-red-700 flex-1 ml-2">{placesError}</Text>

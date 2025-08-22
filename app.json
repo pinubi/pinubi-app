@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
     "scheme": "pinubiapp",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -14,6 +14,9 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Este aplicativo precisa de acesso à sua localização para mostrar lugares próximos a você."
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyBWk8hTBPSPT6xrt4DS6JY0m677uegY9rM"
       }
     },
     "android": {
