@@ -5,11 +5,11 @@ import MapView, { Marker, Region } from 'react-native-maps';
 
 import { useLocation } from '@/hooks/useLocation';
 import { usePlaces } from '@/hooks/usePlaces';
-import { MapRegion, SerperPlace } from '@/types/places';
+import { MapRegion, Place } from '@/types/places';
 
 interface PinubiMapViewProps {
   onLocationRefresh?: () => void;
-  onPlacePress?: (place: SerperPlace) => void;
+  onPlacePress?: (place: Place) => void;
 }
 
 const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlacePress }) => {
@@ -25,7 +25,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
   useEffect(() => {
     if (latitude && longitude && !hasInitialSearch && !loading) {
       console.log('🎯 Performing initial search for food places at current location');
-      searchPlaces(latitude, longitude, 'restaurantes comida', 14);
+      searchPlaces(latitude, longitude, 14);
       setHasInitialSearch(true);
     }
   }, [latitude, longitude, hasInitialSearch, loading, searchPlaces]);
@@ -70,55 +70,56 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
     await searchPlaces(
       currentRegion.latitude,
       currentRegion.longitude,
-      'restaurantes comida',
       zoom
     );
   }, [currentRegion, searchPlaces, clearError]);
 
-  const handlePlacePress = useCallback((place: SerperPlace) => {
+  const handlePlacePress = useCallback((place: Place) => {
     onPlacePress?.(place);
   }, [onPlacePress]);
 
   // Function to get appropriate food emoji based on place category/type
-  const getFoodEmoji = useCallback((place: SerperPlace): string => {
-    const title = place.title?.toLowerCase() || '';
-    const category = place.category?.toLowerCase() || '';
+  const getFoodEmoji = useCallback((place: Place): string => {
+    const name = place.googleData.name?.toLowerCase() || '';
+    const categories = place.categories?.join(' ').toLowerCase() || '';
+    const types = place.googleData.types?.join(' ').toLowerCase() || '';
+    const searchText = `${name} ${categories} ${types}`;
     
     // Pizza places
-    if (title.includes('pizza') || category.includes('pizza')) return '🍕';
+    if (searchText.includes('pizza')) return '🍕';
     
     // Coffee/Cafes
-    if (title.includes('café') || title.includes('coffee') || category.includes('café') || category.includes('coffee')) return '☕';
+    if (searchText.includes('café') || searchText.includes('coffee')) return '☕';
     
     // Sushi/Japanese
-    if (title.includes('sushi') || title.includes('japonês') || category.includes('sushi') || category.includes('japonês')) return '�';
+    if (searchText.includes('sushi') || searchText.includes('japonês') || searchText.includes('japanese')) return '🍣';
     
     // Italian
-    if (title.includes('italiano') || category.includes('italiano')) return '🍝';
+    if (searchText.includes('italiano') || searchText.includes('italian')) return '🍝';
     
     // Bakery/Padaria/Dessert
-    if (title.includes('padaria') || title.includes('bakery') || title.includes('bistrô') || title.includes('armazém') || category.includes('padaria')) return '�';
+    if (searchText.includes('padaria') || searchText.includes('bakery') || searchText.includes('bistrô') || searchText.includes('armazém')) return '🥐';
     
     // Fast food/Burger
-    if (title.includes('lanche') || title.includes('burger') || title.includes('hambúrguer') || category.includes('fast food')) return '🍔';
+    if (searchText.includes('lanche') || searchText.includes('burger') || searchText.includes('hambúrguer') || searchText.includes('fast food')) return '🍔';
     
     // Ice cream
-    if (title.includes('sorvete') || title.includes('ice cream') || category.includes('sorvete')) return '🍦';
+    if (searchText.includes('sorvete') || searchText.includes('ice cream')) return '🍦';
     
     // Chinese
-    if (title.includes('chinês') || title.includes('chinese') || category.includes('chinês')) return '🥡';
+    if (searchText.includes('chinês') || searchText.includes('chinese')) return '🥡';
     
     // Barbecue/Churrasco
-    if (title.includes('churrasco') || title.includes('barbecue') || category.includes('churrasco') || category.includes('carne')) return '🥩';
+    if (searchText.includes('churrasco') || searchText.includes('barbecue') || searchText.includes('carne')) return '🥩';
     
     // Mexican
-    if (title.includes('mexicano') || category.includes('mexicano')) return '🌮';
+    if (searchText.includes('mexicano') || searchText.includes('mexican')) return '🌮';
     
     // Lebanese/Middle Eastern
-    if (title.includes('libanês') || title.includes('árabe') || category.includes('libanês') || category.includes('árabe')) return '�';
+    if (searchText.includes('libanês') || searchText.includes('árabe') || searchText.includes('lebanese')) return '🥙';
     
     // Bar/Drinks
-    if (title.includes('bar') || category.includes('bar')) return '🍺';
+    if (searchText.includes('bar')) return '🍺';
     
     // Default food emoji for restaurants
     return '🍽️';
@@ -226,33 +227,35 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
         </Marker>
 
         {/* Places markers */}
-        {places.map((place) => (
-          <Marker
-            key={place.placeId}
-            coordinate={{
-              latitude: place.latitude,
-              longitude: place.longitude,
-            }}
-            // title={place.title}
-            // description={place.address}
-            onPress={() => handlePlacePress(place)}
-          >
-            <View className="relative">
-              {/* Food place marker with emoji */}
-              <View className="w-12 h-12 bg-primary-500 rounded-full items-center justify-center shadow-lg">
-                <Text style={{ fontSize: 24 }}>{getFoodEmoji(place)}</Text>
+        {places && places.length > 0 && places.map((place) => {
+          
+          // Only render markers with valid coordinates
+          const lat = place.coordinates.lat;
+          const lng = place.coordinates.lng;
+          
+          if (!lat || !lng || lat === 0 || lng === 0) {
+            console.log('Skipping place with invalid coordinates:', place.googleData.name, lat, lng);
+            return null;
+          }
+          
+          return (
+            <Marker
+              key={place.id}
+              coordinate={{
+                latitude: lat,
+                longitude: lng,
+              }}
+              onPress={() => handlePlacePress(place)}
+            >
+              <View className="relative">
+                {/* Food place marker with emoji */}
+                <View className="w-12 h-12 bg-primary-500 rounded-full items-center justify-center shadow-lg">
+                  <Text style={{ fontSize: 24 }}>{getFoodEmoji(place)}</Text>
+                </View>                
               </View>
-              {/* Rating badge if available */}
-              {place.rating && (
-                <View className="absolute -top-1 -right-1 bg-white rounded-full px-1.5 py-0.5 border border-gray-200 min-w-[20px]">
-                  <Text className="text-xs font-bold text-gray-700 text-center">
-                    {place.rating.toFixed(1)}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </Marker>
-        ))}
+            </Marker>
+          );
+        })}
       </MapView>
 
       {/* Search in area button */}
@@ -301,7 +304,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
       {/* Debug info - Remove in production */}
       {__DEV__ && (
         <View className="absolute bottom-20 left-4 bg-black/70 p-2 rounded">
-          <Text className="text-white text-xs">Places: {places.length}</Text>
+          <Text className="text-white text-xs">Places: {places?.length || 0}</Text>
           <Text className="text-white text-xs">Loading: {placesLoading ? 'YES' : 'NO'}</Text>
           <Text className="text-white text-xs">Show Button: {showSearchButton ? 'YES' : 'NO'}</Text>
           {placesError && (

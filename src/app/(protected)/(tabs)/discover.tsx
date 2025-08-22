@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
-import SerperTestComponent from '@/components/SerperTestComponent';
 import {
   BottomSheet,
   FilterTabs,
@@ -14,7 +13,7 @@ import {
   type ViewMode
 } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
-import { SerperPlace } from '@/types/places';
+import { Place } from '@/types/places';
 
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
@@ -44,33 +43,42 @@ const DiscoverScreen = () => {
   }, []);
   
   // Mock data for demonstration - replace with real data
-  const [places] = useState<SerperPlace[]>([
+  const [places] = useState<Place[]>([
     {
-      title: 'Café da Manhã',
-      placeId: 'place-1',
-      address: 'Rua das Flores, 123 - Centro',
-      latitude: -23.550520,
-      longitude: -46.633308,
-      rating: 4.5,
-      category: 'Cafeteria'
+      id: 'place-1',
+      googleData: {
+        name: 'Café da Manhã',
+        address: 'Rua das Flores, 123 - Centro',
+        coordinates: { lat: -23.550520, lng: -46.633308 },
+        rating: 4.5,
+        types: ['cafe', 'restaurant']
+      },
+      coordinates: { lat: -23.550520, lng: -46.633308 },
+      categories: ['cafe']
     },
     {
-      title: 'Restaurante Italiano',
-      placeId: 'place-2',
-      address: 'Av. Paulista, 456 - Bela Vista',
-      latitude: -23.561684,
-      longitude: -46.656139,
-      rating: 4.8,
-      category: 'Restaurante'
+      id: 'place-2',
+      googleData: {
+        name: 'Restaurante Italiano',
+        address: 'Av. Paulista, 456 - Bela Vista',
+        coordinates: { lat: -23.561684, lng: -46.656139 },
+        rating: 4.8,
+        types: ['restaurant', 'italian']
+      },
+      coordinates: { lat: -23.561684, lng: -46.656139 },
+      categories: ['italian', 'restaurant']
     },
     {
-      title: 'Parque Ibirapuera',
-      placeId: 'place-3',
-      address: 'Av. Pedro Álvares Cabral - Vila Mariana',
-      latitude: -23.587416,
-      longitude: -46.657834,
-      rating: 4.6,
-      category: 'Parque'
+      id: 'place-3',
+      googleData: {
+        name: 'Parque Ibirapuera',
+        address: 'Av. Pedro Álvares Cabral - Vila Mariana',
+        coordinates: { lat: -23.587416, lng: -46.657834 },
+        rating: 4.6,
+        types: ['park']
+      },
+      coordinates: { lat: -23.587416, lng: -46.657834 },
+      categories: ['park']
     }
   ]);
 
@@ -106,11 +114,11 @@ const DiscoverScreen = () => {
     setBottomSheetIndex(index);
   }, [isKeyboardVisible]);
 
-  const handlePlacePress = (place: SerperPlace) => {
+  const handlePlacePress = (place: Place) => {
     // TODO: Implement place details modal or navigation
     Alert.alert(
-      place.title,
-      `${place.address}\n\n${place.rating ? `⭐ ${place.rating}` : ''}${place.category ? `\n📍 ${place.category}` : ''}`,
+      place.googleData.name,
+      `${place.googleData.address}\n\n${place.googleData.rating ? `⭐ ${place.googleData.rating}` : ''}${place.categories?.length ? `\n📍 ${place.categories.join(', ')}` : ''}`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Ver Detalhes', onPress: () => console.log('Ver detalhes:', place) },
@@ -121,9 +129,9 @@ const DiscoverScreen = () => {
 
   // Filter places based on search query
   const filteredPlaces = places.filter(place =>
-    place.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    place.googleData.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    place.googleData.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    place.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const renderContent = () => {
@@ -134,13 +142,9 @@ const DiscoverScreen = () => {
     // Render list view with API test for debugging
     return (
       <View className="flex-1 p-4">
-        {__DEV__ ? (
-          <SerperTestComponent />
-        ) : (
-          <Text className="text-center text-gray-600 mt-8">
-            Lista de lugares será implementada aqui
-          </Text>
-        )}
+        <Text className="text-center text-gray-600 mt-8">
+          Lista de lugares será implementada aqui
+        </Text>
       </View>
     );
   };
@@ -217,7 +221,7 @@ const DiscoverScreen = () => {
         {viewMode === 'map' && (
           <BottomSheet
             ref={bottomSheetRef}
-            snapPoints={['25%', '65%', '98%']}
+            snapPoints={['30%', '65%', '98%']}
             index={bottomSheetIndex}
             onChange={handleBottomSheetChange}
             enablePanDownToClose={false}

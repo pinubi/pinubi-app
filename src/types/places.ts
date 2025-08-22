@@ -1,34 +1,34 @@
-export interface SerperPlace {
-  title: string;
-  placeId: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  rating?: number;
-  ratingCount?: number;
-  category?: string;
-  website?: string;
-  phoneNumber?: string;
-  hours?: string;
-  imageUrl?: string;
-  priceLevel?: string;
-}
-
-export interface SerperSearchParams {
-  query: string;
-  latitude: number;
-  longitude: number;
-  zoom?: number;
-  language?: string;
-}
-
-export interface SerperResponse {
-  places: SerperPlace[];
-  searchParameters: {
-    q: string;
-    hl: string;
-    ll: string;
+export interface Place {
+  id: string;
+  googleData: {
+    name: string;
+    address: string;
+    coordinates: {
+      lat: number;
+      lng: number;
+    };
+    phone?: string;
+    website?: string;
+    rating?: number;
+    userRatingsTotal?: number;
+    photos?: string[];
+    types?: string[];
+    priceLevel?: number;
+    openingHours?: {
+      weekdayText?: string[];
+    };
+    lastUpdated?: string;
   };
+  searchableText?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  addedBy?: string[];
+  totalAdds?: number;
+  categories?: string[];
+  createdAt?: string;
+  lastGoogleSync?: string;
 }
 
 export interface MapRegion {

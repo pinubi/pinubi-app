@@ -2,18 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
-import { SerperPlace } from '@/types/places';
+import { Place } from '@/types/places';
 
 interface PlacesListProps {
-  places: SerperPlace[];
-  onPlacePress: (place: SerperPlace) => void;
+  places: Place[];
+  onPlacePress: (place: Place) => void;
   loading?: boolean;
   emptyMessage?: string;
 }
 
 const PlaceCard: React.FC<{
-  place: SerperPlace;
-  onPress: (place: SerperPlace) => void;
+  place: Place;
+  onPress: (place: Place) => void;
 }> = ({ place, onPress }) => {
   return (
     <TouchableOpacity
@@ -28,25 +28,25 @@ const PlaceCard: React.FC<{
       {/* Place info */}
       <View className="flex-1">
         <Text className="text-lg font-semibold text-gray-900 mb-1" numberOfLines={1}>
-          {place.title}
+          {place.googleData.name}
         </Text>
         
         <Text className="text-gray-600 text-sm mb-2" numberOfLines={1}>
-          {place.address}
+          {place.googleData.address}
         </Text>
         
         <View className="flex-row items-center">
-          {place.rating && (
+          {place.googleData.rating && (
             <View className="flex-row items-center mr-4">
               <Ionicons name="star" size={14} color="#FFA500" />
-              <Text className="text-sm text-gray-700 ml-1">{place.rating}</Text>
+              <Text className="text-sm text-gray-700 ml-1">{place.googleData.rating}</Text>
             </View>
           )}
-          {place.category && (
+          {place.categories?.length && (
             <View className="flex-row items-center">
               <Ionicons name="pricetag-outline" size={14} color="#6B7280" />
               <Text className="text-sm text-gray-600 ml-1" numberOfLines={1}>
-                {place.category}
+                {place.categories.join(', ')}
               </Text>
             </View>
           )}
@@ -85,7 +85,7 @@ const PlacesList: React.FC<PlacesListProps> = ({
   return (
     <FlatList
       data={places}
-      keyExtractor={(item, index) => `${item.title}-${index}`}
+      keyExtractor={(item, index) => `${item.id}-${index}`}
       renderItem={({ item }) => (
         <PlaceCard place={item} onPress={onPlacePress} />
       )}

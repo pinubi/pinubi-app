@@ -197,6 +197,7 @@ export const useAuthStore = create<AuthStore>()(
           const currentUser = get().user;
           if (currentUser?.id === 'mock-user-123') {
             // Just clear the mock user
+            console.log('Signing out mock user');
             set({
               user: null,
               isAuthenticated: false,
@@ -206,11 +207,19 @@ export const useAuthStore = create<AuthStore>()(
             return;
           }
 
-          // Sign out from Google
-          await GoogleSignin.signOut();
+          // For real Firebase users, sign out properly
+          try {
+            // Sign out from Google (if available)
+            await GoogleSignin.signOut();
+          } catch (error) {
+            // Google sign out might fail if user wasn't signed in via Google
+            console.log('Google sign out not needed or failed:', error);
+          }
 
           // Sign out from Firebase
           await firebaseSignOut(auth);
+          
+          console.log('Successfully signed out from Firebase');
 
           set({
             user: null,
@@ -233,15 +242,9 @@ export const useAuthStore = create<AuthStore>()(
           const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             console.log('Firebase auth state changed:', firebaseUser?.uid || 'no user');
             
-            // Don't override mock authentication
-            const currentState = get();
-            if (currentState.user?.id === 'mock-user-123') {
-              console.log('Mantendo autenticação mock, ignorando Firebase auth state');
-              return;
-            }
-            
             if (firebaseUser) {
               const user = mapFirebaseUserToUser(firebaseUser);
+              console.log('Setting authenticated user from Firebase:', user.name || user.email);
               set({
                 user,
                 isAuthenticated: true,
@@ -249,6 +252,7 @@ export const useAuthStore = create<AuthStore>()(
                 error: null,
               });
             } else {
+              console.log('No Firebase user found, setting unauthenticated state');
               set({
                 user: null,
                 isAuthenticated: false,
