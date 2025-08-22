@@ -9,11 +9,11 @@ echo ""
 
 # Check if we're on the right branch
 current_branch=$(git branch --show-current)
-if [ "$current_branch" != "main" ]; then
-    echo "⚠️  Warning: You're on branch '$current_branch', not 'main'"
+if [ "$current_branch" != "master" ]; then
+    echo "⚠️  Warning: You're on branch '$current_branch', not 'master'"
     read -p "Continue anyway? (y/N): " continue_anyway
     if [[ $continue_anyway != [yY] && $continue_anyway != [yY][eE][sS] ]]; then
-        echo "Cancelled. Switch to main branch first: git checkout main"
+        echo "Cancelled. Switch to master branch first: git checkout master"
         exit 1
     fi
 fi
@@ -82,7 +82,7 @@ git commit -m "🔖 Bump version to $new_version"
 # Create and push tag
 echo "🏷️  Creating release tag..."
 git tag -a "v$new_version" -m "Release version $new_version"
-git push origin main
+git push origin master
 git push origin "v$new_version"
 
 echo ""
