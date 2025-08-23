@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  ScrollView,
   StatusBar,
   Text,
   TextInput,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import GoogleLogo from '@/components/GoogleLogo';
+import PinubiLogo from '@/components/PinubiLogo';
 import { useAuth } from '@/hooks/useAuth';
 
 const LoginScreen = () => {
@@ -87,20 +87,20 @@ const LoginScreen = () => {
       <View className='absolute top-32 right-8 w-20 h-20 bg-primary-200 rounded-full opacity-30' />
       <View className='absolute bottom-32 left-8 w-16 h-16 bg-primary-300 rounded-full opacity-25' />
       <View className='absolute bottom-48 right-6 w-20 h-20 bg-primary-100 rounded-full opacity-20' />
-
-      <ScrollView
-        className='flex-1'
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        {/* Main Content */}
-        <View className='flex-1 justify-center items-center px-6 py-8'>
+      
+      {/* Additional decorative elements for better visual hierarchy */}
+      <View className='absolute top-48 left-12 w-12 h-12 bg-primary-50 rounded-full opacity-40' />
+      <View className='absolute bottom-64 right-12 w-14 h-14 bg-primary-200 rounded-full opacity-20' />
+      
+      {/* Main Content */}
+      <View className='flex-1 justify-between items-center px-6 py-8'>
+        {/* Top Section - Brand and Login */}
+        <View className='flex-1 justify-center items-center w-full'>
           {/* Brand Section */}
-          <View className='items-center mb-12'>
+          <View className='items-center mb-10'>
             {/* App Icon/Logo */}
-            <View className='w-20 h-20 bg-primary-500 rounded-2xl mb-6 items-center justify-center shadow-lg'>
-              <Ionicons name='location' size={32} color='white' />
+            <View className='w-24 h-24 mb-6 items-center justify-center'>
+              <PinubiLogo size={48} color='#b13bff' />
             </View>
 
             {/* App Name */}
@@ -114,13 +114,13 @@ const LoginScreen = () => {
           </View>
 
           {/* Login Form Section */}
-          <View className='mb-10 w-full max-w-sm'>
+          <View className='w-full max-w-sm'>
             {isEmailLogin ? (
               <View className='space-y-4'>
                 {/* Email Input */}
                 <View className='space-y-2'>
                   <Text className='text-neutral-700 font-medium text-sm ml-1'>Email</Text>
-                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 py-3 flex-row items-center'>
+                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 py-4 flex-row items-center h-14'>
                     <Ionicons name='mail-outline' size={20} color='#6b7280' />
                     <TextInput
                       value={email}
@@ -138,7 +138,7 @@ const LoginScreen = () => {
                 {/* Password Input */}
                 <View className='space-y-2'>
                   <Text className='text-neutral-700 font-medium text-sm ml-1'>Senha</Text>
-                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 py-3 flex-row items-center'>
+                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 py-4 flex-row items-center h-14'>
                     <Ionicons name='lock-closed-outline' size={20} color='#6b7280' />
                     <TextInput
                       value={password}
@@ -160,7 +160,7 @@ const LoginScreen = () => {
                 <TouchableOpacity
                   onPress={handleEmailSignIn}
                   disabled={loading}
-                  className='bg-primary-500 rounded-xl px-6 py-4 items-center justify-center shadow-lg mt-4'
+                  className='bg-primary-500 rounded-xl px-6 py-4 items-center justify-center shadow-lg mt-4 h-14'
                   style={{
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },
@@ -191,7 +191,7 @@ const LoginScreen = () => {
                 <TouchableOpacity
                   onPress={handleGoogleSignIn}
                   disabled={loading}
-                  className='bg-white border-2 border-neutral-200 rounded-xl px-6 py-4 flex-row items-center justify-center shadow-lg'
+                  className='bg-white border-2 border-neutral-200 rounded-xl px-6 py-4 flex-row items-center justify-center shadow-lg h-14'
                   style={{
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },
@@ -211,7 +211,7 @@ const LoginScreen = () => {
                 <TouchableOpacity
                   onPress={handleGoogleSignIn}
                   disabled={loading}
-                  className='bg-white border-2 border-primary-200 rounded-2xl px-6 py-4 flex-row items-center justify-center shadow-lg'
+                  className='bg-white border-2 border-primary-200 rounded-xl px-6 py-4 flex-row items-center justify-center shadow-lg h-14'
                   style={{
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },
@@ -235,7 +235,7 @@ const LoginScreen = () => {
                 </TouchableOpacity>
 
                 {/* Divider */}
-                <View className='flex-row items-center my-4'>
+                <View className='flex-row items-center my-5'>
                   <View className='flex-1 h-px bg-neutral-300' />
                   <Text className='px-4 text-neutral-500 text-sm'>ou</Text>
                   <View className='flex-1 h-px bg-neutral-300' />
@@ -245,7 +245,7 @@ const LoginScreen = () => {
                 <TouchableOpacity
                   onPress={toggleLoginMethod}
                   disabled={loading}
-                  className='bg-primary-500 rounded-2xl px-6 py-4 flex-row items-center justify-center shadow-lg'
+                  className='bg-primary-500 rounded-xl px-6 py-4 flex-row items-center justify-center shadow-lg h-14'
                   style={{
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },
@@ -257,6 +257,30 @@ const LoginScreen = () => {
                   <Ionicons name='mail' size={20} color='white' />
                   <Text className='ml-3 text-white font-semibold text-base'>Entrar com Email</Text>
                 </TouchableOpacity>
+
+                {/* Benefits Section - Compact version */}
+                <View className='flex-column gap-4 mt-8'>
+                  <View className='flex-row items-center'>
+                    <View className='w-8 h-8 bg-primary-100 rounded-lg items-center justify-center mr-3'>
+                      <Ionicons name='compass' size={16} color='#b13bff' />
+                    </View>
+                    <Text className='text-neutral-700 flex-1 text-sm'>Descubra lugares especiais</Text>
+                  </View>
+
+                  <View className='flex-row items-center'>
+                    <View className='w-8 h-8 bg-primary-100 rounded-lg items-center justify-center mr-3'>
+                      <Ionicons name='people' size={16} color='#b13bff' />
+                    </View>
+                    <Text className='text-neutral-700 flex-1 text-sm'>Conecte-se com amigos</Text>
+                  </View>
+
+                  <View className='flex-row items-center'>
+                    <View className='w-8 h-8 bg-primary-100 rounded-lg items-center justify-center mr-3'>
+                      <Ionicons name='heart' size={16} color='#b13bff' />
+                    </View>
+                    <Text className='text-neutral-700 flex-1 text-sm'>Crie coleções de memórias</Text>
+                  </View>
+                </View>
               </View>
             )}
 
@@ -266,63 +290,29 @@ const LoginScreen = () => {
                 {isEmailLogin ? 'Voltar para opções de login' : 'Já tem uma conta? Entre com email'}
               </Text>
             </TouchableOpacity>
+
+            {/* Error Display */}
+            {error && (
+              <TouchableOpacity
+                className='mt-5 px-4 py-3 bg-red-50 rounded-xl border border-red-200'
+                onPress={clearError}
+              >
+                <View className='flex-row items-center'>
+                  <Ionicons name='alert-circle' size={18} color='#dc2626' />
+                  <Text className='text-red-600 text-sm ml-2 flex-1'>{error}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
-
-          {/* Benefits Section - Only show when not in email login mode */}
-          {!isEmailLogin && (
-            <View className='mb-10 w-full max-w-sm'>
-              <View className='flex-row items-center mb-4'>
-                <View className='w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3'>
-                  <Ionicons name='compass' size={16} color='#b13bff' />
-                </View>
-                <Text className='text-neutral-700 flex-1 text-sm'>Descubra lugares especiais</Text>
-              </View>
-
-              <View className='flex-row items-center mb-4'>
-                <View className='w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3'>
-                  <Ionicons name='people' size={16} color='#b13bff' />
-                </View>
-                <Text className='text-neutral-700 flex-1 text-sm'>Conecte-se com amigos através de lugares</Text>
-              </View>
-
-              <View className='flex-row items-center'>
-                <View className='w-8 h-8 bg-primary-100 rounded-full items-center justify-center mr-3'>
-                  <Ionicons name='heart' size={16} color='#b13bff' />
-                </View>
-                <Text className='text-neutral-700 flex-1 text-sm'>Crie coleções das suas memórias</Text>
-              </View>
-            </View>
-          )}
-
-          {/* Sign In Button - Remove this section as it's now handled above */}
-          {/* This section is replaced by the Login Form Section above */}
-
-          {/* Additional Call to Action */}
-          <Text className='text-neutral-500 text-center mt-6 px-6 leading-5 text-xs'>
-            Comece sua jornada de descoberta e transforme cada lugar em uma história que vale a pena compartilhar
-          </Text>
-
-          {/* Error Display */}
-          {error && (
-            <TouchableOpacity
-              className='mt-6 px-4 py-3 bg-red-50 rounded-xl border border-red-200 w-full max-w-sm'
-              onPress={clearError}
-            >
-              <View className='flex-row items-center'>
-                <Ionicons name='alert-circle' size={18} color='#dc2626' />
-                <Text className='text-red-600 text-xs ml-2 flex-1'>{error}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* Footer */}
-        <View className='pb-8 items-center px-6'>
-          <Text className='text-neutral-400 text-xs text-center'>
+        <View className='items-center px-6 pb-2'>
+          <Text className='text-neutral-400 text-xs text-center leading-4'>
             Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
           </Text>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
