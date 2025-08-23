@@ -19,13 +19,9 @@ import { GoogleSignin } from '@/utils/googleSigninMock';
 
 // Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId: '500010338081-0lf4cu0bvbiuki6i6m23gi2f7o33mp7s.apps.googleusercontent.com', // Web Client ID from Google Cloud Console
-  iosClientId: '500010338081-7egmh23t3cpk80b5knn7u9hb2aq9hh2r.apps.googleusercontent.com', // iOS Client ID from GoogleService-Info.plist
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB, // Web Client ID from Google Cloud Console
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS, // iOS Client ID from GoogleService-Info.plist
 });
-
-console.log('Google Sign-In configured with:');
-console.log('- webClientId:', '500010338081-0lf4cu0bvbiuki6i6m23gi2f7o33mp7s.apps.googleusercontent.com');
-console.log('- iosClientId:', '500010338081-7egmh23t3cpk80b5knn7u9hb2aq9hh2r.apps.googleusercontent.com');
 
 const mapFirebaseUserToUser = (firebaseUser: any): User => ({
   id: firebaseUser.uid,

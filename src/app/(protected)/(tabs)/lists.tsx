@@ -151,12 +151,7 @@ const ListsScreen = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <Header
-        title="Pinubi"
-        leftElement={
-          <TouchableOpacity onPress={handleBack}>
-            <Ionicons name="chevron-back" size={24} color="#374151" />
-          </TouchableOpacity>
-        }        
+        title="Pinubi"              
         rightElement={
           <View className="flex-row items-center">
             {/* Points indicator */}
@@ -175,8 +170,7 @@ const ListsScreen = () => {
             </TouchableOpacity>
           </View>
         }
-        onLeftPress={handleBack}
-        onRightPress={handleAddPress}
+        onLeftPress={handleBack}        
         className="bg-white border-b border-gray-100"
       />
 

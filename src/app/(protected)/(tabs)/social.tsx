@@ -90,11 +90,6 @@ const SocialScreen = () => {
     // Handle like logic here
     console.log('Like:', postId);
   };
-  
-  const handleBack = () => {
-    // TODO: Implement back navigation
-    console.log('Go back');
-  };
 
   const renderVotingPost = (post: ActivityPost) => (
     <View key={post.id} className='bg-white mx-4 mb-4 rounded-2xl border border-gray-100'>
@@ -244,12 +239,7 @@ const SocialScreen = () => {
       {/* Header */}
       <Header
         title='Pinubi'
-        className='border-b border-gray-100'
-        leftElement={
-          <TouchableOpacity onPress={handleBack}>
-            <Ionicons name='chevron-back' size={24} color='#374151' />
-          </TouchableOpacity>
-        }
+        className='border-b border-gray-100'        
       />
 
       {/* Match Social Card */}

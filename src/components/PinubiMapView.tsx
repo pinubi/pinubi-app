@@ -317,21 +317,16 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
               <View className="w-6 h-6 bg-blue-500 rounded-full items-center justify-center">
                 <View className="w-3 h-3 bg-white rounded-full" />
               </View>
-            </View>
-            
-            {/* Friendly emoji on top */}
-            <View className="absolute -top-3 bg-white rounded-full w-8 h-8 items-center justify-center border-2 border-blue-500 shadow-md">
-              <Text style={{ fontSize: 16 }}>👋</Text>
-            </View>
+            </View>                     
             
             {/* Nearby places indicator */}
-            {getNearbyPlaces().length > 0 && (
+            {/* {getNearbyPlaces().length > 0 && (
               <View className="absolute -bottom-6 bg-orange-500 rounded-full px-3 py-1 border-2 border-white shadow-lg">
                 <Text className="text-white text-xs font-bold">
                   {getNearbyPlaces().length} 🍽️
                 </Text>
               </View>
-            )}
+            )} */}
           </View>
         </Marker>
 
@@ -339,13 +334,14 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
         {places && places.length > 0 && places
           .filter(place => {
             // Only show places that are NOT within 50 meters of user location
-            const distance = calculateDistance(
-              latitude, 
-              longitude, 
-              place.coordinates.lat, 
-              place.coordinates.lng
-            );
-            return distance > 50;
+            // const distance = calculateDistance(
+            //   latitude, 
+            //   longitude, 
+            //   place.coordinates.lat, 
+            //   place.coordinates.lng
+            // );
+            // return distance > 0;
+            return place;
           })
           .map((place) => {
           
