@@ -397,7 +397,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
             ) : (
               <>
                 <Ionicons name="search" size={20} color="#b13bff" />
-                <Text className="text-primary-600 font-semibold ml-2">Buscar comida na área</Text>
+                <Text className="text-primary-600 font-semibold ml-2">Buscar na área</Text>
               </>
             )}
           </TouchableOpacity>
@@ -406,7 +406,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
 
       {/* Error message for places */}
       {placesError && (
-        <View className={`absolute left-4 right-4 ${isExpoGoSimulator ? 'top-20' : 'top-6'}`}>
+        <View className={`absolute left-4 right-4 top-24`}>
           <View className="bg-red-100 border border-red-200 rounded-lg p-3 flex-row items-center">
             <Ionicons name="alert-circle" size={20} color="#dc2626" />
             <Text className="text-red-700 flex-1 ml-2">{placesError}</Text>

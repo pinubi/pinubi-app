@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.awmoreira.pinubiapp",
+      "buildNumber": "2",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Este aplicativo precisa de acesso à sua localização para mostrar lugares próximos a você.",
@@ -32,6 +33,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.awmoreira.pinubiapp",
+      "versionCode": 2,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

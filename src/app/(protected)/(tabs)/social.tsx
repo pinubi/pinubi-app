@@ -1,7 +1,10 @@
 import Header from '@/components/Header';
+import { ProfileBottomSheet } from '@/components/ui';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
+import type { BottomSheetRef } from '@/components/ui';
 
 interface VotingOption {
   id: string;
@@ -34,6 +37,7 @@ interface ActivityPost {
 }
 
 const SocialScreen = () => {
+  const profileBottomSheetRef = useRef<BottomSheetRef>(null);
   const [activities] = useState<ActivityPost[]>([
     {
       id: '1',
@@ -89,6 +93,10 @@ const SocialScreen = () => {
   const handleLike = (postId: string) => {
     // Handle like logic here
     console.log('Like:', postId);
+  };
+
+  const handleProfilePress = () => {
+    profileBottomSheetRef.current?.snapToIndex(0);
   };
 
   const renderVotingPost = (post: ActivityPost) => (
@@ -239,7 +247,8 @@ const SocialScreen = () => {
       {/* Header */}
       <Header
         title='Pinubi'
-        className='border-b border-gray-100'        
+        className='border-b border-gray-100'
+        onRightPress={handleProfilePress}
       />
 
       {/* Match Social Card */}
@@ -284,6 +293,12 @@ const SocialScreen = () => {
           })}
         </View>
       </ScrollView>
+
+      {/* Profile Bottom Sheet */}
+      <ProfileBottomSheet
+        ref={profileBottomSheetRef}
+        onClose={() => profileBottomSheetRef.current?.close()}
+      />
     </View>
   );
 };
