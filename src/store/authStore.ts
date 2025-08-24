@@ -12,15 +12,17 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { auth } from '@/config/firebase';
 import type { AuthError, AuthStore, User } from '@/types/auth';
-import { GoogleSignin } from '@/utils/googleSigninMock';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-// Note: Using mock GoogleSignin for Expo Go compatibility
-// For production builds, replace with actual GoogleSignin import
+// Note: Using real GoogleSignin - requires development build or production build
+// For Expo Go testing, use signInWithMock() instead
 
 // Configure Google Sign-In
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB, // Web Client ID from Google Cloud Console
   iosClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS, // iOS Client ID from GoogleService-Info.plist
+  offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+  scopes: ['profile', 'email'], // what API you want to access on behalf of the user, default is email and profile
 });
 
 const mapFirebaseUserToUser = (firebaseUser: any): User => ({
@@ -147,7 +149,12 @@ export const useAuthStore = create<AuthStore>()(
           
           console.log('Google Sign-In userInfo:', userInfo);
           
-          if (!userInfo.data?.idToken) {
+          // Check if sign-in was successful
+          if (userInfo.type !== 'success') {
+            throw new Error('Google Sign-In was cancelled or failed');
+          }
+          
+          if (!userInfo.data.idToken) {
             throw new Error('No ID token received from Google Sign-In');
           }
 

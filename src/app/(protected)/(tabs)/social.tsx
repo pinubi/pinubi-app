@@ -268,9 +268,9 @@ const SocialScreen = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Following section header */}
-        <View className='px-4 mb-4'>
+        {/* <View className='px-4 mb-4'>
           <Text className='text-gray-500 text-sm font-medium'>De pessoas que você segue</Text>
-        </View>
+        </View> */}
 
         {/* Activity Feed */}
         <View>
