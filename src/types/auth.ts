@@ -17,6 +17,24 @@ export interface AuthState {
 export interface AuthStore extends AuthState {
   signInWithGoogle: () => Promise<void>;
   signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
+  signUpWithEmailAndPassword: (
+    email: string, 
+    password: string, 
+    userData: {
+      displayName: string;
+      inviteCode: string;
+      preferences: {
+        categories: string[];
+        priceRange: [number, number];
+        dietaryRestrictions: string[];
+      };
+      location: {
+        country: string;
+        state: string;
+        city: string;
+      };
+    }
+  ) => Promise<void>;
   signInWithMock: () => Promise<void>;
   signOut: () => Promise<void>;
   checkAuthState: () => Promise<(() => void) | undefined>;

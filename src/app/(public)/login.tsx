@@ -120,7 +120,7 @@ const LoginScreen = () => {
                 {/* Email Input */}
                 <View className='space-y-2'>
                   <Text className='text-neutral-700 font-medium text-sm ml-1'>Email</Text>
-                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 py-4 flex-row items-center h-14'>
+                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 flex-row items-center h-14'>
                     <Ionicons name='mail-outline' size={20} color='#6b7280' />
                     <TextInput
                       value={email}
@@ -131,6 +131,12 @@ const LoginScreen = () => {
                       autoCapitalize='none'
                       autoCorrect={false}
                       className='flex-1 ml-3 text-neutral-800 text-base'
+                      style={{ 
+                        paddingVertical: 0,
+                        textAlignVertical: 'center',
+                        includeFontPadding: false,
+                        lineHeight: 20
+                      }}
                     />
                   </View>
                 </View>
@@ -138,7 +144,7 @@ const LoginScreen = () => {
                 {/* Password Input */}
                 <View className='space-y-2'>
                   <Text className='text-neutral-700 font-medium text-sm ml-1'>Senha</Text>
-                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 py-4 flex-row items-center h-14'>
+                  <View className='bg-white border-2 border-neutral-200 rounded-xl px-4 flex-row items-center h-14'>
                     <Ionicons name='lock-closed-outline' size={20} color='#6b7280' />
                     <TextInput
                       value={password}
@@ -149,6 +155,12 @@ const LoginScreen = () => {
                       autoCapitalize='none'
                       autoCorrect={false}
                       className='flex-1 ml-3 text-neutral-800 text-base'
+                      style={{ 
+                        paddingVertical: 0,
+                        textAlignVertical: 'center',
+                        includeFontPadding: false,
+                        lineHeight: 20
+                      }}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                       <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color='#6b7280' />
@@ -308,6 +320,15 @@ const LoginScreen = () => {
 
         {/* Footer */}
         <View className='items-center px-6 pb-2'>
+          <TouchableOpacity 
+            onPress={() => router.navigate('/(public)/register' as any)} 
+            className='mb-4 py-2'
+          >
+            <Text className='text-primary-600 font-medium text-sm'>
+              Não tem uma conta? Criar conta
+            </Text>
+          </TouchableOpacity>
+          
           <Text className='text-neutral-400 text-xs text-center leading-4'>
             Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
           </Text>

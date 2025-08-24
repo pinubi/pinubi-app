@@ -3,14 +3,15 @@ import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
 import {
-  BottomSheet,
-  FilterTabs,
-  Header,
-  PlacesList,
-  SearchInput,
-  ViewModeDropdown,
-  type BottomSheetRef,
-  type ViewMode
+    BottomSheet,
+    FilterTabs,
+    Header,
+    PlacesList,
+    ProfileBottomSheet,
+    SearchInput,
+    ViewModeDropdown,
+    type BottomSheetRef,
+    type ViewMode
 } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { Place } from '@/types/places';
@@ -18,6 +19,7 @@ import { Place } from '@/types/places';
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const profileBottomSheetRef = useRef<BottomSheetRef>(null);
   const [activeTab, setActiveTab] = useState<'amigos' | 'tendencias' | 'reservas'>('amigos');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,8 +91,7 @@ const DiscoverScreen = () => {
   ];
 
   const handleProfilePress = () => {
-    // Navigate to profile or show profile menu
-    console.log('Profile pressed');
+    profileBottomSheetRef.current?.snapToIndex(0);
   };
 
   const handleSearchFocus = useCallback(() => {
@@ -232,6 +233,12 @@ const DiscoverScreen = () => {
           </BottomSheet>
         )}
       </View>
+
+      {/* Profile Bottom Sheet */}
+      <ProfileBottomSheet
+        ref={profileBottomSheetRef}
+        onClose={() => profileBottomSheetRef.current?.close()}
+      />
     </View>
   );
 };

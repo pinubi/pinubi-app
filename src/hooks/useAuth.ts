@@ -10,6 +10,7 @@ export const useAuth = () => {
     isAuthenticated,
     signInWithGoogle,
     signInWithEmailAndPassword,
+    signUpWithEmailAndPassword,
     signInWithMock,
     signOut,
     checkAuthState,
@@ -31,6 +32,7 @@ export const useAuth = () => {
     // Actions
     signInWithGoogle,
     signInWithEmailAndPassword,
+    signUpWithEmailAndPassword,
     signInWithMock,
     signOut,
     clearError,

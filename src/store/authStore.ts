@@ -2,10 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import {
   GoogleAuthProvider,
+  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
   signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  signInWithCredential
+  signInWithCredential,
+  updateProfile
 } from 'firebase/auth';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -213,6 +215,83 @@ export const useAuthStore = create<AuthStore>()(
           
           const authError = mapFirebaseAuthErrorToAuthError(error);
           const errorMessage = getErrorMessage(authError);
+          
+          set({
+            loading: false,
+            error: errorMessage,
+            user: null,
+            isAuthenticated: false,
+          });
+        }
+      },
+
+      signUpWithEmailAndPassword: async (
+        email: string, 
+        password: string, 
+        userData: {
+          displayName: string;
+          inviteCode: string;
+          preferences: {
+            categories: string[];
+            priceRange: [number, number];
+            dietaryRestrictions: string[];
+          };
+          location: {
+            country: string;
+            state: string;
+            city: string;
+          };
+        }
+      ) => {
+        try {
+          set({ loading: true, error: null });
+
+          console.log('Firebase email/password signup started for:', email);
+
+          // Create user with Firebase Auth
+          const userCredential = await firebaseCreateUserWithEmailAndPassword(auth, email, password);
+          
+          console.log('Firebase user created successfully:', userCredential.user.uid);
+
+          // Update the user's display name
+          await updateProfile(userCredential.user, {
+            displayName: userData.displayName,
+          });
+
+          console.log('User profile updated with display name:', userData.displayName);
+
+          // TODO: Here you would typically:
+          // 1. Validate the invite code against your database
+          // 2. Create the user document in Firestore with all the userData
+          // 3. Create the default lists ("Quero Visitar", "Favoritas")
+          // 4. Create user profile and settings documents
+          // 5. Increment invite usage for the inviter
+          // This will require Cloud Functions or direct Firestore calls
+
+          const user = mapFirebaseUserToUser(userCredential.user);
+          
+          set({
+            user,
+            isAuthenticated: true,
+            loading: false,
+            error: null,
+          });
+
+          console.log('User registration completed successfully');
+        } catch (error: any) {
+          console.error('Email/Password Sign-Up Error:', error);
+          
+          const authError = mapFirebaseAuthErrorToAuthError(error);
+          let errorMessage = getErrorMessage(authError);
+
+          // Handle specific signup errors
+          if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'Este email já está em uso. Tente fazer login ou use outro email.';
+          } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'A senha é muito fraca. Use pelo menos 6 caracteres.';
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email inválido. Verifique o formato do email.';
+          }
           
           set({
             loading: false,
