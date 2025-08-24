@@ -8,6 +8,7 @@
       "channel": "development",
       "distribution": "internal",
       "environment": "development",
+      "autoIncrement": true,
       "ios": {
         "developmentClient": true,
         "simulator": true
@@ -21,6 +22,7 @@
       "channel": "preview",
       "distribution": "internal",
       "environment": "production",
+      "autoIncrement": true,
       "ios": {
         "simulator": false
       },
@@ -32,6 +34,7 @@
       "channel": "testflight",
       "distribution": "store",
       "environment": "production",
+      "autoIncrement": true,
       "ios": {
         "simulator": false
       }
@@ -39,6 +42,7 @@
     "production": {
       "channel": "production",
       "environment": "production",
+      "autoIncrement": true,
       "ios": {
         "simulator": false
       },
