@@ -1,9 +1,21 @@
 import Header from '@/components/Header';
-import { ProfileBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
+import {
+  CreateEditListBottomSheetPortal,
+  ProfileBottomSheetPortal,
+  type BottomSheetRef
+} from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
+interface ListFormData {
+  title: string;
+  emoji: string;
+  description: string;
+  visibility: 'public' | 'private';
+  tags: string[];
+}
 
 interface ListCardProps {
   emoji: string;
@@ -14,6 +26,7 @@ interface ListCardProps {
   isPublic?: boolean;
   backgroundColor?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
 const ListCard: React.FC<ListCardProps> = ({
@@ -25,10 +38,12 @@ const ListCard: React.FC<ListCardProps> = ({
   isPublic = false,
   backgroundColor = 'bg-orange-500',
   onPress,
+  onLongPress,
 }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
+      onLongPress={onLongPress}
       className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex-1 mx-1 mb-4"
       style={{ elevation: 2 }}
     >
@@ -83,6 +98,7 @@ const NewListCard: React.FC<{ onPress?: () => void }> = ({ onPress }) => {
 
 const ListsScreen = () => {
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
+  const createEditListBottomSheetRef = useRef<BottomSheetRef>(null);
 
   // Hooks
   const { userPhoto } = useAuth();
@@ -92,8 +108,21 @@ const ListsScreen = () => {
   };
 
   const handleCreateList = () => {
-    // TODO: Implement create list functionality
-    console.log('Create new list');
+    createEditListBottomSheetRef.current?.snapToIndex(0);
+  };
+
+  const handleEditList = (listId: string) => {
+    // TODO: Load list data and open in edit mode
+    console.log('Edit list:', listId);
+    createEditListBottomSheetRef.current?.snapToIndex(0);
+  };
+
+  const handleSaveList = (data: ListFormData) => {
+    // TODO: Implement save list functionality (create or update)
+    console.log('Save list data:', data);
+    
+    // For now, just log the data
+    // In the next step, we'll implement the actual Firebase operations
   };
 
   const handleListPress = (listId: string) => {
@@ -202,6 +231,7 @@ const ListsScreen = () => {
               backgroundColor="bg-yellow-500"
               isPublic={true}
               onPress={() => handleListPress('3')}
+              onLongPress={() => handleEditList('3')}
             />
           </View>
 
@@ -215,6 +245,7 @@ const ListsScreen = () => {
               backgroundColor="bg-orange-600"
               isPrivate={true}
               onPress={() => handleListPress('4')}
+              onLongPress={() => handleEditList('4')}
             />
             <ListCard
               emoji="💕"
@@ -224,6 +255,7 @@ const ListsScreen = () => {
               backgroundColor="bg-pink-500"
               isPrivate={true}
               onPress={() => handleListPress('5')}
+              onLongPress={() => handleEditList('5')}
             />
           </View>
         </View>
@@ -236,6 +268,14 @@ const ListsScreen = () => {
       <ProfileBottomSheetPortal
         ref={profileBottomSheetRef}
         onClose={() => profileBottomSheetRef.current?.close()}
+      />
+
+      {/* Create/Edit List Bottom Sheet */}
+      <CreateEditListBottomSheetPortal
+        ref={createEditListBottomSheetRef}
+        mode="create"
+        onSave={handleSaveList}
+        onClose={() => createEditListBottomSheetRef.current?.close()}
       />
     </View>
   );
