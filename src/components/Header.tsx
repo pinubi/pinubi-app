@@ -10,6 +10,9 @@ interface HeaderProps {
   rightElement?: React.ReactNode;
   onLeftPress?: () => void;
   onRightPress?: () => void;
+  rightIcon?: keyof typeof Ionicons.glyphMap;
+  secondaryRightIcon?: keyof typeof Ionicons.glyphMap;
+  onSecondaryRightPress?: () => void;
   userPhoto?: string | null;
   className?: string;
   titleClassName?: string;
@@ -22,6 +25,9 @@ const Header: React.FC<HeaderProps> = ({
   rightElement,
   onLeftPress,
   onRightPress,
+  rightIcon,
+  secondaryRightIcon,
+  onSecondaryRightPress,
   userPhoto,
   className = '',
   titleClassName = '',
@@ -42,6 +48,16 @@ const Header: React.FC<HeaderProps> = ({
         </TouchableOpacity>
       );
     }
+    
+    // Default back button for navigation
+    if (onLeftPress) {
+      return (
+        <TouchableOpacity onPress={onLeftPress} className='w-10 h-10 items-center justify-center'>
+          <Ionicons name='arrow-back' size={24} color='#374151' />
+        </TouchableOpacity>
+      );
+    }
+    
     return null;
   };
 
@@ -55,11 +71,36 @@ const Header: React.FC<HeaderProps> = ({
     }
 
     return (
-      <TouchableOpacity onPress={onRightPress} disabled={!onRightPress}>
-        <View className='w-10 h-10 bg-gray-200 rounded-full items-center justify-center'>
-          <Ionicons name='person-outline' size={16} color='#6B7280' />
-        </View>
-      </TouchableOpacity>
+      <View className='flex-row items-center gap-2'>
+        {/* Primary right icon */}
+        {rightIcon && onRightPress && (
+          <TouchableOpacity 
+            onPress={onRightPress} 
+            className='w-10 h-10 items-center justify-center'
+          >
+            <Ionicons name={rightIcon} size={24} color='#374151' />
+          </TouchableOpacity>
+        )}
+        
+        {/* Secondary right icon */}
+        {secondaryRightIcon && onSecondaryRightPress && (
+          <TouchableOpacity 
+            onPress={onSecondaryRightPress}
+            className='w-10 h-10 items-center justify-center'
+          >
+            <Ionicons name={secondaryRightIcon} size={24} color='#374151' />
+          </TouchableOpacity>
+        )}
+        
+        {/* Default user profile icon if no custom icons */}
+        {!rightIcon && !secondaryRightIcon && (
+          <TouchableOpacity onPress={onRightPress} disabled={!onRightPress}>
+            <View className='w-10 h-10 bg-gray-200 rounded-full items-center justify-center'>
+              <Ionicons name='person-outline' size={16} color='#6B7280' />
+            </View>
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
