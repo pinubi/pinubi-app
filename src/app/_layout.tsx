@@ -1,10 +1,10 @@
 import '@/global.css';
 import {
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  useFonts,
 } from '@expo-google-fonts/poppins';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { SplashScreen, Stack } from 'expo-router';
@@ -12,6 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { PortalProvider } from '@/components/ui/PortalProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,11 +64,13 @@ const InitialLayout = () => {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(public)" />
-        <Stack.Screen name="(protected)" />
-      </Stack>
+      <PortalProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(public)" />
+          <Stack.Screen name="(protected)" />
+        </Stack>
+      </PortalProvider>
     </Animated.View>
   );
 };

@@ -5,6 +5,7 @@ export type { ViewMode } from '../ViewModeDropdown';
 export { default as BottomSheet } from './BottomSheet';
 export type { BottomSheetProps, BottomSheetRef } from './BottomSheet';
 export { default as PlacesList } from './PlacesList';
-export { default as ProfileBottomSheet } from './ProfileBottomSheet';
+export { PortalProvider, usePortal } from './PortalProvider';
+export { default as ProfileBottomSheetPortal } from './ProfileBottomSheetPortal';
 export { default as SearchInput } from './SearchInput';
 

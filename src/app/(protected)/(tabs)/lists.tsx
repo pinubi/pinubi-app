@@ -1,6 +1,8 @@
 import Header from '@/components/Header';
+import { ProfileBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
+import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useRef } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 interface ListCardProps {
@@ -80,6 +82,15 @@ const NewListCard: React.FC<{ onPress?: () => void }> = ({ onPress }) => {
 };
 
 const ListsScreen = () => {
+  const profileBottomSheetRef = useRef<BottomSheetRef>(null);
+
+  // Hooks
+  const { userPhoto } = useAuth();
+
+  const handleProfilePress = () => {
+    profileBottomSheetRef.current?.snapToIndex(0);
+  };
+
   const handleCreateList = () => {
     // TODO: Implement create list functionality
     console.log('Create new list');
@@ -93,11 +104,6 @@ const ListsScreen = () => {
   const handleBack = () => {
     // TODO: Implement back navigation
     console.log('Go back');
-  };
-
-  const handleAddPress = () => {
-    // TODO: Implement add functionality
-    console.log('Add pressed');
   };
 
   // Mock data for lists
@@ -152,24 +158,8 @@ const ListsScreen = () => {
       {/* Header */}
       <Header
         title="Pinubi"              
-        rightElement={
-          <View className="flex-row items-center">
-            {/* Points indicator */}
-            <View className="flex-row items-center mr-3">
-              <View className="w-2 h-2 bg-primary-500 rounded-full mr-2" />
-              <Text className="text-sm font-medium text-gray-700">
-                0 pontos
-              </Text>
-            </View>
-            {/* Add button */}
-            <TouchableOpacity 
-              onPress={handleAddPress}
-              className="w-10 h-10 bg-primary-500 rounded-full items-center justify-center"
-            >
-              <Ionicons name="add" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-        }
+        userPhoto={userPhoto}
+        onRightPress={handleProfilePress}
         onLeftPress={handleBack}        
         className="bg-white border-b border-gray-100"
       />
@@ -241,6 +231,12 @@ const ListsScreen = () => {
         {/* Bottom spacing */}
         <View className="h-6" />
       </ScrollView>
+
+      {/* Profile Bottom Sheet */}
+      <ProfileBottomSheetPortal
+        ref={profileBottomSheetRef}
+        onClose={() => profileBottomSheetRef.current?.close()}
+      />
     </View>
   );
 };

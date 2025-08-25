@@ -68,7 +68,7 @@ const RegisterScreen = () => {
     
     // Preferências (Passo 2)
     categories: [] as string[],
-    priceRange: [1, 3] as [number, number],
+    priceRange: [1, 2] as number[],
     dietaryRestrictions: [] as string[],
     
     // Localização (Passo 3)
@@ -213,10 +213,10 @@ const RegisterScreen = () => {
     }));
   };
 
-  const setPriceRange = (minIndex: number, maxIndex: number) => {
+  const setPriceRange = (id: number) => {
     setFormData(prev => ({
       ...prev,
-      priceRange: [minIndex + 1, maxIndex + 1] as [number, number]
+      priceRange: prev.priceRange.includes(id) ? prev.priceRange.filter(item => item !== id) :  [...prev.priceRange, id]
     }));
   };
 
@@ -407,12 +407,12 @@ const RegisterScreen = () => {
                 Faixa de Preço Preferida
               </Text>
               <View className='flex-col gap-2'>
-                {PRICE_RANGES.map((range, index) => (
+                {PRICE_RANGES.map((range) => (
                   <TouchableOpacity
                     key={range.id}
-                    onPress={() => setPriceRange(index, index)}
+                    onPress={() => setPriceRange(range.id)}
                     className={`p-4 rounded-xl border-2 flex-row items-center justify-between ${
-                      formData.priceRange[0] <= range.id && formData.priceRange[1] >= range.id
+                      formData.priceRange.includes(range.id)
                         ? 'bg-primary-100 border-primary-300'
                         : 'bg-white border-neutral-200'
                     }`}

@@ -34,6 +34,7 @@ const mapFirebaseUserToUser = (firebaseUser: any): User => ({
   photo: firebaseUser.photoURL,
   givenName: firebaseUser.displayName?.split(' ')[0],
   familyName: firebaseUser.displayName?.split(' ').slice(1).join(' '),
+  createdAt: firebaseUser.metadata?.creationTime,
 });
 
 const mapGoogleSignInErrorToAuthError = (error: any): AuthError => {

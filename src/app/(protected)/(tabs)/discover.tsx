@@ -3,15 +3,15 @@ import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
 import {
-    BottomSheet,
-    FilterTabs,
-    Header,
-    PlacesList,
-    ProfileBottomSheet,
-    SearchInput,
-    ViewModeDropdown,
-    type BottomSheetRef,
-    type ViewMode
+  BottomSheet,
+  FilterTabs,
+  Header,
+  PlacesList,
+  ProfileBottomSheetPortal,
+  SearchInput,
+  ViewModeDropdown,
+  type BottomSheetRef,
+  type ViewMode
 } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { Place } from '@/types/places';
@@ -235,7 +235,7 @@ const DiscoverScreen = () => {
       </View>
 
       {/* Profile Bottom Sheet */}
-      <ProfileBottomSheet
+      <ProfileBottomSheetPortal
         ref={profileBottomSheetRef}
         onClose={() => profileBottomSheetRef.current?.close()}
       />

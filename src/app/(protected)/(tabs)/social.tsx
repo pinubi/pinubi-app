@@ -1,10 +1,8 @@
 import Header from '@/components/Header';
-import { ProfileBottomSheet } from '@/components/ui';
+import { ProfileBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useRef, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-import type { BottomSheetRef } from '@/components/ui';
 
 interface VotingOption {
   id: string;
@@ -295,7 +293,7 @@ const SocialScreen = () => {
       </ScrollView>
 
       {/* Profile Bottom Sheet */}
-      <ProfileBottomSheet
+      <ProfileBottomSheetPortal
         ref={profileBottomSheetRef}
         onClose={() => profileBottomSheetRef.current?.close()}
       />

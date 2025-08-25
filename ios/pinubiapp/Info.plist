@@ -25,13 +25,8 @@
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>pinubiapp</string>
-          <string>com.awmoreira.pinubiapp</string>
-        </array>
-      </dict>
-      <dict>
+        <key>CFBundleURLName</key>
+        <string>google</string>
         <key>CFBundleURLSchemes</key>
         <array>
           <string>com.googleusercontent.apps.500010338081-7egmh23t3cpk80b5knn7u9hb2aq9hh2r</string>
@@ -55,7 +50,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
     <key>GMSApiKey</key>
     <string>AIzaSyBWk8hTBPSPT6xrt4DS6JY0m677uegY9rM</string>
     <key>LSMinimumSystemVersion</key>

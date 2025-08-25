@@ -5,6 +5,7 @@ export interface User {
   photo: string | null;
   familyName?: string;
   givenName?: string;
+  createdAt?: string;
 }
 
 export interface AuthState {
