@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -221,8 +220,7 @@ const RegisterScreen = () => {
   };
 
   return (
-    <SafeAreaView className='flex-1'>
-      <StatusBar barStyle='dark-content' backgroundColor='transparent' translucent />
+    <SafeAreaView className='flex-1'>      
 
       {/* Background Gradient */}
       <LinearGradient
