@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface SearchInputProps {
   value: string;
@@ -9,6 +9,7 @@ interface SearchInputProps {
   onBlur: () => void;
   placeholder?: string;
   autoFocus?: boolean;
+  loading?: boolean;
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({
@@ -18,6 +19,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onBlur,
   placeholder = 'Buscar lugares...',
   autoFocus = false,
+  loading = false,
 }) => {
   return (
     <View className="px-2 py-2">
@@ -33,12 +35,20 @@ const SearchInput: React.FC<SearchInputProps> = ({
           autoFocus={autoFocus}
           className="flex-1 ml-3 text-base text-gray-900"
           returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
-        {value.length > 0 && (
-          <TouchableOpacity onPress={() => onChangeText('')}>
-            <Ionicons name="close-circle" size={20} color="#6B7280" />
-          </TouchableOpacity>
-        )}
+        
+        {/* Loading indicator or clear button */}
+        <View className="ml-2">
+          {loading ? (
+            <ActivityIndicator size="small" color="#6B7280" />
+          ) : value.length > 0 ? (
+            <TouchableOpacity onPress={() => onChangeText('')}>
+              <Ionicons name="close-circle" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
     </View>
   );

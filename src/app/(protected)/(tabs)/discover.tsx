@@ -3,6 +3,7 @@ import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
 import {
+  AutocompleteList,
   BottomSheet,
   FilterTabs,
   Header,
@@ -14,17 +15,35 @@ import {
   type ViewMode
 } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
+import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
+import { firebaseService } from '@/services/firebaseService';
+import { AutocompleteResult } from '@/types/googlePlaces';
 import { Place } from '@/types/places';
 
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
-  const [activeTab, setActiveTab] = useState<'amigos' | 'tendencias' | 'reservas'>('amigos');
+  const [activeTab, setActiveTab] = useState<'pinubi' | 'hype' | 'places'>('pinubi');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [searchQuery, setSearchQuery] = useState('');
   const [bottomSheetIndex, setBottomSheetIndex] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+
+  // Google Places Autocomplete
+  const {
+    results: autocompleteResults,
+    loading: autocompleteLoading,
+    error: autocompleteError,
+    search: searchAutocomplete,
+    clearResults: clearAutocompleteResults,
+    isApiAvailable,
+  } = useGooglePlacesAutocomplete({
+    debounceDelay: 300,
+    minCharacters: 3,
+  });
 
   // Keyboard listeners
   useEffect(() => {
@@ -85,9 +104,9 @@ const DiscoverScreen = () => {
   ]);
 
   const tabs = [
-    { id: 'amigos' as const, label: 'Lista da Pinubi', icon: 'star' as const },
-    { id: 'tendencias' as const, label: 'Em Alta', icon: 'flame' as const },
-    { id: 'reservas' as const, label: 'Meus Locais', icon: 'bookmark' as const },
+    { id: 'pinubi' as const, label: 'Lista da Pinubi', icon: 'star' as const },
+    { id: 'hype' as const, label: 'Em Alta', icon: 'flame' as const },
+    { id: 'places' as const, label: 'Meus Lugares', icon: 'bookmark' as const },
   ];
 
   const handleProfilePress = () => {
@@ -96,24 +115,87 @@ const DiscoverScreen = () => {
 
   const handleSearchFocus = useCallback(() => {
     // Expand bottom sheet to full height when search is focused
+    setIsSearchFocused(true);
+    setShowAutocomplete(true);
     bottomSheetRef.current?.snapToIndex(2);
   }, []);
 
   const handleSearchBlur = useCallback(() => {
-    // Optionally collapse to middle position when search loses focus
-    if (searchQuery.length === 0) {
-      bottomSheetRef.current?.snapToIndex(0);
+    // Keep the sheet open if there's search content, otherwise allow collapse
+    setIsSearchFocused(false);
+    // Don't hide autocomplete immediately - let user select results
+    // if (searchQuery.length === 0 && !isKeyboardVisible) {
+    //   setShowAutocomplete(false);
+    //   bottomSheetRef.current?.snapToIndex(0);
+    // }
+  }, [searchQuery, isKeyboardVisible]);
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text);
+    
+    if (text.length >= 3 && isApiAvailable) {
+      // Trigger autocomplete search
+      setShowAutocomplete(true);
+      searchAutocomplete(text);
+    } else {
+      // Clear autocomplete for short queries
+      setShowAutocomplete(false);
+      clearAutocompleteResults();
     }
-  }, [searchQuery]);
+  }, [isApiAvailable, searchAutocomplete, clearAutocompleteResults]);
+
+  const handleAutocompleteSelect = useCallback(async (result: AutocompleteResult) => {
+    console.log('🎯 Autocomplete result selected:', result);
+    
+    try {
+      // Get full place details from Firebase
+      const placeDetails = await firebaseService.getPlaceDetails(result.place_id);
+      
+      if (placeDetails.success && placeDetails.data) {
+        // TODO: Open place details bottom sheet
+        // For now, show an alert with place info
+        Alert.alert(
+          placeDetails.data.googleData.name,
+          `${placeDetails.data.googleData.address}\n\n${placeDetails.data.googleData.rating ? `⭐ ${placeDetails.data.googleData.rating}` : ''}`,
+          [
+            { text: 'Fechar', style: 'cancel' },
+            { text: 'Ver no Mapa', onPress: () => console.log('Show on map:', placeDetails.data) },
+          ]
+        );
+      } else {
+        // Show friendly error message
+        Alert.alert(
+          'Local não encontrado',
+          'Não foi possível carregar os detalhes deste local no momento.',
+          [{ text: 'Ok', style: 'default' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error getting place details:', error);
+      Alert.alert(
+        'Erro',
+        'Ocorreu um erro ao buscar os detalhes do local.',
+        [{ text: 'Ok', style: 'default' }]
+      );
+    }
+    
+    // Clear search and hide autocomplete
+    setSearchQuery('');
+    setShowAutocomplete(false);
+    clearAutocompleteResults();
+    
+    // Collapse bottom sheet
+    bottomSheetRef.current?.snapToIndex(0);
+  }, [clearAutocompleteResults]);
 
   const handleBottomSheetChange = useCallback((index: number) => {
-    // Prevent sheet changes when keyboard is visible (except allowing top position)
-    if (isKeyboardVisible && index !== 2) {
+    // Prevent sheet changes when keyboard is visible or search is focused (except allowing top position)
+    if ((isSearchFocused) && index !== 2) {
       bottomSheetRef.current?.snapToIndex(2);
       return;
     }
     setBottomSheetIndex(index);
-  }, [isKeyboardVisible]);
+  }, [isKeyboardVisible, isSearchFocused]);
 
   const handlePlacePress = (place: Place) => {
     // TODO: Implement place details modal or navigation
@@ -157,37 +239,58 @@ const DiscoverScreen = () => {
         <View className="p-2">
           <SearchInput
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={handleSearchChange}
             onFocus={handleSearchFocus}
             onBlur={handleSearchBlur}
             placeholder="Buscar lugares incríveis..."
+            loading={autocompleteLoading}
           />
         </View>
         
-        {/* Content Area - Always present but may be clipped at first snap point */}
+        {/* Content Area - Show autocomplete or places list */}
         <View className="flex-1 px-2">
-          {/* Header for places list */}
-          <View className="px-2 py-2 border-b border-gray-100">
-            <Text className="text-lg font-semibold text-gray-900 mb-1">
-              {searchQuery ? 'Resultados da busca' : 'Lugares recomendados'}
-            </Text>
-            <Text className="text-sm text-gray-600">
-              {filteredPlaces.length} {filteredPlaces.length === 1 ? 'lugar encontrado' : 'lugares encontrados'}
-            </Text>
-          </View>
-          
-          {/* Places List */}
-          <View className="flex-1 mt-2">
-            <PlacesList
-              places={filteredPlaces}
-              onPlacePress={handlePlacePress}
+          {showAutocomplete ? (
+            // Show autocomplete results
+            <AutocompleteList
+              results={autocompleteResults}
+              onResultPress={handleAutocompleteSelect}
+              loading={autocompleteLoading}
+              error={autocompleteError}
               emptyMessage={
-                searchQuery 
-                  ? 'Nenhum lugar encontrado para sua busca' 
-                  : 'Nenhum lugar recomendado no momento'
+                searchQuery.length < 3 
+                  ? 'Digite pelo menos 3 caracteres para buscar...'
+                  : !isApiAvailable
+                  ? 'Busca indisponível no momento'
+                  : 'Nenhum lugar encontrado para sua busca'
               }
             />
-          </View>
+          ) : (
+            // Show regular places list
+            <>
+              {/* Header for places list */}
+              <View className="px-2 py-2 border-b border-gray-100">
+                <Text className="text-lg font-semibold text-gray-900 mb-1">
+                  {searchQuery ? 'Resultados da busca' : 'Seus lugares favoritos'}
+                </Text>
+                <Text className="text-sm text-gray-600">
+                  {filteredPlaces.length} {filteredPlaces.length === 1 ? 'lugar encontrado' : 'lugares encontrados'}
+                </Text>
+              </View>
+              
+              {/* Places List */}
+              <View className="flex-1 mt-2">
+                <PlacesList
+                  places={filteredPlaces}
+                  onPlacePress={handlePlacePress}
+                  emptyMessage={
+                    searchQuery 
+                      ? 'Nenhum lugar encontrado para sua busca' 
+                      : 'Nenhum lugar recomendado no momento'
+                  }
+                />
+              </View>
+            </>
+          )}
         </View>
       </View>
     );
@@ -225,8 +328,7 @@ const DiscoverScreen = () => {
             snapPoints={['30%', '65%', '98%']}
             index={bottomSheetIndex}
             onChange={handleBottomSheetChange}
-            enablePanDownToClose={false}
-            enableHandlePanningGesture={!isKeyboardVisible}
+            enablePanDownToClose={false}            
             enableContentPanningGesture={true}
           >
             {renderBottomSheetContent()}
