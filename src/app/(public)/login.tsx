@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -71,8 +70,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView className='flex-1'>
-      <StatusBar barStyle='dark-content' backgroundColor='transparent' translucent />
+    <SafeAreaView className='flex-1'>      
 
       {/* Background Gradient */}
       <LinearGradient

@@ -7,6 +7,7 @@ import {
   BottomSheet,
   FilterTabs,
   Header,
+  PlaceDetailsBottomSheetPortal,
   PlacesList,
   ProfileBottomSheetPortal,
   SearchInput,
@@ -24,9 +25,11 @@ const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
+  const placeDetailsBottomSheetRef = useRef<BottomSheetRef>(null);
   const [activeTab, setActiveTab] = useState<'pinubi' | 'hype' | 'places'>('pinubi');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [bottomSheetIndex, setBottomSheetIndex] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -152,16 +155,9 @@ const DiscoverScreen = () => {
       const placeDetails = await firebaseService.getPlaceDetails(result.place_id);
       
       if (placeDetails.success && placeDetails.data) {
-        // TODO: Open place details bottom sheet
-        // For now, show an alert with place info
-        Alert.alert(
-          placeDetails.data.googleData.name,
-          `${placeDetails.data.googleData.address}\n\n${placeDetails.data.googleData.rating ? `⭐ ${placeDetails.data.googleData.rating}` : ''}`,
-          [
-            { text: 'Fechar', style: 'cancel' },
-            { text: 'Ver no Mapa', onPress: () => console.log('Show on map:', placeDetails.data) },
-          ]
-        );
+        // Set the selected place and the bottom sheet will open automatically
+        console.log('🔵 Setting selected place:', placeDetails.data.googleData.name);
+        setSelectedPlace(placeDetails.data);
       } else {
         // Show friendly error message
         Alert.alert(
@@ -198,17 +194,43 @@ const DiscoverScreen = () => {
   }, [isKeyboardVisible, isSearchFocused]);
 
   const handlePlacePress = (place: Place) => {
-    // TODO: Implement place details modal or navigation
+    // Set the selected place and the bottom sheet will open automatically
+    console.log('🔵 Place pressed:', place.googleData.name);
+    setSelectedPlace(place);
+
+    placeDetailsBottomSheetRef.current?.snapToIndex(1);
+  };
+
+  // Place details action handlers
+  const handleSavePlace = useCallback((place: Place) => {
+    console.log('Save place:', place);
+    // TODO: Implement save place functionality
+    Alert.alert('Local Salvo', `${place.googleData.name} foi salvo em suas listas!`);
+  }, []);
+
+  const handleReserveTable = useCallback((place: Place) => {
+    console.log('Reserve table:', place);
+    // TODO: Implement reservation functionality
     Alert.alert(
-      place.googleData.name,
-      `${place.googleData.address}\n\n${place.googleData.rating ? `⭐ ${place.googleData.rating}` : ''}${place.categories?.length ? `\n📍 ${place.categories.join(', ')}` : ''}`,
+      'Reservar Mesa',
+      `Deseja reservar uma mesa no ${place.googleData.name}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Ver Detalhes', onPress: () => console.log('Ver detalhes:', place) },
-        { text: 'Salvar Local', onPress: () => console.log('Salvar local:', place) },
+        { text: 'Confirmar', onPress: () => console.log('Reservation confirmed') }
       ]
     );
-  };
+  }, []);
+
+  const handleShowOnMap = useCallback((place: Place) => {
+    console.log('Show on map:', place);
+    // TODO: Implement show on map functionality
+    setViewMode('map');
+    placeDetailsBottomSheetRef.current?.close();
+  }, []);
+
+  const handlePlaceDetailsClose = useCallback(() => {
+    setSelectedPlace(null);
+  }, []);
 
   // Filter places based on search query
   const filteredPlaces = places.filter(place =>
@@ -340,6 +362,16 @@ const DiscoverScreen = () => {
       <ProfileBottomSheetPortal
         ref={profileBottomSheetRef}
         onClose={() => profileBottomSheetRef.current?.close()}
+      />
+
+      {/* Place Details Bottom Sheet */}
+      <PlaceDetailsBottomSheetPortal
+        ref={placeDetailsBottomSheetRef}
+        place={selectedPlace}
+        onClose={handlePlaceDetailsClose}
+        onSavePlace={handleSavePlace}
+        onReserveTable={handleReserveTable}
+        onShowOnMap={handleShowOnMap}
       />
     </View>
   );

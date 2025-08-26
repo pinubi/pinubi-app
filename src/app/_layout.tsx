@@ -9,7 +9,7 @@ import {
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -64,6 +64,7 @@ const InitialLayout = () => {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <StatusBar hidden />
       <PortalProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />

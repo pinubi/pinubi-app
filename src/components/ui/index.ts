@@ -7,6 +7,7 @@ export { default as AutocompleteList } from './AutocompleteList';
 export { default as BottomSheet } from './BottomSheet';
 export type { BottomSheetProps, BottomSheetRef } from './BottomSheet';
 export { default as CreateEditListBottomSheetPortal } from './CreateEditListBottomSheetPortal';
+export { default as PlaceDetailsBottomSheetPortal } from './PlaceDetailsBottomSheetPortal';
 export { default as PlacesList } from './PlacesList';
 export { PortalProvider, usePortal } from './PortalProvider';
 export { default as ProfileBottomSheetPortal } from './ProfileBottomSheetPortal';
