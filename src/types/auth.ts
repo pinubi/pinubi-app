@@ -6,6 +6,10 @@ export interface User {
   familyName?: string;
   givenName?: string;
   createdAt?: string;
+  // Onboarding and validation states
+  isValidated?: boolean;  // Has valid invite code
+  isActive?: boolean;     // Has completed onboarding
+  onboardingComplete?: boolean; // Completed all onboarding steps
 }
 
 export interface AuthState {
@@ -40,6 +44,7 @@ export interface AuthStore extends AuthState {
   signOut: () => Promise<void>;
   checkAuthState: () => Promise<(() => void) | undefined>;
   clearError: () => void;
+  updateUserValidation: (isValidated: boolean, isActive: boolean, onboardingComplete?: boolean) => void;
 }
 
 export interface GoogleSignInError {

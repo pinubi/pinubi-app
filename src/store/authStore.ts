@@ -14,6 +14,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { auth } from '@/config/firebase';
 import type { AuthError, AuthStore, User } from '@/types/auth';
+import { getUserValidationStatus, mapFirebaseUserWithValidation } from '@/utils/firestoreHelpers';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // Note: Using real GoogleSignin - requires development build or production build
@@ -35,6 +36,10 @@ const mapFirebaseUserToUser = (firebaseUser: any): User => ({
   givenName: firebaseUser.displayName?.split(' ')[0],
   familyName: firebaseUser.displayName?.split(' ').slice(1).join(' '),
   createdAt: firebaseUser.metadata?.creationTime,
+  // New users start as not validated/active - per PLANEJAMENTO_JORNADAS_USUARIO.md
+  isValidated: false,
+  isActive: false,
+  onboardingComplete: false,
 });
 
 const mapGoogleSignInErrorToAuthError = (error: any): AuthError => {
@@ -169,7 +174,21 @@ export const useAuthStore = create<AuthStore>()(
           
           console.log('Firebase sign-in successful:', userCredential.user.uid);
           
-          const user = mapFirebaseUserToUser(userCredential.user);
+          // Get user validation status from Firestore
+          console.log('Fetching user validation status from Firestore...');
+          const validationStatus = await getUserValidationStatus(userCredential.user.uid);
+          
+          // Map Firebase user with Firestore validation data
+          const user = mapFirebaseUserWithValidation(userCredential.user, validationStatus);
+          
+          console.log('GoogleSignIn: User authentication complete:', {
+            userId: user.id,
+            email: user.email,
+            isValidated: user.isValidated,
+            isActive: user.isActive,
+            onboardingComplete: user.onboardingComplete,
+            canAccessProtected: user.isValidated && user.isActive
+          });
           
           set({
             user,
@@ -203,7 +222,21 @@ export const useAuthStore = create<AuthStore>()(
           
           console.log('Firebase email/password sign-in successful:', userCredential.user.uid);
           
-          const user = mapFirebaseUserToUser(userCredential.user);
+          // Get user validation status from Firestore
+          console.log('Fetching user validation status from Firestore...');
+          const validationStatus = await getUserValidationStatus(userCredential.user.uid);
+          
+          // Map Firebase user with Firestore validation data
+          const user = mapFirebaseUserWithValidation(userCredential.user, validationStatus);
+          
+          console.log('EmailSignIn: User authentication complete:', {
+            userId: user.id,
+            email: user.email,
+            isValidated: user.isValidated,
+            isActive: user.isActive,
+            onboardingComplete: user.onboardingComplete,
+            canAccessProtected: user.isValidated && user.isActive
+          });
           
           set({
             user,
@@ -261,15 +294,22 @@ export const useAuthStore = create<AuthStore>()(
 
           console.log('User profile updated with display name:', userData.displayName);
 
-          // TODO: Here you would typically:
-          // 1. Validate the invite code against your database
-          // 2. Create the user document in Firestore with all the userData
-          // 3. Create the default lists ("Quero Visitar", "Favoritas")
-          // 4. Create user profile and settings documents
-          // 5. Increment invite usage for the inviter
-          // This will require Cloud Functions or direct Firestore calls
-
-          const user = mapFirebaseUserToUser(userCredential.user);
+          // Get user validation status from Firestore (for new users this will be defaults)
+          console.log('Fetching initial user validation status from Firestore...');
+          const validationStatus = await getUserValidationStatus(userCredential.user.uid);
+          
+          // Map Firebase user with Firestore validation data
+          const user = mapFirebaseUserWithValidation(userCredential.user, validationStatus);
+          
+          console.log('EmailSignUp: User registration complete:', {
+            userId: user.id,
+            email: user.email,
+            displayName: userData.displayName,
+            isValidated: user.isValidated,
+            isActive: user.isActive,
+            onboardingComplete: user.onboardingComplete,
+            canAccessProtected: user.isValidated && user.isActive
+          });
           
           set({
             user,
@@ -324,6 +364,10 @@ export const useAuthStore = create<AuthStore>()(
             photo: 'https://via.placeholder.com/150/4285F4/FFFFFF?text=UT',
             givenName: 'Usuário',
             familyName: 'de Teste',
+            // Mock users start as not validated/active for testing onboarding flow
+            isValidated: false,
+            isActive: false,
+            onboardingComplete: false,
           };
 
           console.log('Mock sign-in: Definindo usuário mock:', mockUser);
@@ -397,12 +441,26 @@ export const useAuthStore = create<AuthStore>()(
       checkAuthState: async () => {
         try {
           // Listen to Firebase auth state changes
-          const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+          const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             console.log('Firebase auth state changed:', firebaseUser?.uid || 'no user');
             
             if (firebaseUser) {
-              const user = mapFirebaseUserToUser(firebaseUser);
-              console.log('Setting authenticated user from Firebase:', user.name || user.email);
+              // Get user validation status from Firestore
+              console.log('Fetching user validation status from Firestore for auth state...');
+              const validationStatus = await getUserValidationStatus(firebaseUser.uid);
+              
+              // Map Firebase user with Firestore validation data
+              const user = mapFirebaseUserWithValidation(firebaseUser, validationStatus);
+              
+              console.log('AuthState: Setting authenticated user with validation:', {
+                userId: user.id,
+                email: user.email,
+                isValidated: user.isValidated,
+                isActive: user.isActive,
+                onboardingComplete: user.onboardingComplete,
+                canAccessProtected: user.isValidated && user.isActive
+              });
+              
               set({
                 user,
                 isAuthenticated: true,
@@ -435,6 +493,49 @@ export const useAuthStore = create<AuthStore>()(
 
       clearError: () => {
         set({ error: null });
+      },
+
+      // Update user validation status after completing onboarding
+      updateUserValidation: (isValidated: boolean, isActive: boolean, onboardingComplete: boolean = true) => {
+        const currentUser = get().user;
+        console.log('AuthStore: updateUserValidation called with:', {
+          isValidated,
+          isActive,
+          onboardingComplete,
+          currentUser: currentUser ? {
+            id: currentUser.id,
+            email: currentUser.email,
+            name: currentUser.name,
+            currentIsValidated: currentUser.isValidated,
+            currentIsActive: currentUser.isActive,
+          } : null
+        });
+        
+        if (currentUser) {
+          const updatedUser: User = {
+            ...currentUser,
+            isValidated,
+            isActive,
+            onboardingComplete,
+          };
+          
+          set({ user: updatedUser });
+          
+          console.log('AuthStore: User validation status updated:', {
+            isValidated,
+            isActive,
+            onboardingComplete,
+            updatedUser: {
+              id: updatedUser.id,
+              email: updatedUser.email,
+              isValidated: updatedUser.isValidated,
+              isActive: updatedUser.isActive,
+              onboardingComplete: updatedUser.onboardingComplete,
+            }
+          });
+        } else {
+          console.log('AuthStore: Cannot update validation - no current user');
+        }
       },
     }),
     {

@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 
 
@@ -31,11 +32,20 @@ const firebaseConfig = isDevelopment ? firebaseConfigDev : firebaseConfigProd;
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
+const firestore = getFirestore(app);
 
 // Conectar aos emuladores apenas em desenvolvimento
 if (isDevelopment) {
   // Conectar ao Functions Emulator
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  
+  // Conectar ao Firestore Emulator
+  try {
+    connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
+    console.log("🔧 Firestore Emulator conectado");
+  } catch (error) {
+    console.log("Firestore emulator já conectado");
+  }
   
   // Para Google Sign-In, escolha uma opção:
   
@@ -59,4 +69,5 @@ if (isDevelopment) {
 
 // For more information on how to access Firebase in your project,
 // see the Firebase documentation: https://firebase.google.com/docs/web/setup#access-firebase
-export { app, auth, functions };
+export { app, auth, firestore, functions };
+
