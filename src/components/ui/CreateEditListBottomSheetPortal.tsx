@@ -4,17 +4,10 @@ import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } 
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
+import type { ListFormData } from '@/types/lists';
 import { usePortal } from './PortalProvider';
 
 export type BottomSheetRef = BottomSheet;
-
-interface ListFormData {
-  title: string;
-  emoji: string;
-  description: string;
-  visibility: 'public' | 'private';
-  tags: string[];
-}
 
 interface CreateEditListBottomSheetPortalProps {
   mode: 'create' | 'edit';

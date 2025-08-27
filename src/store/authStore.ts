@@ -364,6 +364,7 @@ export const useAuthStore = create<AuthStore>()(
             photo: 'https://via.placeholder.com/150/4285F4/FFFFFF?text=UT',
             givenName: 'Usuário',
             familyName: 'de Teste',
+            createdAt: new Date().toISOString(),
             // Mock users start as not validated/active for testing onboarding flow
             isValidated: false,
             isActive: false,

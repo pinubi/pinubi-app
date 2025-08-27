@@ -129,7 +129,7 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
                       {user?.name || 'Usuário'}
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      {`Membro desde ${format(user?.createdAt, 'yyyy')} `}
+                      {`Membro desde ${format(user?.createdAt || new Date(), 'yyyy')} `}
                     </Text>
                   </View>
                   <TouchableOpacity onPress={hideBottomSheet}>

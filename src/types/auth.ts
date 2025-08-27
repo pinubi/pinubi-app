@@ -5,7 +5,7 @@ export interface User {
   photo: string | null;
   familyName?: string;
   givenName?: string;
-  createdAt?: string;
+  createdAt: string;
   // Onboarding and validation states
   isValidated?: boolean;  // Has valid invite code
   isActive?: boolean;     // Has completed onboarding

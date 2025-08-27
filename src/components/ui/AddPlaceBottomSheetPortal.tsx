@@ -3,6 +3,11 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
+import { placesService } from '@/services/placesService';
+import type { AutocompleteResult } from '@/types/googlePlaces';
+import type { AddPlaceToListRequest } from '@/types/lists';
+import AutocompleteList from './AutocompleteList';
 import { usePortal } from './PortalProvider';
 
 export type BottomSheetRef = BottomSheet;
@@ -17,7 +22,7 @@ interface PlaceFormData {
 
 interface AddPlaceBottomSheetPortalProps {
   listId: string;
-  onSave?: (data: PlaceFormData) => void;
+  onSave?: (data: AddPlaceToListRequest) => void;
   onClose?: () => void;
 }
 
@@ -54,6 +59,19 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
     const snapPoints = useMemo(() => ['90%'], []);
     const [isVisible, setIsVisible] = useState(false);
 
+    // Google Places Autocomplete
+    const {
+      results: autocompleteResults,
+      loading: autocompleteLoading,
+      error: autocompleteError,
+      search: searchAutocomplete,
+      clearResults: clearAutocompleteResults,
+      isApiAvailable,
+    } = useGooglePlacesAutocomplete({
+      debounceDelay: 300,
+      minCharacters: 3,
+    });
+
     // Form state
     const [formData, setFormData] = useState<PlaceFormData>({
       name: '',
@@ -66,6 +84,8 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
     const [isSaving, setIsSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showCuisineOptions, setShowCuisineOptions] = useState(false);
+    const [showAutocomplete, setShowAutocomplete] = useState(false);
+    const [showManualForm, setShowManualForm] = useState(false);
 
     // Form validation
     const isFormValid = useMemo(() => {
@@ -109,7 +129,63 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
       setIsVisible(false);
     }, []);
 
-    const handleSave = useCallback(async () => {
+    // Handle search input changes
+    const handleSearchChange = useCallback((text: string) => {
+      setSearchQuery(text);
+      
+      if (text.length >= 3 && isApiAvailable) {
+        // Trigger autocomplete search
+        setShowAutocomplete(true);
+        setShowManualForm(false);
+        searchAutocomplete(text);
+      } else {
+        // Clear autocomplete for short queries
+        setShowAutocomplete(false);
+        clearAutocompleteResults();
+      }
+    }, [isApiAvailable, searchAutocomplete, clearAutocompleteResults]);
+
+    // Handle autocomplete selection
+    const handleAutocompleteSelect = useCallback(async (result: AutocompleteResult) => {
+      console.log('🎯 Autocomplete result selected:', result);
+      
+      try {
+        setIsSaving(true);
+        
+        // Create or get place from Google Places
+        const placeResponse = await placesService.createOrGetPlaceFromAutocomplete(result);
+        
+        if (!placeResponse.success || !placeResponse.place) {
+          Alert.alert('Erro', placeResponse.error || 'Não foi possível adicionar o lugar');
+          return;
+        }
+        
+        // Create AddPlaceToListRequest
+        const addPlaceRequest: AddPlaceToListRequest = {
+          listId,
+          placeId: placeResponse.place.id,
+          personalNote: '', // Could add a field for this later
+          tags: [] // Could add a field for this later
+        };
+        
+        onSave?.(addPlaceRequest);
+        
+        // Reset form
+        setSearchQuery('');
+        setShowAutocomplete(false);
+        clearAutocompleteResults();
+        
+        hideBottomSheet();
+      } catch (error) {
+        console.error('Error adding place from autocomplete:', error);
+        Alert.alert('Erro', 'Não foi possível adicionar o lugar. Tente novamente.');
+      } finally {
+        setIsSaving(false);
+      }
+    }, [listId, onSave, hideBottomSheet, clearAutocompleteResults]);
+
+    // Handle manual place creation
+    const handleManualSave = useCallback(async () => {
       if (!isFormValid || isSaving) return;
 
       try {
@@ -121,13 +197,30 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
           return;
         }
 
-        const placeData: PlaceFormData = {
-          ...formData,
+        // Create manual place
+        const placeResponse = await placesService.createManualPlace({
           name: trimmedName,
           description: formData.description.trim(),
+          category: formData.category,
+          priceRange: formData.priceRange,
+          cuisine: formData.cuisine?.trim(),
+          userId: 'current_user' // Will be handled by the calling component
+        });
+
+        if (!placeResponse.success || !placeResponse.place) {
+          Alert.alert('Erro', placeResponse.error || 'Não foi possível criar o lugar');
+          return;
+        }
+
+        // Create AddPlaceToListRequest
+        const addPlaceRequest: AddPlaceToListRequest = {
+          listId,
+          placeId: placeResponse.place.id,
+          personalNote: formData.description.trim(),
+          tags: formData.cuisine ? [formData.cuisine.toLowerCase()] : []
         };
 
-        onSave?.(placeData);
+        onSave?.(addPlaceRequest);
         
         // Reset form
         setFormData({
@@ -138,15 +231,18 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
           cuisine: '',
         });
         setSearchQuery('');
+        setShowManualForm(false);
         
         hideBottomSheet();
       } catch (error) {
-        console.error('Error saving place:', error);
-        Alert.alert('Erro', 'Não foi possível adicionar o lugar. Tente novamente.');
+        console.error('Error creating manual place:', error);
+        Alert.alert('Erro', 'Não foi possível criar o lugar. Tente novamente.');
       } finally {
         setIsSaving(false);
       }
-    }, [isFormValid, isSaving, formData, onSave, hideBottomSheet]);
+    }, [isFormValid, isSaving, formData, listId, onSave, hideBottomSheet]);
+
+    const handleSave = handleManualSave;
 
     const filteredCuisines = useMemo(() => {
       if (!searchQuery) return CUISINE_OPTIONS;
@@ -195,7 +291,7 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
               borderRadius: 2,
             }}
           >
-            <BottomSheetScrollView style={{ backgroundColor: 'white' }}>
+            <View style={{ backgroundColor: 'white', flex: 1 }}>
               {/* Header */}
               <View className='px-4 py-4 border-b border-gray-100'>
                 <View className='flex-row items-center justify-between'>
@@ -214,7 +310,7 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
                   <Ionicons name='search' size={20} color='#9333ea' />
                   <TextInput
                     value={searchQuery}
-                    onChangeText={setSearchQuery}
+                    onChangeText={handleSearchChange}
                     placeholder='Buscar restaurantes, bares, cafés...'
                     className='flex-1 ml-3 text-gray-900'
                     placeholderTextColor='#9CA3AF'
@@ -226,17 +322,57 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
                   <Text className='text-lg font-semibold text-gray-900 mb-2'>
                     Descubra novos lugares
                   </Text>
-                  <Text className='text-gray-600 text-center'>
+                  <Text className='text-gray-600 text-center mb-4'>
                     Digite o nome ou categoria do lugar que você quer adicionar
                   </Text>
+                  
+                  {/* Toggle to manual form */}
+                  <TouchableOpacity
+                    onPress={() => setShowManualForm(true)}
+                    className='flex-row items-center bg-gray-100 rounded-full px-4 py-2'
+                  >
+                    <Ionicons name='add' size={16} color='#6b7280' />
+                    <Text className='text-gray-600 ml-2 font-medium'>
+                      Ou adicione manualmente
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
+              {/* Autocomplete Results */}
+              {showAutocomplete && (
+                <View className='flex-1 bg-white'>
+                  <AutocompleteList
+                    results={autocompleteResults}
+                    onResultPress={handleAutocompleteSelect}
+                    loading={autocompleteLoading}
+                    error={autocompleteError}
+                    emptyMessage={
+                      searchQuery.length < 3 
+                        ? 'Digite pelo menos 3 caracteres para buscar...'
+                        : !isApiAvailable
+                        ? 'Busca indisponível no momento'
+                        : 'Nenhum lugar encontrado para sua busca'
+                    }
+                  />
+                </View>
+              )}
+
               {/* Manual Add Form */}
-              <View className='px-4 py-6'>
-                <Text className='text-lg font-semibold text-gray-900 mb-4'>
-                  Ou adicione manualmente
-                </Text>
+              {showManualForm && (
+                <BottomSheetScrollView className='flex-1 bg-white'>
+                  <View className='px-4 py-6'>
+                    <View className='flex-row items-center justify-between mb-4'>
+                      <Text className='text-lg font-semibold text-gray-900'>
+                        Adicionar manualmente
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setShowManualForm(false)}
+                        className='w-8 h-8 items-center justify-center bg-gray-100 rounded-full'
+                      >
+                        <Ionicons name='close' size={16} color='#6b7280' />
+                      </TouchableOpacity>
+                    </View>
 
                 {/* Place Name */}
                 <View className='mb-4'>
@@ -375,17 +511,20 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
                     maxLength={200}
                   />
                 </View>
-              </View>
+                </View>
+                </BottomSheetScrollView>
+              )}
 
               {/* Bottom Actions */}
-              <View className='px-4 pt-4 pb-8 border-t border-gray-100 bg-white'>
-                <View className='flex-row gap-2'>
-                  <TouchableOpacity
-                    onPress={hideBottomSheet}
-                    className='flex-1 py-4 bg-gray-100 rounded-2xl items-center'
-                  >
-                    <Text className='text-gray-700 font-semibold'>Cancelar</Text>
-                  </TouchableOpacity>
+              {showManualForm && (
+                <View className='px-4 pt-4 pb-8 border-t border-gray-100 bg-white'>
+                  <View className='flex-row gap-2'>
+                    <TouchableOpacity
+                      onPress={hideBottomSheet}
+                      className='flex-1 py-4 bg-gray-100 rounded-2xl items-center'
+                    >
+                      <Text className='text-gray-700 font-semibold'>Cancelar</Text>
+                    </TouchableOpacity>
 
                   <TouchableOpacity
                     onPress={handleSave}
@@ -399,8 +538,9 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </BottomSheetScrollView>
+                </View>
+              )}
+            </View>
           </BottomSheet>
         );
 
