@@ -76,6 +76,16 @@ export const useListPlaces = (listId: string) => {
   const loading = isLoading(listId);
   const error = getError(listId);
 
+  // Debug logging
+  console.log('🎣 [useListPlaces] Hook state for listId:', listId, {
+    places: places?.length || 0,
+    placesCount,
+    loading,
+    error,
+    hasPlaces: places?.length > 0,
+    isEmpty: places?.length === 0 && !loading
+  });
+
   return {
     // State
     places,

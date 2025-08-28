@@ -233,11 +233,17 @@ const DiscoverScreen = () => {
   }, []);
 
   // Filter places based on search query
-  const filteredPlaces = places.filter(place =>
-    place.googleData.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.googleData.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredPlaces = places.filter(place => {
+    const addressText = typeof place.googleData.address === 'object' && (place.googleData.address as any)?.formatted
+      ? (place.googleData.address as any).formatted
+      : typeof place.googleData.address === 'string'
+        ? place.googleData.address
+        : '';
+    
+    return place.googleData.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      addressText.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      place.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()));
+  });
 
   const renderContent = () => {
     if (viewMode === 'map') {

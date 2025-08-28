@@ -64,22 +64,29 @@ export const useListPlacesStore = create<ListPlacesState>()(
 
       fetchListPlaces: async (listId: string) => {
         try {
+          console.log('📍 [Store] Starting fetchListPlaces for listId:', listId);
+          
           set((state) => ({
             loadingByListId: { ...state.loadingByListId, [listId]: true },
             errorByListId: { ...state.errorByListId, [listId]: null }
           }));
           
-          console.log('📍 Fetching places for list:', listId);
+          console.log('📍 [Store] Loading state set to true for listId:', listId);
+          console.log('📍 [Store] Calling listsService.getListPlaces...');
           
           const places = await listsService.getListPlaces(listId);
+          console.log("🚀 [Store] listsService.getListPlaces returned:", places);
+          console.log("🚀 [Store] Number of places returned:", places?.length || 0);
           
-          console.log('📍 Successfully fetched places for list:', listId, places.length);
+          console.log('📍 [Store] Successfully fetched places for list:', listId, places.length);
           
           set((state) => ({
             placesByListId: { ...state.placesByListId, [listId]: places },
             loadingByListId: { ...state.loadingByListId, [listId]: false },
             errorByListId: { ...state.errorByListId, [listId]: null }
           }));
+          
+          console.log('📍 [Store] Store state updated. Current placesByListId:', get().placesByListId);
         } catch (error: any) {
           console.error('📍 Error fetching places for list:', listId, error);
           
@@ -95,40 +102,21 @@ export const useListPlacesStore = create<ListPlacesState>()(
 
       addPlaceToList: async (addPlaceData: AddPlaceToListRequest, userId: string): Promise<ListPlace | null> => {
         try {
-          const { listId, placeId } = addPlaceData;
+          const { listId } = addPlaceData;
           
           set((state) => ({
             loadingByListId: { ...state.loadingByListId, [listId]: true },
             errorByListId: { ...state.errorByListId, [listId]: null }
           }));
           
-          console.log('📍 Adding place to list with complete flow:', addPlaceData);
+          console.log('📍 Adding place to list using cloud function:', addPlaceData);
           
-          // Step 1: Ensure the place exists in the places collection
-          // If it's a Google place ID, use placesService to create/get it
-          if (placeId.startsWith('ChIJ') || placeId.includes('place_id')) {
-            console.log('🏢 Google Place detected, ensuring it exists in Firestore...');
-            
-            const { placesService } = await import('@/services/placesService');
-            const createPlaceResult = await placesService.createOrGetPlaceFromGoogle({
-              placeId: placeId
-            });
-            
-            if (!createPlaceResult.success) {
-              throw new Error(createPlaceResult.error || 'Failed to create/get place from Google');
-            }
-            
-            console.log('✅ Place ensured in Firestore:', createPlaceResult.place?.id);
-          } else {
-            console.log('📝 Manual place or existing place, proceeding directly...');
-          }
-          
-          // Step 2: Add the place to the list using direct Firestore
-          const newListPlace = await listsService.addPlaceToListDirect(addPlaceData, userId);
+          // Use the cloud function to add place to list
+          const newListPlace = await listsService.addPlaceToList(addPlaceData, userId);
           
           console.log('📍 Successfully added place to list:', newListPlace.id);
           
-          // Step 3: Refresh the list places to get updated data
+          // Refresh the list places to get updated data
           await get().fetchListPlaces(listId);
           
           set((state) => ({

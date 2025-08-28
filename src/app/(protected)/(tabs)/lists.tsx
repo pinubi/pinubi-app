@@ -190,7 +190,7 @@ const ListsScreen = () => {
         {/* Loading State */}
         {loading && (
           <View className='flex-1 items-center justify-center py-20'>
-            <ActivityIndicator size="large" color='#F97316' />
+            <ActivityIndicator size="large" color='#b13bff' />
             <Text className='text-gray-600 mt-4'>Carregando suas listas...</Text>
           </View>
         )}

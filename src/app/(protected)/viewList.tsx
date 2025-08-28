@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import { googlePlacesService } from '@/services/googlePlacesService';
 import type { AddPlaceToListRequest, ListPlaceWithDetails } from '@/types/lists';
 
 interface PlaceCardProps {
@@ -15,47 +16,118 @@ interface PlaceCardProps {
 }
 
 const PlaceCard: React.FC<PlaceCardProps> = ({ place, onPress, onDelete }) => {
-  const placeData = place.place;
-  
-  if (!placeData) {
-    return null; // Skip places without place data
+  // Early return if no place prop
+  if (!place) {
+    return null;
   }
 
-  // Helper to get first photo or placeholder
-  const getPlaceImage = () => {
-    if (placeData.photos && placeData.photos.length > 0) {
-      return placeData.photos[0];
+  const placeData = place?.place;
+  
+  // Early return if no place data
+  if (!placeData) {
+    return null;
+  }
+
+  // Safe string helpers with fallbacks
+  const getPlaceImage = (): string => {
+    try {
+      if (placeData.photos && Array.isArray(placeData.photos) && placeData.photos.length > 0) {
+        console.log("🚀 ~ getPlaceImage ~ String(googlePlacesService.getPhotoUri(placeData.photos[0])):", String(googlePlacesService.getPhotoUri(placeData.photos[0])))
+        return String(googlePlacesService.getPhotoUri(placeData.photos[0])) || 'https://via.placeholder.com/64x64/8B4513/FFFFFF?text=🍽️';
+      }
+    } catch (e) {
+      console.warn('Error getting place image:', e);
     }
     return 'https://via.placeholder.com/64x64/8B4513/FFFFFF?text=🍽️';
   };
 
-  // Helper to format price level
-  const getPriceRange = () => {
-    if (!placeData.priceLevel) return '$';
-    return '$'.repeat(placeData.priceLevel);
+  const getPriceRange = (): string => {
+    try {
+      if (placeData.priceLevel && typeof placeData.priceLevel === 'number' && placeData.priceLevel > 0) {
+        const level = Math.max(1, Math.min(4, placeData.priceLevel));
+        return '$'.repeat(level);
+      }
+    } catch (e) {
+      console.warn('Error getting price range:', e);
+    }
+    return '$';
   };
 
-  // Helper to get primary category
-  const getCategory = () => {
-    if (placeData.types && placeData.types.length > 0) {
-      const primaryType = placeData.types[0];
-      // Convert common types to readable format
-      const typeMap: Record<string, string> = {
-        'restaurant': 'Restaurante',
-        'food': 'Comida',
-        'establishment': 'Estabelecimento',
-        'meal_takeaway': 'Delivery',
-        'cafe': 'Café',
-        'bar': 'Bar',
-        'bakery': 'Padaria'
-      };
-      return typeMap[primaryType] || primaryType;
+  const getCategory = (): string => {
+    try {
+      if (placeData.types && Array.isArray(placeData.types) && placeData.types.length > 0) {
+        const primaryType = String(placeData.types[0]);
+        const typeMap: Record<string, string> = {
+          'restaurant': 'Restaurante',
+          'food': 'Comida',
+          'establishment': 'Estabelecimento',
+          'meal_takeaway': 'Delivery',
+          'cafe': 'Café',
+          'bar': 'Bar',
+          'bakery': 'Padaria'
+        };
+        return typeMap[primaryType] || primaryType || 'Lugar';
+      }
+    } catch (e) {
+      console.warn('Error getting category:', e);
     }
     return 'Lugar';
   };
+  
+  const getAddressText = (): string => {
+    try {
+      // Check personal note first
+      if (place.personalNote && typeof place.personalNote === 'string' && place.personalNote.trim()) {
+        return String(place.personalNote.trim());
+      }
+      
+      // Check formatted address
+      if (placeData.address) {
+        if (typeof placeData.address === 'object' && (placeData.address as any)?.formatted) {
+          return String((placeData.address as any).formatted);
+        }
+        
+        if (typeof placeData.address === 'string' && placeData.address.trim()) {
+          return String(placeData.address.trim());
+        }
+      }
+    } catch (e) {
+      console.warn('Error getting address text:', e);
+    }
+    
+    return 'Endereço não disponível';
+  };
+
+  const formatRating = (): string | null => {
+    try {
+      if (placeData.rating && typeof placeData.rating === 'number' && placeData.rating > 0) {
+        return String(placeData.rating.toFixed(1));
+      }
+    } catch (e) {
+      console.warn('Error formatting rating:', e);
+    }
+    return null;
+  };
+
+  // Pre-compute all text values as strings with safe fallbacks
+  const placeName: string = String(placeData?.name || 'Lugar sem nome');
+  const addressText: string = getAddressText();
+  const categoryText: string = getCategory();
+  const priceText: string = getPriceRange();
+  const ratingText: string | null = formatRating();
+  const placeImageUri: string = getPlaceImage();
+
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => {
+        try {
+          if (onPress && typeof onPress === 'function') {
+            onPress();
+          }
+        } catch (e) {
+          console.warn('Error in onPress handler:', e);
+        }
+      }}
       className="bg-white rounded-2xl mb-4 shadow-sm border border-gray-100"
       style={{ elevation: 2 }}
     >
@@ -63,7 +135,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onPress, onDelete }) => {
         {/* Place Image */}
         <View className="w-16 h-16 rounded-xl bg-gray-200 mr-4 overflow-hidden">
           <Image
-            source={{ uri: getPlaceImage() }}
+            source={{ uri: placeImageUri }}
             className="w-full h-full"
             style={{ resizeMode: 'cover' }}
           />
@@ -74,43 +146,43 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onPress, onDelete }) => {
           {/* Name */}
           <View className="flex-row items-center justify-between mb-1">
             <Text className="text-lg font-semibold text-gray-900" numberOfLines={1}>
-              {placeData.name}
+              {placeName}
             </Text>
           </View>
 
           {/* Price and Category */}
           <View className="flex-row items-center mb-2">
             <Text className="text-sm font-medium text-gray-600">
-              {getPriceRange()}
+              {priceText}
             </Text>
             <Text className="text-sm text-gray-500 mx-2">•</Text>
             <Text className="text-sm text-gray-600">
-              {getCategory()}
+              {categoryText}
             </Text>
           </View>
 
           {/* Personal Note or Address */}
           <Text className="text-sm text-gray-600 mb-3" numberOfLines={2}>
-            {place.personalNote || placeData.address}
+            {addressText}
           </Text>
 
           {/* Rating and Tags */}
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
-              {placeData.rating && (
+              {ratingText && (
                 <>
                   <Ionicons name="star" size={16} color="#FCD34D" />
                   <Text className="text-sm font-medium text-gray-700 ml-1">
-                    {placeData.rating.toFixed(1)}
+                    {ratingText}
                   </Text>
                 </>
               )}
               
-              {place.tags && place.tags.length > 0 && (
+              {place?.tags && Array.isArray(place.tags) && place.tags.length > 0 && (
                 <View className="flex-row items-center ml-4">
                   <Ionicons name="pricetag-outline" size={16} color="#9CA3AF" />
                   <Text className="text-sm text-gray-500 ml-1">
-                    {place.tags.slice(0, 2).join(', ')}
+                    {String(place.tags.slice(0, 2).join(', '))}
                   </Text>
                 </View>
               )}
@@ -118,7 +190,15 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, onPress, onDelete }) => {
 
             {/* Delete Button */}
             <TouchableOpacity
-              onPress={onDelete}
+              onPress={() => {
+                try {
+                  if (onDelete && typeof onDelete === 'function') {
+                    onDelete();
+                  }
+                } catch (e) {
+                  console.warn('Error in onDelete handler:', e);
+                }
+              }}
               className="w-8 h-8 items-center justify-center"
             >
               <Ionicons name="trash-outline" size={18} color="#EF4444" />
@@ -260,6 +340,18 @@ const ListPlacesScreen = () => {
 
   const sortedPlaces = getSortedPlaces();
 
+  // Debug logging
+  console.log('🔍 [ViewList] Component state:', {
+    listId,
+    places: places?.length || 0,
+    placesCount,
+    loading,
+    error,
+    hasPlaces,
+    isEmpty,
+    sortedPlaces: sortedPlaces?.length || 0
+  });
+
   // Clear error when component unmounts or user dismisses
   React.useEffect(() => {
     if (error) {
@@ -353,7 +445,7 @@ const ListPlacesScreen = () => {
                 {sortBy === 'rating' && 'Avaliação'}
                 {sortBy === 'distance' && 'Distância'}
               </Text>
-              <Ionicons name="chevron-down" size={16} color="#6B7280" className="ml-1" />
+              <Ionicons name="chevron-down" size={16} color="#6B7280" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           </View>
         </View>
@@ -363,7 +455,7 @@ const ListPlacesScreen = () => {
           {/* Loading State */}
           {loading && (
             <View className="items-center py-12">
-              <ActivityIndicator size="large" color='#F97316' />
+              <ActivityIndicator size="large" color='#b13bff' />
               <Text className="text-gray-600 mt-4">Carregando lugares...</Text>
             </View>
           )}
@@ -384,6 +476,17 @@ const ListPlacesScreen = () => {
           {/* Places Content */}
           {!loading && (
             <>
+              {/* Debug Info - Remove in production */}
+              <View className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <Text className="text-yellow-800 font-medium text-sm">Debug Info:</Text>
+                <Text className="text-yellow-700 text-xs">Places: {places?.length || 0}</Text>
+                <Text className="text-yellow-700 text-xs">Has Places: {hasPlaces ? 'true' : 'false'}</Text>
+                <Text className="text-yellow-700 text-xs">Is Empty: {isEmpty ? 'true' : 'false'}</Text>
+                <Text className="text-yellow-700 text-xs">Sorted Places: {sortedPlaces?.length || 0}</Text>
+                <Text className="text-yellow-700 text-xs">Loading: {loading ? 'true' : 'false'}</Text>
+                <Text className="text-yellow-700 text-xs">Error: {error || 'none'}</Text>
+              </View>
+
               {hasPlaces ? (
                 sortedPlaces.map((place) => (
                   <PlaceCard

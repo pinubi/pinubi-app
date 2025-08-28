@@ -56,7 +56,7 @@ const PreferencesScreen = () => {
   // Store preferences in onboarding store - will be sent to backend when onboarding completes
   const [preferences, setPreferences] = useState({
     categories: data?.preferences?.categories || [] as string[],
-    priceRange: data?.preferences?.priceRange || [1, 4] as number[],
+    priceRange: data?.preferences?.priceRange || [1, 2] as number[],
     dietaryRestrictions: data?.preferences?.dietaryRestrictions || [] as string[],
   });
 

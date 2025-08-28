@@ -304,7 +304,7 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
                   style={{ animationDelay: '1s' }} />
             
             {/* Main marker container with shadow */}
-            <View className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-lg border-3 border-blue-500"
+            <View className="w-5 h-5 bg-white rounded-full items-center justify-center shadow-lg border-3 border-blue-500"
                   style={{
                     shadowColor: '#3b82f6',
                     shadowOffset: { width: 0, height: 4 },

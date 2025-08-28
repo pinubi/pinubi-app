@@ -1,7 +1,7 @@
 import { firestore, functions } from '@/config/firebase';
+import { firebaseService } from '@/services/firebaseService';
 import type {
   AddPlaceToListRequest,
-  AddPlaceToListResponse,
   CreateListRequest,
   GetListPlacesResponse,
   GetUserListsResponse,
@@ -9,14 +9,28 @@ import type {
   ListError,
   ListPlace,
   ListPlaceWithDetails,
-  UpdateListRequest
+  UpdateListRequest,
 } from '@/types/lists';
-import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, increment, limit, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  increment,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
 class ListsService {
   private functions;
-  private useMockData = false; // Set to true for testing without Cloud Functions
 
   constructor() {
     this.functions = functions;
@@ -41,7 +55,7 @@ class ListsService {
         placesCount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        previewPlaces: []
+        previewPlaces: [],
       },
       {
         id: 'auto-favorites',
@@ -57,8 +71,8 @@ class ListsService {
         placesCount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        previewPlaces: []
-      }
+        previewPlaces: [],
+      },
     ];
   }
 
@@ -68,20 +82,20 @@ class ListsService {
   async getUserListsDirect(userId: string): Promise<List[]> {
     try {
       console.log('🔥 Fetching user lists directly from Firestore for user:', userId);
-      
+
       // Buscar todas as listas do usuário
       const listsQuery = query(
         collection(firestore, 'lists'),
         where('ownerId', '==', userId),
         orderBy('createdAt', 'desc')
       );
-      
+
       const listsSnapshot = await getDocs(listsQuery);
       const lists: List[] = [];
-      
+
       for (const listDoc of listsSnapshot.docs) {
         const listData = listDoc.data();
-        
+
         // Buscar primeiros 3 lugares para preview
         const previewPlacesQuery = query(
           collection(firestore, 'listPlaces'),
@@ -89,26 +103,26 @@ class ListsService {
           orderBy('order', 'asc'),
           limit(3)
         );
-        
+
         const previewPlacesSnapshot = await getDocs(previewPlacesQuery);
         const places = [];
-        
+
         for (const placeDoc of previewPlacesSnapshot.docs) {
           const placeData = placeDoc.data();
           // Buscar dados do lugar
           const placeRef = doc(firestore, 'places', placeData.placeId);
           const placeSnapshot = await getDoc(placeRef);
-          
+
           if (placeSnapshot.exists()) {
             const placeFullData = placeSnapshot.data();
             places.push({
               id: placeSnapshot.id,
               name: placeFullData.googleData?.name || 'Lugar sem nome',
-              category: placeFullData.categories?.[0] || 'restaurant'
+              category: placeFullData.categories?.[0] || 'restaurant',
             });
           }
         }
-        
+
         // Criar o objeto List com os dados corretos
         const list: List = {
           id: listDoc.id,
@@ -124,19 +138,19 @@ class ListsService {
           placesCount: listData.placesCount || places.length,
           createdAt: listData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
           updatedAt: listData.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-          previewPlaces: places
+          previewPlaces: places,
         };
-        
+
         lists.push(list);
       }
-      
+
       console.log('✅ Successfully fetched lists from Firestore:', lists.length);
       return lists;
     } catch (error: any) {
       console.error('❌ Error fetching user lists from Firestore:', error);
       throw {
         code: 'firestore_error',
-        message: `Erro ao buscar listas: ${error.message}`
+        message: `Erro ao buscar listas: ${error.message}`,
       } as ListError;
     }
   }
@@ -152,20 +166,20 @@ class ListsService {
       return await this.getUserListsDirect(userId);
     } catch (firestoreError: any) {
       console.warn('⚠️ Direct Firestore access failed, trying Cloud Functions:', firestoreError.message);
-      
+
       try {
         // Se Firestore direto falhar, tente Cloud Functions
         console.log('🔥 Calling getUserLists Cloud Function for user:', userId);
         console.log('🔥 Functions instance:', this.functions);
         console.log('🔥 Firebase app config:', this.functions.app.options);
-        
+
         const getUserLists = httpsCallable(this.functions, 'getUserLists');
         const result = await getUserLists({ userId });
-        
+
         console.log('🔥 getUserLists function result:', result);
-        
+
         const responseData = result.data as GetUserListsResponse;
-        
+
         if (responseData && responseData.lists && Array.isArray(responseData.lists)) {
           console.log('✅ Successfully fetched lists via Cloud Functions:', responseData.lists.length);
           return responseData.lists;
@@ -180,7 +194,7 @@ class ListsService {
           code: functionsError.code,
           message: functionsError.message,
           details: functionsError.details,
-          stack: functionsError.stack
+          stack: functionsError.stack,
         });
 
         // Se Cloud Functions também falhar e for "not-found", use mock data
@@ -203,36 +217,36 @@ class ListsService {
   async createListDirect(listData: CreateListRequest, userId: string): Promise<List> {
     try {
       console.log('🔥 Creating list directly in Firestore with data:', listData);
-      
+
       // Validações
       if (!listData.title || listData.title.trim().length < 2) {
         throw {
           code: 'invalid_data',
-          message: 'Título deve ter pelo menos 2 caracteres'
+          message: 'Título deve ter pelo menos 2 caracteres',
         } as ListError;
       }
-      
+
       if (listData.title.length > 50) {
         throw {
           code: 'invalid_data',
-          message: 'Título deve ter no máximo 50 caracteres'
+          message: 'Título deve ter no máximo 50 caracteres',
         } as ListError;
       }
 
       // Verificar limites do usuário (Free vs Premium)
       const userRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userRef);
-      
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData.accountType === 'free' && userData.listsCount >= 5) {
           throw {
             code: 'resource_exhausted',
-            message: 'Limite de listas atingido. Upgrade para Premium para listas ilimitadas.'
+            message: 'Limite de listas atingido. Upgrade para Premium para listas ilimitadas.',
           } as ListError;
         }
       }
-      
+
       const now = new Date();
       const newListData = {
         title: listData.title.trim(),
@@ -241,49 +255,49 @@ class ListsService {
         ownerId: userId,
         visibility: listData.visibility || 'public',
         editors: [],
-        
+
         // Configurações
         isMonetized: false,
         price: 0,
         purchasedBy: [],
-        
+
         // Metadados
         placesCount: 0,
         tags: listData.tags || [],
-        category: "general",
-        
+        category: 'general',
+
         // Listas automáticas (sempre false para criadas manualmente)
         isSystemList: false,
         isAutoGenerated: false,
         canDelete: true,
         canRename: true,
-        autoListType: "",
-        
+        autoListType: '',
+
         // Timestamps
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       };
 
       // Adicionar o documento à coleção
       const docRef = await addDoc(collection(firestore, 'lists'), newListData);
-      
+
       // Atualizar contador do usuário
       if (userDoc.exists()) {
         await updateDoc(userRef, {
           listsCount: increment(1),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
         });
       }
-      
+
       // Buscar o documento criado para retornar os dados atualizados
       const createdDoc = await getDoc(docRef);
-      
+
       if (!createdDoc.exists()) {
         throw new Error('Failed to retrieve created list');
       }
-      
+
       const createdData = createdDoc.data() as any;
-      
+
       const newList: List = {
         id: docRef.id,
         title: createdData.title,
@@ -298,22 +312,22 @@ class ListsService {
         placesCount: createdData.placesCount,
         createdAt: createdData.createdAt?.toDate?.()?.toISOString() || now.toISOString(),
         updatedAt: createdData.updatedAt?.toDate?.()?.toISOString() || now.toISOString(),
-        previewPlaces: []
+        previewPlaces: [],
       };
-      
+
       console.log('✅ Successfully created list in Firestore:', newList.id);
       return newList;
     } catch (error: any) {
       console.error('❌ Error creating list in Firestore:', error);
-      
+
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
       }
-      
+
       throw {
         code: 'firestore_error',
-        message: `Erro ao criar lista: ${error.message}`
+        message: `Erro ao criar lista: ${error.message}`,
       } as ListError;
     }
   }
@@ -324,67 +338,67 @@ class ListsService {
   async updateListDirect(updateData: UpdateListRequest, userId: string): Promise<List> {
     try {
       console.log('🔥 Updating list directly in Firestore with data:', updateData);
-      
+
       const { listId, ...updates } = updateData;
-      
+
       // Verificar se lista existe e se usuário é o dono
       const listRef = doc(firestore, 'lists', listId);
       const listDoc = await getDoc(listRef);
-      
+
       if (!listDoc.exists()) {
         throw {
           code: 'list_not_found',
-          message: 'Lista não encontrada'
+          message: 'Lista não encontrada',
         } as ListError;
       }
-      
+
       const listData = listDoc.data();
-      
+
       if (listData.ownerId !== userId) {
         throw {
           code: 'permission_denied',
-          message: 'Apenas o dono pode editar a lista'
+          message: 'Apenas o dono pode editar a lista',
         } as ListError;
       }
-      
+
       // Verificar se é lista automática
       if (listData.isAutoGenerated && (updates.title || updates.emoji)) {
         throw {
           code: 'permission_denied',
-          message: 'Listas automáticas não podem ser renomeadas'
+          message: 'Listas automáticas não podem ser renomeadas',
         } as ListError;
       }
-      
+
       // Validar campos
       const allowedFields = ['title', 'emoji', 'description', 'visibility', 'tags'];
       const updatePayload: any = {};
-      
+
       for (const field of allowedFields) {
         if (updates[field as keyof typeof updates] !== undefined) {
           updatePayload[field] = updates[field as keyof typeof updates];
         }
       }
-      
+
       if (updatePayload.title) {
         if (updatePayload.title.trim().length < 2 || updatePayload.title.length > 50) {
           throw {
             code: 'invalid_data',
-            message: 'Título deve ter entre 2 e 50 caracteres'
+            message: 'Título deve ter entre 2 e 50 caracteres',
           } as ListError;
         }
         updatePayload.title = updatePayload.title.trim();
       }
-      
+
       // Adicionar timestamp
       updatePayload.updatedAt = serverTimestamp();
-      
+
       // Atualizar lista
       await updateDoc(listRef, updatePayload);
-      
+
       // Buscar o documento atualizado
       const updatedDoc = await getDoc(listRef);
       const updatedData = updatedDoc.data() as any;
-      
+
       const updatedList: List = {
         id: listId,
         title: updatedData.title,
@@ -399,22 +413,22 @@ class ListsService {
         placesCount: updatedData.placesCount,
         createdAt: updatedData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
         updatedAt: updatedData.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        previewPlaces: listData.previewPlaces || []
+        previewPlaces: listData.previewPlaces || [],
       };
-      
+
       console.log('✅ Successfully updated list in Firestore:', updatedList.id);
       return updatedList;
     } catch (error: any) {
       console.error('❌ Error updating list in Firestore:', error);
-      
+
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
       }
-      
+
       throw {
         code: 'firestore_error',
-        message: `Erro ao atualizar lista: ${error.message}`
+        message: `Erro ao atualizar lista: ${error.message}`,
       } as ListError;
     }
   }
@@ -427,24 +441,24 @@ class ListsService {
     try {
       // Use o userId passado ou tente obter do auth atual
       const currentUserId = userId || 'current-user'; // Em produção, obter do contexto de auth
-      
+
       // Primeiro, tente usar Firestore diretamente
       console.log('🔥 Trying direct Firestore creation first');
       return await this.createListDirect(listData, currentUserId);
     } catch (firestoreError: any) {
       console.warn('⚠️ Direct Firestore creation failed, trying Cloud Functions:', firestoreError.message);
-      
+
       try {
         // Se Firestore direto falhar, tente Cloud Functions
         console.log('🔥 Calling createList Cloud Function with data:', listData);
-        
+
         const createList = httpsCallable(this.functions, 'createList');
         const result = await createList(listData);
-        
+
         console.log('🔥 createList function result:', result);
-        
+
         const responseData = result.data as { list: List };
-        
+
         if (responseData && responseData.list) {
           console.log('✅ Successfully created list via Cloud Functions:', responseData.list.id);
           return responseData.list;
@@ -471,7 +485,7 @@ class ListsService {
             placesCount: 0,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            previewPlaces: []
+            previewPlaces: [],
           };
           console.log('🚀 Generated mock list:', mockList);
           return mockList;
@@ -493,18 +507,18 @@ class ListsService {
       return await this.updateListDirect(updateData, userId);
     } catch (error: any) {
       console.warn('❌ Direct Firestore update failed, trying Cloud Functions:', error);
-      
+
       try {
         // 2. Fallback to Cloud Functions
         console.log('🔥 Calling updateList function with data:', updateData);
-        
+
         const updateList = httpsCallable(this.functions, 'updateList');
         const result = await updateList(updateData);
-        
+
         console.log('🔥 updateList function result:', result);
-        
+
         const responseData = result.data as { list: List };
-        
+
         if (responseData && responseData.list) {
           console.log('✅ Successfully updated list via Cloud Functions:', responseData.list.id);
           return responseData.list;
@@ -513,7 +527,7 @@ class ListsService {
         }
       } catch (functionsError: any) {
         console.warn('❌ Cloud Functions update failed, using mock data:', functionsError);
-        
+
         // 3. Fallback to mock/simulation
         const mockUpdatedList: List = {
           id: updateData.listId,
@@ -529,9 +543,9 @@ class ListsService {
           placesCount: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          previewPlaces: []
+          previewPlaces: [],
         };
-        
+
         console.log('✅ Using mock updated list:', mockUpdatedList);
         return mockUpdatedList;
       }
@@ -544,10 +558,10 @@ class ListsService {
   async deleteList(listId: string): Promise<void> {
     try {
       console.log('🔥 Calling deleteList function for list:', listId);
-      
+
       const deleteList = httpsCallable(this.functions, 'deleteList');
       const result = await deleteList({ listId });
-      
+
       console.log('🔥 deleteList function result:', result);
       console.log('✅ Successfully deleted list:', listId);
     } catch (error: any) {
@@ -560,11 +574,11 @@ class ListsService {
    * Map Firebase function errors to ListError
    */
   private mapErrorToListError(error: any): ListError {
-    console.log('🔍 Mapping error:', { 
-      code: error.code, 
+    console.log('🔍 Mapping error:', {
+      code: error.code,
       message: error.message,
       name: error.name,
-      fullError: error 
+      fullError: error,
     });
 
     if (error.code) {
@@ -573,44 +587,44 @@ class ListsService {
         case 'not-found':
           return {
             code: 'function_not_found',
-            message: 'A função getUserLists não foi encontrada. Verifique se as Cloud Functions foram implantadas.'
+            message: 'A função getUserLists não foi encontrada. Verifique se as Cloud Functions foram implantadas.',
           };
         case 'permission-denied':
           return {
             code: 'permission_denied',
-            message: 'Você não tem permissão para realizar esta ação'
+            message: 'Você não tem permissão para realizar esta ação',
           };
         case 'invalid-argument':
           return {
             code: 'invalid_data',
-            message: 'Dados inválidos fornecidos'
+            message: 'Dados inválidos fornecidos',
           };
         case 'unauthenticated':
           return {
             code: 'not_authenticated',
-            message: 'Você precisa estar logado para realizar esta ação'
+            message: 'Você precisa estar logado para realizar esta ação',
           };
         case 'unavailable':
           return {
             code: 'service_unavailable',
-            message: 'Serviço temporariamente indisponível. Tente novamente em alguns momentos.'
+            message: 'Serviço temporariamente indisponível. Tente novamente em alguns momentos.',
           };
         case 'deadline-exceeded':
           return {
             code: 'timeout',
-            message: 'Operação expirou. Verifique sua conexão e tente novamente.'
+            message: 'Operação expirou. Verifique sua conexão e tente novamente.',
           };
         default:
           return {
             code: 'unknown_error',
-            message: `Erro: ${error.code} - ${error.message || 'Erro desconhecido'}`
+            message: `Erro: ${error.code} - ${error.message || 'Erro desconhecido'}`,
           };
       }
     } else {
       // Network or other error
       return {
         code: 'network_error',
-        message: 'Erro de rede. Verifique sua conexão e tente novamente'
+        message: 'Erro de rede. Verifique sua conexão e tente novamente',
       };
     }
   }
@@ -622,82 +636,82 @@ class ListsService {
     try {
       console.log('🔥 Adding place to list with direct Firestore access');
       console.log('🔥 Request data:', { addPlaceData, userId });
-      
+
       const { listId, placeId, personalNote = '', tags = [] } = addPlaceData;
-      
+
       // Verificar se os parâmetros são válidos
       if (!listId || !placeId || !userId) {
         throw {
           code: 'invalid_argument',
-          message: 'listId, placeId e userId são obrigatórios'
+          message: 'listId, placeId e userId são obrigatórios',
         } as ListError;
       }
-      
+
       // Verificar se lista existe e permissões
       console.log('🔥 Checking list exists:', listId);
       const listRef = doc(firestore, 'lists', listId);
       const listDoc = await getDoc(listRef);
-      
+
       if (!listDoc.exists()) {
         console.error('❌ List not found:', listId);
         throw {
           code: 'list_not_found',
-          message: 'Lista não encontrada'
+          message: 'Lista não encontrada',
         } as ListError;
       }
-      
+
       const listData = listDoc.data();
       console.log('🔥 List data:', { ownerId: listData?.ownerId, placesCount: listData?.placesCount });
-      
+
       // Verificar permissões (dono ou editor)
       const hasPermission = listData?.ownerId === userId;
       console.log('🔥 Permission check:', { hasPermission, listOwnerId: listData?.ownerId, currentUserId: userId });
-      
+
       if (!hasPermission) {
         throw {
           code: 'permission_denied',
-          message: 'Sem permissão para adicionar lugares nesta lista'
+          message: 'Sem permissão para adicionar lugares nesta lista',
         } as ListError;
       }
-      
+
       // Verificar limites Free (15 lugares por lista)
       console.log('🔥 Checking user limits:', userId);
       const userRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userRef);
       const user = userDoc.exists() ? userDoc.data() : null;
-      
+
       console.log('🔥 User data:', { accountType: user?.accountType, exists: userDoc.exists() });
-      
+
       if (user?.accountType === 'free' && (listData?.placesCount || 0) >= 15) {
         throw {
           code: 'resource_exhausted',
-          message: 'Limite de lugares por lista atingido (15). Upgrade para Premium para lugares ilimitados.'
+          message: 'Limite de lugares por lista atingido (15). Upgrade para Premium para lugares ilimitados.',
         } as ListError;
       }
-      
+
       // Verificar se lugar já existe na lista
       const listPlaceId = `${listId}_${placeId}`;
       const listPlaceRef = doc(firestore, 'listPlaces', listPlaceId);
       const existingListPlace = await getDoc(listPlaceRef);
-      
+
       if (existingListPlace.exists()) {
         throw {
           code: 'already_exists',
-          message: 'Este lugar já está na lista'
+          message: 'Este lugar já está na lista',
         } as ListError;
       }
-      
+
       // Verificar se lugar existe na coleção places
       const placeRef = doc(firestore, 'places', placeId);
       const placeDoc = await getDoc(placeRef);
-      
+
       if (!placeDoc.exists()) {
         throw {
           code: 'place_not_found',
-          message: 'Lugar não encontrado'
+          message: 'Lugar não encontrado',
         } as ListError;
       }
-      
+
       // Buscar próxima ordem
       const lastPlaceQuery = query(
         collection(firestore, 'listPlaces'),
@@ -707,7 +721,7 @@ class ListsService {
       );
       const lastPlaceSnapshot = await getDocs(lastPlaceQuery);
       const nextOrder = lastPlaceSnapshot.empty ? 1 : lastPlaceSnapshot.docs[0].data().order + 1;
-      
+
       // Criar documento listPlace
       const listPlaceData = {
         listId: listId,
@@ -716,38 +730,38 @@ class ListsService {
         addedAt: serverTimestamp(),
         order: nextOrder,
         personalNote: personalNote.trim(),
-        tags: tags || []
+        tags: tags || [],
       };
-      
+
       console.log('🔥 Creating listPlace document:', listPlaceData);
-      
+
       // Salvar o documento
       await setDoc(listPlaceRef, listPlaceData);
-      
+
       console.log('🔥 Updating list counter...');
       // Atualizar contador da lista
       await updateDoc(listRef, {
         placesCount: increment(1),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       });
-      
+
       // Atualizar contador do usuário
       if (userDoc.exists()) {
         console.log('🔥 Updating user counter...');
         await updateDoc(userRef, {
           placesCount: increment(1),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
         });
       }
-      
+
       console.log('🔥 Updating place counter...');
       // Atualizar lugar (adicionar usuário que adicionou)
       await updateDoc(placeRef, {
         addedBy: arrayUnion(userId),
         totalAdds: increment(1),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       });
-      
+
       const resultListPlace: ListPlace = {
         id: listPlaceId,
         listId: listId,
@@ -756,76 +770,129 @@ class ListsService {
         addedAt: new Date().toISOString(),
         order: nextOrder,
         personalNote: personalNote.trim(),
-        tags: tags || []
+        tags: tags || [],
       };
-      
+
       console.log('✅ Successfully added place to list in Firestore:', resultListPlace.id);
       return resultListPlace;
     } catch (error: any) {
       console.error('❌ Error adding place to list in Firestore:', error);
-      
+
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
       }
-      
+
       throw {
         code: 'firestore_error',
-        message: `Erro ao adicionar lugar à lista: ${error.message}`
+        message: `Erro ao adicionar lugar à lista: ${error.message}`,
       } as ListError;
     }
   }
 
   /**
-   * Adicionar lugar à lista
-   * Tenta primeiro usar Firestore diretamente, depois Cloud Functions, e por último mock data
+   * Adicionar lugar à lista usando Cloud Function
    */
   async addPlaceToList(addPlaceData: AddPlaceToListRequest, userId: string): Promise<ListPlace> {
     try {
-      // 1. Try direct Firestore access first
-      console.log('🔥 Trying to add place to list with direct Firestore access');
-      return await this.addPlaceToListDirect(addPlaceData, userId);
-    } catch (error: any) {
-      console.warn('❌ Direct Firestore add place failed, trying Cloud Functions:', error);
-      
-      try {
-        // 2. Fallback to Cloud Functions
-        console.log('🔥 Calling addPlaceToList function with data:', addPlaceData);
-        
-        const addPlaceToList = httpsCallable(this.functions, 'addPlaceToList');
-        const result = await addPlaceToList({
-          ...addPlaceData,
-          userId
-        });
-        
-        console.log('🔥 addPlaceToList function result:', result);
-        
-        const responseData = result.data as AddPlaceToListResponse;
-        
-        if (responseData && responseData.listPlace) {
-          console.log('✅ Successfully added place to list via Cloud Functions:', responseData.listPlace.id);
-          return responseData.listPlace;
-        } else {
-          throw new Error('Invalid response format from addPlaceToList function');
+      console.log('🔥 Adding place to list using Cloud Function:', addPlaceData);
+
+      // Para Google Places, precisamos buscar os dados primeiro
+      if (addPlaceData.placeId.startsWith('ChIJ')) {
+        // É um Google Place ID, precisamos buscar os dados do Google Places
+        console.log('🏢 Google Place detected, fetching details for cloud function...');
+
+        // Buscar dados do Google Places API
+        const placeDetailsResponse = await firebaseService.getPlaceDetails(addPlaceData.placeId);
+
+        if (!placeDetailsResponse.success || !placeDetailsResponse.data) {
+          throw new Error(placeDetailsResponse.error || 'Failed to get place details from Google');
         }
-      } catch (functionsError: any) {
-        console.warn('❌ Cloud Functions add place failed, using mock data:', functionsError);
-        
-        // 3. Fallback to mock/simulation
-        const mockListPlace: ListPlace = {
-          id: `${addPlaceData.listId}_${addPlaceData.placeId}`,
+
+        const placeDetails = placeDetailsResponse.data;
+
+        // Preparar dados para a cloud function no formato esperado
+        const cloudFunctionData = {
+          googlePlaceId: addPlaceData.placeId,
+          googlePlaceData: {
+            googlePlaceId: addPlaceData.placeId,
+            name: placeDetails.googleData?.name,
+            address: placeDetails.googleData?.address,
+            rating: placeDetails.googleData?.rating,
+            types: placeDetails.googleData?.types || [],
+            geometry: placeDetails.googleData?.coordinates
+              ? {
+                  location: {
+                    lat: placeDetails.googleData.coordinates.lat,
+                    lng: placeDetails.googleData.coordinates.lng,
+                  },
+                }
+              : undefined,
+            photos: placeDetails.googleData?.photos || [],
+            price_level: placeDetails.googleData?.priceLevel,
+            opening_hours: placeDetails.googleData?.openingHours,
+          },
           listId: addPlaceData.listId,
-          placeId: addPlaceData.placeId,
-          addedBy: userId,
-          addedAt: new Date().toISOString(),
-          order: 1,
           personalNote: addPlaceData.personalNote || '',
-          tags: addPlaceData.tags || []
+          tags: addPlaceData.tags || [],
         };
-        
-        console.log('✅ Using mock added place:', mockListPlace);
-        return mockListPlace;
+
+        console.log('🔥 Calling addPlaceToList Cloud Function with Google Place data:', {
+          googlePlaceId: cloudFunctionData.googlePlaceId,
+          listId: cloudFunctionData.listId,
+          personalNote: cloudFunctionData.personalNote,
+          tags: cloudFunctionData.tags,
+        });
+
+        const addPlaceToListFn = httpsCallable(this.functions, 'addPlaceToList');
+        const result = await addPlaceToListFn(cloudFunctionData);
+
+        console.log('🔥 addPlaceToList Cloud Function result:', result.data);
+
+        const responseData = result.data as any;
+
+        if (responseData && responseData.success) {
+          console.log('✅ Successfully added place to list via Cloud Function:', responseData.message);
+
+          // A cloud function deve retornar o listPlace criado
+          if (responseData.listPlace) {
+            return responseData.listPlace;
+          } else {
+            // Se não retornar o listPlace, criar um placeholder
+            return {
+              id: `${addPlaceData.listId}_${addPlaceData.placeId}`,
+              listId: addPlaceData.listId,
+              placeId: addPlaceData.placeId,
+              addedBy: userId,
+              addedAt: new Date().toISOString(),
+              order: 1,
+              personalNote: addPlaceData.personalNote || '',
+              tags: addPlaceData.tags || [],
+            };
+          }
+        } else {
+          throw new Error(responseData?.error || 'Cloud function returned unsuccessful response');
+        }
+      } else {
+        // Para lugares manuais, usar o método direto do Firestore
+        console.log('📝 Manual place detected, using direct Firestore method...');
+        return await this.addPlaceToListDirect(addPlaceData, userId);
       }
+    } catch (error: any) {
+      console.error('❌ Error adding place to list via Cloud Function:', error);
+
+      // Se for erro de cloud function, tentar fallback para Firestore direto
+      if (error.code === 'not-found' || error.message?.includes('not-found')) {
+        console.warn('⚠️ Cloud Function not found, falling back to direct Firestore...');
+        try {
+          return await this.addPlaceToListDirect(addPlaceData, userId);
+        } catch (firestoreError: any) {
+          console.error('❌ Firestore fallback also failed:', firestoreError);
+          throw this.mapErrorToListError(firestoreError);
+        }
+      }
+
+      throw this.mapErrorToListError(error);
     }
   }
 
@@ -835,71 +902,94 @@ class ListsService {
   async getListPlacesDirect(listId: string): Promise<ListPlaceWithDetails[]> {
     try {
       console.log('🔥 Fetching list places with direct Firestore access for list:', listId);
-      
+
       // Buscar todos os listPlaces para esta lista
       const listPlacesQuery = query(
         collection(firestore, 'listPlaces'),
         where('listId', '==', listId),
         orderBy('order', 'asc')
       );
-      
+
       const listPlacesSnapshot = await getDocs(listPlacesQuery);
-      
+
       if (listPlacesSnapshot.empty) {
         console.log('✅ No places found for list:', listId);
         return [];
       }
-      
-      // Buscar detalhes dos lugares
-      const placesWithDetails: ListPlaceWithDetails[] = [];
-      
-      for (const listPlaceDoc of listPlacesSnapshot.docs) {
-        const listPlaceData = listPlaceDoc.data();
-        
-        // Buscar dados do lugar
-        const placeRef = doc(firestore, 'places', listPlaceData.placeId);
-        const placeDoc = await getDoc(placeRef);
-        
+
+      // Extrair IDs dos places para busca em batch
+      const listPlacesData = listPlacesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as (ListPlace & { id: string })[];
+
+      const placeIds = listPlacesData.map((lp) => lp.placeId);
+
+      // Buscar places em batch (máximo 10 por vez devido ao Firestore)
+      const placesData = new Map();
+      const batchSize = 10;
+
+      for (let i = 0; i < placeIds.length; i += batchSize) {
+        const batch = placeIds.slice(i, i + batchSize);
+
+        const placesQuery = query(collection(firestore, 'places'), where('__name__', 'in', batch));
+
+        const placesSnapshot = await getDocs(placesQuery);
+        placesSnapshot.forEach((doc) => {
+          placesData.set(doc.id, doc.data());
+        });
+      }
+
+      // Montar resultado final
+      const placesWithDetails: ListPlaceWithDetails[] = listPlacesData.map((listPlaceData) => {
+        const placeData = placesData.get(listPlaceData.placeId);
+
         let placeDetails = undefined;
-        if (placeDoc.exists()) {
-          const placeData = placeDoc.data();
+        if (placeData) {
           placeDetails = {
-            id: placeData.id,
-            name: placeData.googleData?.name || 'Nome não disponível',
-            address: placeData.googleData?.address || 'Endereço não disponível',
-            coordinates: placeData.googleData?.coordinates || { lat: 0, lng: 0 },
-            rating: placeData.googleData?.rating,
+            id: listPlaceData.placeId,
+            name: placeData.googleData?.name || placeData.name || 'Nome não disponível',
+            address:
+              placeData.googleData?.formatted_address || placeData.address?.formatted || 'Endereço não disponível',
+            coordinates: placeData.coordinates
+              ? {
+                  lat: placeData.coordinates.latitude || placeData.coordinates.lat,
+                  lng: placeData.coordinates.longitude || placeData.coordinates.lng,
+                }
+              : { lat: 0, lng: 0 },
+            rating: placeData.googleData?.rating || placeData.averageRatings?.overall,
             priceLevel: placeData.googleData?.priceLevel,
             photos: placeData.googleData?.photos || [],
             types: placeData.googleData?.types || [],
-            phone: placeData.googleData?.phone,
-            website: placeData.googleData?.website
+            phone: placeData.googleData?.phone || placeData.googleData?.formatted_phone_number,
+            website: placeData.googleData?.website,
+            category: placeData.category,
           };
         }
-        
-        const listPlaceWithDetails: ListPlaceWithDetails = {
-          id: listPlaceDoc.id,
-          listId: listPlaceData.listId,
+
+        return {
+          id: listPlaceData.id,
+          listId,
           placeId: listPlaceData.placeId,
           addedBy: listPlaceData.addedBy,
-          addedAt: listPlaceData.addedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          addedAt: typeof listPlaceData.addedAt === 'string' 
+            ? listPlaceData.addedAt 
+            : (listPlaceData.addedAt as any)?.toDate?.()?.toISOString() || new Date().toISOString(),
           order: listPlaceData.order,
           personalNote: listPlaceData.personalNote,
-          tags: listPlaceData.tags,
-          place: placeDetails
+          tags: listPlaceData.tags || [],
+          place: placeDetails,
         };
-        
-        placesWithDetails.push(listPlaceWithDetails);
-      }
-      
+      });
+
       console.log('✅ Successfully fetched list places from Firestore:', placesWithDetails.length);
       return placesWithDetails;
     } catch (error: any) {
       console.error('❌ Error fetching list places from Firestore:', error);
-      
+
       throw {
         code: 'firestore_error',
-        message: `Erro ao buscar lugares da lista: ${error.message}`
+        message: `Erro ao buscar lugares da lista: ${error.message}`,
       } as ListError;
     }
   }
@@ -915,18 +1005,18 @@ class ListsService {
       return await this.getListPlacesDirect(listId);
     } catch (error: any) {
       console.warn('❌ Direct Firestore fetch list places failed, trying Cloud Functions:', error);
-      
+
       try {
         // 2. Fallback to Cloud Functions
         console.log('🔥 Calling getListPlaces function for list:', listId);
-        
+
         const getListPlaces = httpsCallable(this.functions, 'getListPlaces');
         const result = await getListPlaces({ listId });
-        
+
         console.log('🔥 getListPlaces function result:', result);
-        
+
         const responseData = result.data as GetListPlacesResponse;
-        
+
         if (responseData && responseData.places) {
           console.log('✅ Successfully fetched list places via Cloud Functions:', responseData.places.length);
           return responseData.places;
@@ -935,7 +1025,7 @@ class ListsService {
         }
       } catch (functionsError: any) {
         console.warn('❌ Cloud Functions fetch list places failed, using mock data:', functionsError);
-        
+
         // 3. Fallback to mock/simulation
         const mockPlaces: ListPlaceWithDetails[] = [
           {
@@ -957,8 +1047,8 @@ class ListsService {
               photos: ['https://via.placeholder.com/400x300/8B4513/FFFFFF?text=🍔'],
               types: ['restaurant', 'food', 'establishment'],
               phone: '(11) 98765-4321',
-              website: 'https://montysburger.com'
-            }
+              website: 'https://montysburger.com',
+            },
           },
           {
             id: `${listId}_mock2`,
@@ -979,11 +1069,11 @@ class ListsService {
               photos: ['https://via.placeholder.com/400x300/228B22/FFFFFF?text=🍔'],
               types: ['restaurant', 'food', 'establishment'],
               phone: '(11) 91234-5678',
-              website: 'https://burgerecia.com'
-            }
-          }
+              website: 'https://burgerecia.com',
+            },
+          },
         ];
-        
+
         console.log('✅ Using mock list places:', mockPlaces.length);
         return mockPlaces;
       }

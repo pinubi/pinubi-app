@@ -1,8 +1,9 @@
 import { firestore, functions } from '@/config/firebase';
-import { firebaseService } from '@/services/firebaseService';
 import type { AutocompleteResult } from '@/types/googlePlaces';
 import type { Place } from '@/types/places';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { googlePlacesService } from './googlePlacesService';
 
 export interface CreatePlaceFromGoogleRequest {
   placeId: string;
@@ -12,6 +13,11 @@ export interface CreatePlaceFromGoogleRequest {
 export interface CreatePlaceFromGoogleResponse {
   success: boolean;
   place: Place | null;
+  error?: string;
+}
+
+interface FirebaseFunctionResponse {
+  success: boolean;
   error?: string;
 }
 
@@ -55,77 +61,48 @@ class PlacesService {
         console.log('📋 Using provided Google data for place:', placeId);
       } else {
         console.log('🔍 Fetching place details from Google for:', placeId);
-        const detailsResponse = await firebaseService.getPlaceDetails(placeId);
-        
-        if (!detailsResponse.success || !detailsResponse.data) {
+        const detailsResponse = await googlePlacesService.getPlaceDetails(placeId);        
+
+        if (!detailsResponse || !detailsResponse.success) {
           return {
             success: false,
             place: null,
-            error: detailsResponse.error || 'Não foi possível obter dados do lugar'
+            error: detailsResponse?.error || 'Não foi possível obter dados do lugar'
           };
         }
         
-        placeDetails = detailsResponse.data;
+        placeDetails = detailsResponse.result;
       }
       
-      // 3. Criar documento no Firestore
-      const newPlaceData = {
-        name: placeDetails.googleData?.name || placeDetails.name,
-        googleData: {
-          name: placeDetails.googleData?.name || placeDetails.name,
-          address: {
-            formatted: placeDetails.googleData?.address?.formatted || 
-                      (typeof placeDetails.googleData?.address === 'string' ? placeDetails.googleData.address : 'Endereço não disponível')
-          },
-          coordinates: placeDetails.googleData?.coordinates || placeDetails.coordinates || { lat: 0, lng: 0 },
-          phone: placeDetails.googleData?.phone || undefined,
-          website: placeDetails.googleData?.website || undefined,
-          rating: placeDetails.googleData?.rating || undefined,
-          userRatingsTotal: placeDetails.googleData?.userRatingsTotal || undefined,
-          photos: placeDetails.googleData?.photos || [],
-          types: placeDetails.googleData?.types || [],
-          priceLevel: placeDetails.googleData?.priceLevel || undefined,
-          openingHours: placeDetails.googleData?.openingHours || undefined,
-          lastUpdated: new Date().toISOString()
-        },
-        searchableText: this.generateSearchableText(
-          placeDetails.googleData?.name || placeDetails.name, 
-          placeDetails.googleData?.address?.formatted || placeDetails.googleData?.address, 
-          placeDetails.googleData?.types || []
-        ),
-        coordinates: placeDetails.googleData?.coordinates || placeDetails.coordinates || { lat: 0, lng: 0 },
-        addedBy: [], // Array of user IDs who added this place
-        totalAdds: 0,
-        categories: this.extractCategories(placeDetails.googleData?.types || []),
-        category: this.extractCategories(placeDetails.googleData?.types || [])[0] || 'other',
-        isActive: true,
-        tags: [],
-        subcategories: this.extractCategories(placeDetails.googleData?.types || []),
-        averageRatings: {
-          overall: placeDetails.googleData?.rating || 0,
-          food: 0,
-          service: 0,
-          ambiance: 0,
-          price: 0
-        },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        lastGoogleSync: serverTimestamp()
-      };
-      
-      await setDoc(placeRef, newPlaceData);
-      
-      console.log('✅ Successfully created place in Firestore:', placeId);
-      
-      // 4. Retornar o lugar criado
-      const createdPlace: Place = this.mapFirestorePlaceToPlace(placeId, {
-        ...newPlaceData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        lastGoogleSync: new Date().toISOString()
+      // 3. Create place using Firebase function
+      const processAndSaveGooglePlace = httpsCallable(functions, 'processAndSaveGooglePlace');
+      console.log("🚀 ~ PlacesService ~ createOrGetPlaceFromGoogle ~ processAndSaveGooglePlace:", processAndSaveGooglePlace)
+
+      const result = await processAndSaveGooglePlace({
+        googleData: placeDetails,
+        placeId: placeId
       });
       
-      return { success: true, place: createdPlace };
+      const resultData = result.data as FirebaseFunctionResponse;
+      
+      if (resultData.success) {
+        console.log('✅ Successfully created place via Firebase function:', placeId);
+        
+        // 4. Fetch the created place from Firestore to return it
+        const createdPlaceDoc = await getDoc(placeRef);
+        if (createdPlaceDoc.exists()) {
+          const createdPlace: Place = this.mapFirestorePlaceToPlace(placeId, createdPlaceDoc.data());
+          return { success: true, place: createdPlace };
+        } else {
+          return { success: false, place: null, error: 'Lugar criado mas não foi possível recuperá-lo' };
+        }
+      } else {
+        return {
+          success: false,
+          place: null,
+          error: resultData.error || 'Erro ao processar lugar via Firebase function'
+        };
+      }
       
     } catch (error: any) {
       console.error('❌ Error creating place from Google:', error);
@@ -234,9 +211,11 @@ class PlacesService {
       id: placeId,
       googleData: {
         name: data.googleData?.name || data.name || 'Nome não disponível',
-        address: typeof data.googleData?.address === 'object' 
-          ? data.googleData.address.formatted || 'Endereço não disponível'
-          : data.googleData?.address || 'Endereço não disponível',
+        address: typeof data.googleData?.address === 'object' && data.googleData.address?.formatted
+          ? data.googleData.address.formatted 
+          : typeof data.googleData?.address === 'string'
+            ? data.googleData.address 
+            : 'Endereço não disponível',
         coordinates: data.googleData?.coordinates || data.coordinates || { lat: 0, lng: 0 },
         phone: data.googleData?.phone || undefined,
         website: data.googleData?.website || undefined,
