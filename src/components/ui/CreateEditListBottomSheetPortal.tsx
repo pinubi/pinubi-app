@@ -411,7 +411,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
       } else {
         hidePortal('create-edit-list-bottom-sheet');
       }
-    }, [isVisible, formData, tagInput]); // Only depend on isVisible to avoid infinite loops
+    }, [isVisible, formData, tagInput, isFormValid, isSaving]); // Only depend on isVisible to avoid infinite loops
 
     return null;
   }
