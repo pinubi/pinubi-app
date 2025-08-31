@@ -149,10 +149,10 @@ export const useListPlacesStore = create<ListPlacesState>()(
           
           console.log('📍 Removing place from list:', listId, placeId);
           
-          // TODO: Implement remove place from list service method
-          // await listsService.removePlaceFromList(listId, placeId);
+          // Call the service method to remove place from list
+          await listsService.removePlace(listId, placeId);
           
-          // For now, just remove from local state
+          // Remove from local state after successful removal from server
           const currentPlaces = get().placesByListId[listId] || [];
           const updatedPlaces = currentPlaces.filter(place => place.placeId !== placeId);
           

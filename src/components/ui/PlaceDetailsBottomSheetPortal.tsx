@@ -347,13 +347,13 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
               <Ionicons name='time-outline' size={16} color='#6B7280' />
             </View>
             <View className='flex-1'>
-              <Text className='text-gray-900 font-medium'>Aberto agora</Text>
-              <Text className='text-gray-600 text-sm'>Seg-Dom: 18:00 - 01:00</Text>
+              <Text className='text-gray-900 font-medium'>{place?.googleData.openingHours?.openNow ?  'Aberto agora' : 'Fechado'}</Text>
+              <Text className='text-gray-600 text-sm'>{`${place?.googleData.openingHours?.weekdayText?.join(', \n') || 'Horários não disponíveis'}`}</Text>
             </View>
           </View>
 
           {/* Group size */}
-          <View className='flex-row items-center'>
+          {/* <View className='flex-row items-center'>
             <View className='w-8 h-8 bg-gray-100 rounded-full items-center justify-center mr-3'>
               <Ionicons name='people-outline' size={16} color='#6B7280' />
             </View>
@@ -361,7 +361,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
               <Text className='text-gray-900 font-medium'>Grupos bem-vindos</Text>
               <Text className='text-gray-600 text-sm'>Aceita reservas para até 8 pessoas</Text>
             </View>
-          </View>
+          </View> */}
 
           {/* Amenities */}
           <View className='flex-row gap-2 items-center space-x-4 pt-2'>

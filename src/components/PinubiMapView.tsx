@@ -16,6 +16,7 @@ interface PinubiMapViewProps {
 const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlacePress }) => {
   const { latitude, longitude, error, loading, refreshLocation } = useLocation();
   const { places, loading: placesLoading, error: placesError, searchPlaces, clearError } = usePlaces();
+  console.log("🚀 ~ PinubiMapView ~ places:", places)
   
   const [currentRegion, setCurrentRegion] = useState<MapRegion | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);

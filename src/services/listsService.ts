@@ -1079,6 +1079,31 @@ class ListsService {
       }
     }
   }
+  /**
+   * Remover lugar da lista usando Cloud Function
+   */
+  async removePlace(listId: string, placeId: string) {
+    try {
+      const removePlaceFromList = httpsCallable(this.functions, 'removePlaceFromList');
+      
+      const result = await removePlaceFromList({
+        listId,
+        placeId
+      });
+
+      return result.data;
+      
+    } catch (error: any) {
+      console.error('🔥 Firebase function error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        fullError: error
+      });
+      const errorMessage = error.message || 'Erro desconhecido';
+      return { success: false, error: errorMessage, data: [] };
+    }
+  }
 }
 
 export const listsService = new ListsService();

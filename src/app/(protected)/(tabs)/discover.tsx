@@ -184,14 +184,14 @@ const DiscoverScreen = () => {
     bottomSheetRef.current?.snapToIndex(0);
   }, [clearAutocompleteResults]);
 
-  const handleBottomSheetChange = useCallback((index: number) => {
-    // Prevent sheet changes when keyboard is visible or search is focused (except allowing top position)
-    if ((isSearchFocused) && index !== 2) {
-      bottomSheetRef.current?.snapToIndex(2);
-      return;
-    }
-    setBottomSheetIndex(index);
-  }, [isKeyboardVisible, isSearchFocused]);
+  // const handleBottomSheetChange = useCallback((index: number) => {
+  //   // Prevent sheet changes when keyboard is visible or search is focused (except allowing top position)
+  //   if ((isSearchFocused) && index !== 2) {
+  //     bottomSheetRef.current?.snapToIndex(2);
+  //     return;
+  //   }
+  //   setBottomSheetIndex(index);
+  // }, [isKeyboardVisible, isSearchFocused]);
 
   const handlePlacePress = (place: Place) => {
     // Set the selected place and the bottom sheet will open automatically
@@ -355,7 +355,7 @@ const DiscoverScreen = () => {
             ref={bottomSheetRef}
             snapPoints={['30%', '65%', '98%']}
             index={bottomSheetIndex}
-            onChange={handleBottomSheetChange}
+            // onChange={handleBottomSheetChange}
             enablePanDownToClose={false}            
             enableContentPanningGesture={true}
           >
