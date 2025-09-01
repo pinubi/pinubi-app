@@ -118,7 +118,7 @@ const AutocompleteList: React.FC<AutocompleteListProps> = ({
       {/* Cabeçalho da lista */}
       <View className="px-4 py-2 bg-gray-50 border-b border-gray-100">
         <Text className="text-sm font-medium text-gray-700">
-          {results.length} {results.length === 1 ? 'lugar encontrado' : 'lugares encontrados'}
+          {String(results.length)} {results.length === 1 ? 'lugar encontrado' : 'lugares encontrados'}
         </Text>
       </View>
 

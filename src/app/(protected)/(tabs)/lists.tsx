@@ -3,8 +3,10 @@ import { CreateEditListBottomSheetPortal, ProfileBottomSheetPortal, type BottomS
 import { useAuth } from '@/hooks/useAuth';
 import { useLists } from '@/hooks/useLists';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import type { ListFormData } from '@/types/lists';
@@ -82,6 +84,29 @@ const ListsScreen = () => {
   const router = useRouter();
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
   const createEditListBottomSheetRef = useRef<BottomSheetRef>(null);
+
+  // Check if we need to reopen profile bottom sheet when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const checkReopenFlag = async () => {
+        try {
+          const shouldReopen = await AsyncStorage.getItem('shouldReopenProfileBottomSheet');
+          if (shouldReopen === 'true') {
+            // Clear the flag
+            await AsyncStorage.removeItem('shouldReopenProfileBottomSheet');
+            // Reopen the profile bottom sheet with a small delay
+            setTimeout(() => {
+              profileBottomSheetRef.current?.snapToIndex(0);
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Error checking reopen flag:', error);
+        }
+      };
+
+      checkReopenFlag();
+    }, [])
+  );
 
   // Hooks
   const { userPhoto } = useAuth();

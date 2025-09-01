@@ -90,7 +90,7 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
       {hasPhotos && photos.length > 1 && (
         <View className='absolute bottom-4 right-4 bg-black/50 px-3 py-1 rounded-full'>
           <Text className='text-white text-sm'>
-            {currentIndex + 1}/{photos.length}
+            {String(currentIndex + 1)}/{String(photos.length)}
           </Text>
         </View>
       )}
@@ -458,7 +458,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
           </TouchableOpacity>
         </View>
 
-        <Text className='text-gray-600 text-sm mb-4'>{mockReviews.length} avaliações públicas</Text>
+        <Text className='text-gray-600 text-sm mb-4'>{String(mockReviews.length)} avaliações públicas</Text>
 
         <View className='space-y-4'>
           {mockReviews.map((review) => (

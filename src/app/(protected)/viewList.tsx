@@ -685,16 +685,16 @@ const ListPlacesScreen = () => {
                 <TouchableOpacity
                   onPress={() => setViewMode('map')}
                   className={`px-4 py-2 rounded-md flex-row items-center ${
-                    viewMode === 'map' ? 'bg-white shadow-sm' : ''
+                    (viewMode as 'list' | 'map') === 'map' ? 'bg-white shadow-sm' : ''
                   }`}
                 >
                   <Ionicons 
                     name='map-outline' 
                     size={18} 
-                    color={viewMode === 'map' ? '#b13bff' : '#6B7280'} 
+                    color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'} 
                   />
                   <Text className={`ml-2 text-sm font-medium ${
-                    viewMode === 'map' ? 'text-primary-600' : 'text-gray-600'
+                    (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
                   }`}>
                     Mapa
                   </Text>
@@ -808,16 +808,16 @@ const ListPlacesScreen = () => {
               <TouchableOpacity
                 onPress={() => setViewMode('list')}
                 className={`flex-1 px-4 py-2 rounded-md flex-row items-center justify-center ${
-                  viewMode === 'list' ? 'bg-white shadow-sm' : ''
+                  (viewMode as 'list' | 'map') === 'list' ? 'bg-white shadow-sm' : ''
                 }`}
               >
                 <Ionicons 
                   name='list-outline' 
                   size={18} 
-                  color={viewMode === 'list' ? '#b13bff' : '#6B7280'} 
+                  color={(viewMode as 'list' | 'map') === 'list' ? '#b13bff' : '#6B7280'} 
                 />
                 <Text className={`ml-2 text-sm font-medium ${
-                  viewMode === 'list' ? 'text-primary-600' : 'text-gray-600'
+                  (viewMode as 'list' | 'map') === 'list' ? 'text-primary-600' : 'text-gray-600'
                 }`}>
                   Lista
                 </Text>
@@ -826,16 +826,16 @@ const ListPlacesScreen = () => {
               <TouchableOpacity
                 onPress={() => setViewMode('map')}
                 className={`flex-1 px-4 py-2 rounded-md flex-row items-center justify-center ${
-                  viewMode === 'map' ? 'bg-white shadow-sm' : ''
+                  (viewMode as 'list' | 'map') === 'map' ? 'bg-white shadow-sm' : ''
                 }`}
               >
                 <Ionicons 
                   name='map-outline' 
                   size={18} 
-                  color={viewMode === 'map' ? '#b13bff' : '#6B7280'} 
+                  color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'} 
                 />
                 <Text className={`ml-2 text-sm font-medium ${
-                  viewMode === 'map' ? 'text-primary-600' : 'text-gray-600'
+                  (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
                 }`}>
                   Mapa
                 </Text>

@@ -245,7 +245,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
                       maxLength={50}
                       autoFocus={mode === 'create'}
                     />
-                    <Text className='text-xs text-gray-500 mt-1'>{formData.title.length}/50 caracteres</Text>
+                    <Text className='text-xs text-gray-500 mt-1'>{String(formData.title.length)}/50 caracteres</Text>
                   </View>
                 </View>
 
@@ -284,7 +284,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
                     style={{ textAlignVertical: 'top' }}
                     maxLength={200}
                   />
-                  <Text className='text-xs text-gray-500 mt-1'>{formData.description.length}/200 caracteres</Text>
+                  <Text className='text-xs text-gray-500 mt-1'>{String(formData.description.length)}/200 caracteres</Text>
                 </View>
 
                 {/* Visibility */}

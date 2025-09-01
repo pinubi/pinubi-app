@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Text, View } from 'react-native';
 
@@ -65,6 +67,29 @@ const DiscoverScreen = () => {
       keyboardDidHideListener?.remove();
     };
   }, []);
+
+  // Check if we need to reopen profile bottom sheet when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const checkReopenFlag = async () => {
+        try {
+          const shouldReopen = await AsyncStorage.getItem('shouldReopenProfileBottomSheet');
+          if (shouldReopen === 'true') {
+            // Clear the flag
+            await AsyncStorage.removeItem('shouldReopenProfileBottomSheet');
+            // Reopen the profile bottom sheet with a small delay
+            setTimeout(() => {
+              profileBottomSheetRef.current?.snapToIndex(0);
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Error checking reopen flag:', error);
+        }
+      };
+
+      checkReopenFlag();
+    }, [])
+  );
   
   // Mock data for demonstration - replace with real data
   const [places] = useState<Place[]>([
