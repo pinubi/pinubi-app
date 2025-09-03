@@ -4,17 +4,10 @@ import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } 
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
+import type { ListFormData } from '@/types/lists';
 import { usePortal } from './PortalProvider';
 
 export type BottomSheetRef = BottomSheet;
-
-interface ListFormData {
-  title: string;
-  emoji: string;
-  description: string;
-  visibility: 'public' | 'private';
-  tags: string[];
-}
 
 interface CreateEditListBottomSheetPortalProps {
   mode: 'create' | 'edit';
@@ -252,7 +245,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
                       maxLength={50}
                       autoFocus={mode === 'create'}
                     />
-                    <Text className='text-xs text-gray-500 mt-1'>{formData.title.length}/50 caracteres</Text>
+                    <Text className='text-xs text-gray-500 mt-1'>{String(formData.title.length)}/50 caracteres</Text>
                   </View>
                 </View>
 
@@ -291,7 +284,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
                     style={{ textAlignVertical: 'top' }}
                     maxLength={200}
                   />
-                  <Text className='text-xs text-gray-500 mt-1'>{formData.description.length}/200 caracteres</Text>
+                  <Text className='text-xs text-gray-500 mt-1'>{String(formData.description.length)}/200 caracteres</Text>
                 </View>
 
                 {/* Visibility */}
@@ -418,7 +411,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
       } else {
         hidePortal('create-edit-list-bottom-sheet');
       }
-    }, [isVisible, formData, tagInput]); // Only depend on isVisible to avoid infinite loops
+    }, [isVisible, formData, tagInput, isFormValid, isSaving]); // Only depend on isVisible to avoid infinite loops
 
     return null;
   }

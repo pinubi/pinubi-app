@@ -32,7 +32,11 @@ const PlaceCard: React.FC<{
         </Text>
         
         <Text className="text-gray-600 text-sm mb-2" numberOfLines={1}>
-          {place.googleData.address}
+          {typeof place.googleData.address === 'object' && (place.googleData.address as any)?.formatted
+            ? (place.googleData.address as any).formatted
+            : typeof place.googleData.address === 'string'
+              ? place.googleData.address
+              : 'Endereço não disponível'}
         </Text>
         
         <View className="flex-row items-center">

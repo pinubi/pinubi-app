@@ -5,19 +5,40 @@ import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 
 const ProtectedLayout = () => {
-  const { isSignedIn, isAuthenticated, loading, user } = useAuth();
+  const { isSignedIn, isAuthenticated, loading, canAccessProtected, isValidated, isActive, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    console.log('ProtectedLayout: Estado atual - loading:', loading, 'isSignedIn:', isSignedIn, 'isAuthenticated:', isAuthenticated, 'user:', user?.name || 'null');
+    console.log('ProtectedLayout: Estado atual:', {
+      loading,
+      isSignedIn,
+      isAuthenticated,
+      canAccessProtected,
+      isValidated,
+      isActive,
+      userName: user?.name || 'null'
+    });
     
-    // Only redirect if we're definitely not authenticated
-    // Give some leeway for mock authentication which might have timing issues
-    if (!loading && !isSignedIn && !isAuthenticated && !user) {
-      console.log('ProtectedLayout: Redirecionando para login - definitivamente não autenticado');
+    // Don't redirect while loading
+    if (loading) return;
+
+    // Not authenticated at all - go to login
+    if (!isSignedIn && !isAuthenticated) {
+      console.log('ProtectedLayout: Redirecionando para login - não autenticado');
       router.replace('/(public)/login');
+      return;
     }
-  }, [isSignedIn, isAuthenticated, loading, router, user]);
+
+    // Authenticated but not validated/active - must complete onboarding
+    if ((isSignedIn || isAuthenticated) && !canAccessProtected) {
+      console.log('ProtectedLayout: Redirecionando para onboarding - não validado/ativo');
+      router.replace('/(public)/onboarding/welcome');
+      return;
+    }
+
+    // If we reach here, user should have access to protected routes
+    console.log('ProtectedLayout: Usuário autorizado para rotas protegidas');
+  }, [isSignedIn, isAuthenticated, loading, canAccessProtected, isValidated, isActive, router, user]);
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -28,16 +49,16 @@ const ProtectedLayout = () => {
     );
   }
 
-  // Show nothing while redirecting (prevents flash of protected content)
-  if (!loading && !isSignedIn && !isAuthenticated && !user) {
+  // Show loading while redirecting to prevent flash of protected content
+  if (!canAccessProtected) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#4285F4" />
+        <ActivityIndicator size="large" color="#b13bff" />
       </View>
     );
   }
 
-  // Render protected routes when authenticated (including mock)
+  // Render protected routes only when user is fully validated and active
   return (
     <Stack
       screenOptions={{
@@ -47,6 +68,8 @@ const ProtectedLayout = () => {
       <Stack.Screen name="home" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="viewList" />
+      <Stack.Screen name="profile" />
+      <Stack.Screen name="followers" />
     </Stack>
   );
 };

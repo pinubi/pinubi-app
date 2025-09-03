@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Text, View } from 'react-native';
 
@@ -65,6 +67,29 @@ const DiscoverScreen = () => {
       keyboardDidHideListener?.remove();
     };
   }, []);
+
+  // Check if we need to reopen profile bottom sheet when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const checkReopenFlag = async () => {
+        try {
+          const shouldReopen = await AsyncStorage.getItem('shouldReopenProfileBottomSheet');
+          if (shouldReopen === 'true') {
+            // Clear the flag
+            await AsyncStorage.removeItem('shouldReopenProfileBottomSheet');
+            // Reopen the profile bottom sheet with a small delay
+            setTimeout(() => {
+              profileBottomSheetRef.current?.snapToIndex(0);
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Error checking reopen flag:', error);
+        }
+      };
+
+      checkReopenFlag();
+    }, [])
+  );
   
   // Mock data for demonstration - replace with real data
   const [places] = useState<Place[]>([
@@ -184,14 +209,14 @@ const DiscoverScreen = () => {
     bottomSheetRef.current?.snapToIndex(0);
   }, [clearAutocompleteResults]);
 
-  const handleBottomSheetChange = useCallback((index: number) => {
-    // Prevent sheet changes when keyboard is visible or search is focused (except allowing top position)
-    if ((isSearchFocused) && index !== 2) {
-      bottomSheetRef.current?.snapToIndex(2);
-      return;
-    }
-    setBottomSheetIndex(index);
-  }, [isKeyboardVisible, isSearchFocused]);
+  // const handleBottomSheetChange = useCallback((index: number) => {
+  //   // Prevent sheet changes when keyboard is visible or search is focused (except allowing top position)
+  //   if ((isSearchFocused) && index !== 2) {
+  //     bottomSheetRef.current?.snapToIndex(2);
+  //     return;
+  //   }
+  //   setBottomSheetIndex(index);
+  // }, [isKeyboardVisible, isSearchFocused]);
 
   const handlePlacePress = (place: Place) => {
     // Set the selected place and the bottom sheet will open automatically
@@ -233,11 +258,17 @@ const DiscoverScreen = () => {
   }, []);
 
   // Filter places based on search query
-  const filteredPlaces = places.filter(place =>
-    place.googleData.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.googleData.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredPlaces = places.filter(place => {
+    const addressText = typeof place.googleData.address === 'object' && (place.googleData.address as any)?.formatted
+      ? (place.googleData.address as any).formatted
+      : typeof place.googleData.address === 'string'
+        ? place.googleData.address
+        : '';
+    
+    return place.googleData.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      addressText.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      place.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()));
+  });
 
   const renderContent = () => {
     if (viewMode === 'map') {
@@ -349,7 +380,7 @@ const DiscoverScreen = () => {
             ref={bottomSheetRef}
             snapPoints={['30%', '65%', '98%']}
             index={bottomSheetIndex}
-            onChange={handleBottomSheetChange}
+            // onChange={handleBottomSheetChange}
             enablePanDownToClose={false}            
             enableContentPanningGesture={true}
           >

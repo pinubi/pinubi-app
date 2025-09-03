@@ -30,6 +30,7 @@ class FirebaseService {
       
       // Handle the actual response format from Firebase
       const responseData = result.data as any;
+      console.log("🚀 ~ FirebaseService ~ findNearbyPlaces ~ responseData:", responseData.places[0])
       
       if (responseData && responseData.places && Array.isArray(responseData.places)) {                
         // Map the Firebase response format to Place format (based on Database Schema)
@@ -50,7 +51,7 @@ class FirebaseService {
           
           const mappedPlace: Place = {
             id: place.id || `place-${Date.now()}-${Math.random()}`,
-            googleData: {
+            googleData: {              
               name: place.name || 'Local sem nome',
               address: place.address || 'Endereço não disponível',
               coordinates: {
@@ -61,11 +62,12 @@ class FirebaseService {
               website: place.website,
               rating: place.rating ? parseFloat(place.rating) : undefined,
               userRatingsTotal: place.totalReviews || place.userRatingsTotal,
-              photos: place.photos,
+              photos: place.googleData?.photos,
               types: place.types || place.categories,
               priceLevel: place.priceLevel,
               openingHours: place.openingHours,
-              lastUpdated: place.lastUpdated
+              lastUpdated: place.lastUpdated,
+              ...place.googleData,
             },
             searchableText: place.searchableText,
             coordinates: {
@@ -141,15 +143,15 @@ class FirebaseService {
               lat,
               lng
             },
-            phone: place.phone,
-            website: place.website,
-            rating: place.rating ? parseFloat(place.rating) : undefined,
-            userRatingsTotal: place.totalReviews || place.userRatingsTotal,
-            photos: place.photos,
-            types: place.types || place.categories,
-            priceLevel: place.priceLevel,
-            openingHours: place.openingHours,
-            lastUpdated: place.lastUpdated
+            phone: place.googleData.phone,
+            website: place.googleData.website,
+            rating: place.googleData.rating ? parseFloat(place.googleData.rating) : undefined,
+            userRatingsTotal: place.googleData.totalReviews || place.googleData.userRatingsTotal,
+            photos: place.googleData.photos,
+            types: place.googleData.types || place.googleData.categories,
+            priceLevel: place.googleData.priceLevel,
+            openingHours: place.googleData.openingHours,
+            lastUpdated: place.googleData.lastUpdated
           },
           searchableText: place.searchableText,
           coordinates: {

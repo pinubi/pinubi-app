@@ -319,7 +319,7 @@ const LoginScreen = () => {
         {/* Footer */}
         <View className='items-center px-6 pb-2'>
           <TouchableOpacity 
-            onPress={() => router.navigate('/(public)/register' as any)} 
+            onPress={() => router.navigate('/(public)/signup' as any)} 
             className='mb-4 py-2'
           >
             <Text className='text-primary-600 font-medium text-sm'>

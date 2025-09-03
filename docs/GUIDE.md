@@ -26,6 +26,7 @@ Whenever you generate code:
 - Keep code **modular and reusable**.  
 - Default imports must match Expo & React Native standards.
 - Always respect the tailwind.config.js as style-guide of the project and the primary-500 as main color
+- Package manager: **bun** → commands must use `bunx` instead of `npx`.
 
 ---
 

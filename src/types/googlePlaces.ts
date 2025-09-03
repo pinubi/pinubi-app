@@ -95,3 +95,33 @@ export interface AutocompleteResult {
   isRestaurant: boolean;
   isTouristAttraction: boolean;
 }
+
+/**
+ * Processed place details result ready for application consumption
+ */
+export interface ProcessedPlaceDetails {
+  googlePlaceId: string;
+  name: string;
+  address: string;
+  rating?: number;
+  user_ratings_total?: number;
+  types: string[];
+  geometry: {
+    location: {
+      lat?: number;
+      lng?: number;
+    };
+  };
+  photos: {
+    photo_reference: string;
+    width: number;
+    height: number;
+  }[];
+  price_level?: number;
+  opening_hours?: {
+    weekday_text: string[];
+    open_now?: boolean;
+  };
+  website?: string;
+  international_phone_number?: string;
+}

@@ -15,6 +15,7 @@ export interface Place {
     types?: string[];
     priceLevel?: number;
     openingHours?: {
+      openNow?: boolean;
       weekdayText?: string[];
     };
     lastUpdated?: string;
