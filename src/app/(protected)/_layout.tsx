@@ -53,7 +53,7 @@ const ProtectedLayout = () => {
   if (!canAccessProtected) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#4285F4" />
+        <ActivityIndicator size="large" color="#b13bff" />
       </View>
     );
   }

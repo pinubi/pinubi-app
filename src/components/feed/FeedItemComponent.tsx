@@ -22,6 +22,14 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
   const actionIcon = getActivityIcon(item.type);
   const actionText = getActivityActionText(item.type);
 
+  // Helper function to safely convert values to strings
+  const safeString = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object' && value.formatted) return String(value.formatted);
+    return String(value);
+  };
+
   const handlePress = () => {
     onPress?.(item);
   };
@@ -53,16 +61,16 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
   const renderReviewContent = () => (
     <>
       <View className='px-4'>
-        <Text className='text-gray-900 font-semibold text-base mb-2'>{item.content.title}</Text>
+        <Text className='text-gray-900 font-semibold text-base mb-2'>{safeString(item.content.title)}</Text>
         {item.content.description && (
-          <Text className='text-gray-600 text-sm mb-3'>{item.content.description}</Text>
+          <Text className='text-gray-600 text-sm mb-3'>{safeString(item.content.description)}</Text>
         )}
         
         {/* Rating */}
         {item.content.rating && (
           <View className='flex-row items-center mb-3'>
             <Ionicons name='star' size={16} color='#fbbf24' />
-            <Text className='text-gray-700 font-medium ml-1'>{item.content.rating}</Text>
+            <Text className='text-gray-700 font-medium ml-1'>{safeString(item.content.rating)}</Text>
             <Text className='text-gray-500 text-sm ml-2'>de 10</Text>
           </View>
         )}
@@ -70,9 +78,9 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
         {/* Place info */}
         {item.content.placeName && (
           <View className='bg-gray-50 rounded-lg p-3 mb-3'>
-            <Text className='text-gray-900 font-medium'>{item.content.placeName}</Text>
+            <Text className='text-gray-900 font-medium'>{safeString(item.content.placeName)}</Text>
             {item.content.placeAddress && (
-              <Text className='text-gray-500 text-sm mt-1'>{item.content.placeAddress}</Text>
+              <Text className='text-gray-500 text-sm mt-1'>{safeString(item.content.placeAddress)}</Text>
             )}
           </View>
         )}
@@ -94,17 +102,17 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
   const renderPlaceContent = () => (
     <>
       <View className='px-4'>
-        <Text className='text-gray-900 font-semibold text-base mb-2'>{item.content.title}</Text>
+        <Text className='text-gray-900 font-semibold text-base mb-2'>{safeString(item.content.title)}</Text>
         {item.content.description && (
-          <Text className='text-gray-600 text-sm mb-3'>{item.content.description}</Text>
+          <Text className='text-gray-600 text-sm mb-3'>{safeString(item.content.description)}</Text>
         )}
 
         {/* Place info */}
         {item.content.placeName && (
           <View className='bg-gray-50 rounded-lg p-3 mb-3'>
-            <Text className='text-gray-900 font-medium'>{item.content.placeName}</Text>
+            <Text className='text-gray-900 font-medium'>{safeString(item.content.placeName)}</Text>
             {item.content.placeAddress && (
-              <Text className='text-gray-500 text-sm mt-1'>{item.content.placeAddress}</Text>
+              <Text className='text-gray-500 text-sm mt-1'>{safeString(item.content.placeAddress)}</Text>
             )}
           </View>
         )}
@@ -126,9 +134,9 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
   const renderListContent = () => (
     <>
       <View className='px-4'>
-        <Text className='text-gray-900 font-semibold text-base mb-2'>{item.content.title}</Text>
+        <Text className='text-gray-900 font-semibold text-base mb-2'>{safeString(item.content.title)}</Text>
         {item.content.description && (
-          <Text className='text-gray-600 text-sm mb-4'>{item.content.description}</Text>
+          <Text className='text-gray-600 text-sm mb-4'>{safeString(item.content.description)}</Text>
         )}
       </View>
 
@@ -156,9 +164,9 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
 
   const renderGenericContent = () => (
     <View className='px-4'>
-      <Text className='text-gray-900 font-semibold text-base mb-2'>{item.content.title}</Text>
+      <Text className='text-gray-900 font-semibold text-base mb-2'>{safeString(item.content.title)}</Text>
       {item.content.description && (
-        <Text className='text-gray-600 text-sm mb-4'>{item.content.description}</Text>
+        <Text className='text-gray-600 text-sm mb-4'>{safeString(item.content.description)}</Text>
       )}
     </View>
   );
@@ -174,10 +182,12 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
         <Image source={{ uri: item.user.avatar }} className='w-10 h-10 rounded-full' />
         <View className='flex-1 ml-3'>
           <View className='flex-row items-center'>
-            <Text className='font-semibold text-gray-900 text-sm'>{item.user.name}</Text>
-            <Text className='text-gray-500 text-sm ml-1'>{item.user.username}</Text>
+            <Text className='font-semibold text-gray-900 text-sm'>{safeString(item.user.name)}</Text>
+            <Text className='text-gray-500 text-sm ml-1'>{safeString(item.user.username)}</Text>
             <Text className='text-gray-400 text-sm ml-1'>•</Text>
-            <Text className='text-gray-500 text-sm ml-1'>{item.timestamp}</Text>
+            <Text className='text-gray-500 text-sm ml-1'>
+              {typeof item.timestamp === 'string' ? item.timestamp : String((item.timestamp as any)?.formatted || 'agora')}
+            </Text>
           </View>
           <View className='flex-row items-center mt-1'>
             <View className={`${badgeColors.bg} px-2 py-1 rounded-md`}>
@@ -196,7 +206,7 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
       {item.content.category && (
         <View className='px-4 mb-4'>
           <View className='bg-gray-100 px-3 py-1.5 rounded-lg self-start'>
-            <Text className='text-gray-600 text-xs font-medium'>{item.content.category}</Text>
+            <Text className='text-gray-600 text-xs font-medium'>{safeString(item.content.category)}</Text>
           </View>
         </View>
       )}
@@ -209,12 +219,12 @@ export const FeedItemComponent: React.FC<FeedItemComponentProps> = ({
             size={20}
             color={item.interactions.hasLiked ? '#ef4444' : '#6b7280'}
           />
-          <Text className='text-gray-600 text-sm ml-1'>{item.interactions.likes}</Text>
+          <Text className='text-gray-600 text-sm ml-1'>{safeString(item.interactions.likes)}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleComment} className='flex-row items-center'>
           <Ionicons name='chatbubble-outline' size={20} color='#6b7280' />
-          <Text className='text-gray-600 text-sm ml-1'>{item.interactions.comments}</Text>
+          <Text className='text-gray-600 text-sm ml-1'>{safeString(item.interactions.comments)}</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

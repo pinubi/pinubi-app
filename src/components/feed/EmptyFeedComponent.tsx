@@ -1,16 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 interface EmptyFeedComponentProps {
   onRefresh?: () => void;
+  handleSearchPress?: () => void;
   message?: string;
 }
 
 export const EmptyFeedComponent: React.FC<EmptyFeedComponentProps> = ({
   onRefresh,
+  handleSearchPress,
   message = 'Seu feed está vazio',
 }) => {
+  const router = useRouter();
+
+  const redirectToDiscover = () => {
+    router.push('/(protected)/(tabs)/discover');
+  };
+
   return (
     <View className='flex-1 items-center justify-center px-6 py-12'>
       {/* Icon */}
@@ -37,12 +46,18 @@ export const EmptyFeedComponent: React.FC<EmptyFeedComponentProps> = ({
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity className='bg-gray-100 rounded-xl py-4 px-6 flex-row items-center justify-center'>
+        <TouchableOpacity
+          onPress={redirectToDiscover}
+          className='bg-gray-100 rounded-xl py-4 px-6 flex-row items-center justify-center'
+        >
           <Ionicons name='compass-outline' size={20} color='#6b7280' />
           <Text className='text-gray-700 font-semibold ml-2'>Explorar Lugares</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className='bg-gray-100 rounded-xl py-4 px-6 flex-row items-center justify-center'>
+        <TouchableOpacity
+          onPress={handleSearchPress}
+          className='bg-gray-100 rounded-xl py-4 px-6 flex-row items-center justify-center'
+        >
           <Ionicons name='people-outline' size={20} color='#6b7280' />
           <Text className='text-gray-700 font-semibold ml-2'>Encontrar Pessoas</Text>
         </TouchableOpacity>

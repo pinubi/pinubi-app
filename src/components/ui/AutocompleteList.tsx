@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 import { AutocompleteResult } from '@/types/googlePlaces';
 
@@ -15,7 +15,9 @@ interface AutocompleteListProps {
 const AutocompleteItem: React.FC<{
   result: AutocompleteResult;
   onPress: (result: AutocompleteResult) => void;
-}> = ({ result, onPress }) => {
+  isItemLoading: boolean;
+  isAnyLoading: boolean;
+}> = ({ result, onPress, isItemLoading, isAnyLoading }) => {
   // Selecionar ícone baseado no tipo
   const getIcon = () => {
     if (result.isRestaurant) {
@@ -27,13 +29,20 @@ const AutocompleteItem: React.FC<{
     return { name: 'location' as const, color: '#6B7280' };
   };
 
+  const handlePress = () => {
+    if (!isAnyLoading) {
+      onPress(result);
+    }
+  };
+
   const icon = getIcon();
 
   return (
     <TouchableOpacity
-      onPress={() => onPress(result)}
+      onPress={handlePress}
       className="flex-row items-center px-4 py-3 border-b border-gray-50"
       activeOpacity={0.7}
+      disabled={isAnyLoading}
     >
       {/* Ícone do tipo de lugar */}
       <View className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center mr-3">
@@ -68,8 +77,12 @@ const AutocompleteItem: React.FC<{
         )}
       </View>
 
-      {/* Seta indicativa */}
-      <Ionicons name="arrow-up-outline" size={16} color="#9CA3AF" style={{ transform: [{ rotate: '45deg' }] }} />
+      {/* Loading indicator ou seta indicativa */}
+      {isItemLoading ? (
+        <ActivityIndicator size="small" color="#6B7280" />
+      ) : (
+        <Ionicons name="arrow-up-outline" size={16} color="#9CA3AF" style={{ transform: [{ rotate: '45deg' }] }} />
+      )}
     </TouchableOpacity>
   );
 };
@@ -81,6 +94,17 @@ const AutocompleteList: React.FC<AutocompleteListProps> = ({
   error = null,
   emptyMessage = 'Digite para buscar lugares...',
 }) => {
+  const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
+
+  const handleResultPress = async (result: AutocompleteResult) => {
+    setLoadingItemId(result.place_id);
+    try {
+      await onResultPress(result);
+    } finally {
+      setLoadingItemId(null);
+    }
+  };
+
   // Estado de loading
   if (loading) {
     return (
@@ -127,7 +151,12 @@ const AutocompleteList: React.FC<AutocompleteListProps> = ({
         data={results}
         keyExtractor={(item) => item.place_id}
         renderItem={({ item }) => (
-          <AutocompleteItem result={item} onPress={onResultPress} />
+          <AutocompleteItem 
+            result={item} 
+            onPress={handleResultPress}
+            isItemLoading={loadingItemId === item.place_id}
+            isAnyLoading={loadingItemId !== null}
+          />
         )}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

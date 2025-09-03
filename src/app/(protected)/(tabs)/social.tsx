@@ -1,4 +1,4 @@
-import { EmptyFeedComponent, ErrorComponent, FeedItemComponent, LoadingComponent } from '@/components/feed';
+import { EmptyFeedComponent, ErrorComponent, FeedItemComponent } from '@/components/feed';
 import Header from '@/components/Header';
 import { ProfileBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
 import { useFeed } from '@/hooks/useFeed';
@@ -15,20 +15,20 @@ const SocialScreen = () => {
   const router = useRouter();
 
   // Feed integration
-  const { 
-    items: feedItems, 
-    loading, 
-    refreshing, 
-    hasMore, 
-    error, 
-    refresh, 
+  const {
+    items: feedItems,
+    loading,
+    refreshing,
+    hasMore,
+    error,
+    refresh,
     loadMore,
     likeItem,
-    markAsViewed
+    markAsViewed,
   } = useFeed({
     limit: 20,
     maxDistance: 50,
-    includeGeographic: true
+    includeGeographic: true,
   });
 
   // Convert feed items to activity posts for UI compatibility
@@ -73,7 +73,7 @@ const SocialScreen = () => {
   const handleActivityPress = (activity: any) => {
     // Mark as viewed for analytics
     markAsViewed(activity.id);
-    
+
     // TODO: Implementar navegação baseada no tipo da atividade
     console.log('Activity pressed:', activity);
   };
@@ -87,21 +87,27 @@ const SocialScreen = () => {
   };
 
   const renderFeedItem = ({ item }: { item: any }) => (
-    <FeedItemComponent
-      item={item}
-      onLike={handleLike}
-      onComment={handleComment}
-      onPress={handleActivityPress}
-    />
+    <FeedItemComponent item={item} onLike={handleLike} onComment={handleComment} onPress={handleActivityPress} />
   );
 
   const renderFooter = () => {
     if (!loading || refreshing) return null;
-    
+
     return (
       <View className='flex-row items-center justify-center py-4'>
-        <ActivityIndicator size="small" color="#0ea5e9" />
+        <ActivityIndicator size='small' color='#b13bff' />
         <Text className='text-gray-600 text-sm ml-2'>Carregando mais...</Text>
+      </View>
+    );
+  };
+
+  const renderEmptyComponent = () => <EmptyFeedComponent onRefresh={refresh} handleSearchPress={handleSearchPress} />;
+
+  const renderLoadingOverlay = () => {
+    return (
+      <View className='absolute inset-0 bg-gray-50 items-center justify-center z-10'>
+        <ActivityIndicator size='large' color='#b13bff' />
+        <Text className='text-gray-600 text-base mt-4'>Carregando atividades...</Text>
       </View>
     );
   };
@@ -116,34 +122,9 @@ const SocialScreen = () => {
   if (error && activities.length === 0) {
     return (
       <View className='flex-1 bg-gray-50'>
-        <Header
-          title='Pinubi'
-          className='border-b border-gray-100'
-          onRightPress={handleProfilePress}
-        />
+        <Header title='Pinubi' className='border-b border-gray-100' onRightPress={handleProfilePress} />
         <ErrorComponent error={error} onRetry={refresh} />
-        <ProfileBottomSheetPortal
-          ref={profileBottomSheetRef}
-          onClose={() => profileBottomSheetRef.current?.close()}
-        />
-      </View>
-    );
-  }
-
-  // Show loading state on first load
-  if (loading && activities.length === 0) {
-    return (
-      <View className='flex-1 bg-gray-50'>
-        <Header
-          title='Pinubi'
-          className='border-b border-gray-100'
-          onRightPress={handleProfilePress}
-        />
-        <LoadingComponent message="Carregando seu feed..." />
-        <ProfileBottomSheetPortal
-          ref={profileBottomSheetRef}
-          onClose={() => profileBottomSheetRef.current?.close()}
-        />
+        <ProfileBottomSheetPortal ref={profileBottomSheetRef} onClose={() => profileBottomSheetRef.current?.close()} />
       </View>
     );
   }
@@ -181,29 +162,27 @@ const SocialScreen = () => {
       </View>
 
       {/* Feed List */}
-      {activities.length === 0 ? (
-        <EmptyFeedComponent onRefresh={refresh} />
-      ) : (
-        <FlatList
-          data={activities}
-          renderItem={renderFeedItem}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-          }
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.1}
-          ListFooterComponent={renderFooter}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <View className='flex-1 relative'>
+        {loading && activities.length === 0 ? (
+          renderLoadingOverlay()
+        ) : (
+          <FlatList
+            data={activities.reverse()} // Show newest first
+            renderItem={renderFeedItem}
+            keyExtractor={(item) => item.id}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.1}
+            ListFooterComponent={renderFooter}
+            ListEmptyComponent={renderEmptyComponent}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
 
       {/* Profile Bottom Sheet */}
-      <ProfileBottomSheetPortal
-        ref={profileBottomSheetRef}
-        onClose={() => profileBottomSheetRef.current?.close()}
-      />
+      <ProfileBottomSheetPortal ref={profileBottomSheetRef} onClose={() => profileBottomSheetRef.current?.close()} />
     </View>
   );
 };

@@ -259,7 +259,14 @@ const FollowersScreen = () => {
             </Text>
           </View>
           {searchResults.map((user) => (
-            <UserCard key={user.id} user={user} onPress={handleUserPress} onAction={handleUserAction} />
+            <UserCard 
+              key={user.id} 
+              user={user} 
+              activeTab={activeTab}
+              onPress={handleUserPress} 
+              onAction={handleUserAction}
+              searchQuery={searchQuery}
+            />
           ))}
           <View className='h-20' />
         </ScrollView>
@@ -368,6 +375,7 @@ const FollowersScreen = () => {
             user={user}
             onPress={handleUserPress}
             onAction={handleUserAction}
+            searchQuery={searchQuery}
           />
         ))}
         <View className='h-20' />

@@ -6,8 +6,30 @@ import { ActivityPost, FeedItem } from '@/types/feed';
 export const mapFeedItemToActivityPost = (feedItem: FeedItem): ActivityPost => {
   const { data, type, authorName, authorUsername, authorAvatar, createdAt } = feedItem;
   
-  // Calcular timestamp relativo
-  const timestamp = formatRelativeTime(createdAt);
+  // Debug logging to track the issue
+  console.log('🔍 Mapping feed item:', { 
+    id: feedItem.id, 
+    type, 
+    createdAt: typeof createdAt, 
+    createdAtValue: createdAt 
+  });
+  
+  // Calcular timestamp relativo - ensure createdAt is a string
+  let timestamp: string;
+  try {
+    if (typeof createdAt === 'string') {
+      timestamp = formatRelativeTime(createdAt);
+    } else if (createdAt && typeof createdAt === 'object' && (createdAt as any).formatted) {
+      console.warn('⚠️ Found object with formatted property in createdAt:', createdAt);
+      timestamp = formatRelativeTime((createdAt as any).formatted);
+    } else {
+      console.warn('⚠️ Invalid createdAt format:', createdAt);
+      timestamp = 'agora';
+    }
+  } catch (error) {
+    console.error('❌ Error processing timestamp:', error);
+    timestamp = 'agora';
+  }
   
   // Mapear dados baseado no tipo da atividade
   let content: ActivityPost['content'] = {
@@ -108,9 +130,27 @@ export const mapFeedItemToActivityPost = (feedItem: FeedItem): ActivityPost => {
  */
 export const formatRelativeTime = (dateString: string): string => {
   try {
+    // Handle different input formats
+    if (!dateString || typeof dateString !== 'string') {
+      console.warn('Invalid date string provided to formatRelativeTime:', dateString);
+      return 'agora';
+    }
+
     const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date created from:', dateString);
+      return 'agora';
+    }
+    
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
+    
+    // If date is in the future, show "agora"
+    if (diffMs < 0) {
+      return 'agora';
+    }
     
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -129,7 +169,7 @@ export const formatRelativeTime = (dateString: string): string => {
       return `${diffWeeks}sem`;
     }
   } catch (error) {
-    console.error('Erro ao formatar data:', error);
+    console.error('Erro ao formatar data:', error, 'Input:', dateString);
     return 'agora';
   }
 };

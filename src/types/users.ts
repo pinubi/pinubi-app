@@ -4,7 +4,7 @@ export type FollowRequestStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface PublicUser {
   id: string;
-  name: string;
+  displayName: string;
   username?: string;
   photoURL?: string;
   accountType: 'free' | 'premium';

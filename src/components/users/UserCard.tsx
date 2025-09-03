@@ -5,12 +5,13 @@ import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface UserCardProps {
   user: PublicUser;
-  activeTab: 'followers' | 'following';
+  activeTab: 'followers' | 'following' | 'requests';
   onPress?: (user: PublicUser) => void;
   onAction?: (userId: string, action: UserActionType) => void;
   showStats?: boolean;
   showLocation?: boolean;
   compact?: boolean;
+  searchQuery?: string;
 }
 
 export const UserCard: React.FC<UserCardProps> = ({
@@ -21,11 +22,14 @@ export const UserCard: React.FC<UserCardProps> = ({
   showStats = true,
   showLocation = true,
   compact = false,
-}) => {  
+  searchQuery = '',
+}) => {
+  const isSearchEmpty = searchQuery === '';
+
   // Ensure user has all required properties with defaults
   const safeUser = {
     ...user,
-    displayName: user?.name || 'Usuário',
+    displayName: user?.displayName || 'Usuário',
     username: user.username || undefined,
     photoURL: user.photoURL || undefined,
     commonCategories: user.commonCategories || [],
@@ -45,13 +49,27 @@ export const UserCard: React.FC<UserCardProps> = ({
     onAction?.(safeUser.id, action);
   };
 
-  const getActionType = () => {    
-    if (activeTab && activeTab === 'followers') {
+  const getActionType = () => {
+    if (isSearchEmpty && activeTab && activeTab === 'followers') {
       return 'remove_follower';
-    } else if (activeTab && activeTab === 'following') {
+    } else if (isSearchEmpty && activeTab && activeTab === 'following') {
       return 'unfollow';
+    } else if (isSearchEmpty && activeTab && activeTab === 'requests') {
+      return 'accept_request'; // Default action for requests tab
     } else {
       return 'follow';
+    }
+  };
+
+  const getLabel = () => {
+    if (isSearchEmpty && activeTab === 'followers') {
+      return 'Remover';
+    } else if (isSearchEmpty && activeTab === 'following') {
+      return 'Deixar de Seguir';
+    } else if (isSearchEmpty && activeTab === 'requests') {
+      return 'Aceitar';
+    } else {
+      return 'Seguir';
     }
   };
 
@@ -103,7 +121,7 @@ export const UserCard: React.FC<UserCardProps> = ({
         onPress={() => handleAction(getActionType())}
         className='bg-gradient-to-r from-primary-500 to-primary-600 px-5 py-2.5 rounded-full shadow-lg active:scale-95'
         style={{
-          shadowColor: '#3b82f6',
+          shadowColor: '#000000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.25,
           shadowRadius: 3,
@@ -112,9 +130,7 @@ export const UserCard: React.FC<UserCardProps> = ({
       >
         <View className='flex-row items-center'>
           <Ionicons name='person-add' size={16} color='#b13bff' />
-          <Text className='text-[#b13bff] text-sm font-semibold ml-1'>
-            {activeTab ? (activeTab === 'followers' ? 'Remover' : 'Deixar de Seguir') : 'Seguir'}
-          </Text>
+          <Text className='text-[#b13bff] text-sm font-semibold ml-1'>{getLabel()}</Text>
         </View>
       </TouchableOpacity>
     );

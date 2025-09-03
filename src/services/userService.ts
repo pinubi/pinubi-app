@@ -497,7 +497,7 @@ class UserService {
       const responseData = response.data as ExploreUsersByCategoryResponse;
 
       if (responseData.success) {
-        console.log(`${responseData.totalFound || responseData.users.length} usuários interessados em ${params.category}:`);
+        console.log(`✅ Found ${responseData.totalFound || responseData.users.length} usuários interessados em ${params.category}:`);
         responseData.users.forEach((user) => {
           console.log(`- ${user.displayName} (${user.followersCount} seguidores)`);
           if (user.featuredPlaces?.length > 0) {
