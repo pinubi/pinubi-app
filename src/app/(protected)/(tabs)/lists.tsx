@@ -70,7 +70,7 @@ const NewListCard: React.FC<{ onPress?: () => void }> = ({ onPress }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className='bg-white rounded-2xl p-4 flex-1 mx-1 mb-4 border-2 border-dashed border-gray-300 items-center justify-center min-h-[180px]'
+      className='bg-white rounded-2xl p-4 flex-1 mx-1 mb-4 border-2 border-dashed border-gray-300 items-center justify-center min-h-[180px] max-w-[196px]'
     >
       <View className='w-12 h-12 bg-gray-100 rounded-xl items-center justify-center mb-3'>
         <Ionicons name='add' size={24} color='#9CA3AF' />
@@ -167,6 +167,8 @@ const ListsScreen = () => {
           title: list.title,
           emoji: list.emoji,
           description: list.description,
+          canDelete: list.canDelete ? 'true' : 'false',
+          canRename: list.canRename ? 'true' : 'false',
           placesCount: list.placesCount.toString(),
           isPublic: list.visibility === 'public' ? 'true' : 'false',
         },

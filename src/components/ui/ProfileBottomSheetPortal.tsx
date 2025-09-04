@@ -132,7 +132,7 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
           {/* Menu Sections */}
           <View className='pt-6'>
             {renderMenuSection('RECURSOS INTELIGENTES', intelligentResources)}
-            {renderMenuSection('CONFIGURAÇÕES', configurations)}
+            {/* {renderMenuSection('CONFIGURAÇÕES', configurations)} */}
           </View>
 
           {/* Footer */}

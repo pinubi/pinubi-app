@@ -1,31 +1,32 @@
-import { firestore, functions } from '@/config/firebase';
+import { auth, firestore, functions } from '@/config/firebase';
 import { firebaseService } from '@/services/firebaseService';
 import type {
-  AddPlaceToListRequest,
-  CreateListRequest,
-  GetListPlacesResponse,
-  GetUserListsResponse,
-  List,
-  ListError,
-  ListPlace,
-  ListPlaceWithDetails,
-  UpdateListRequest,
+    AddPlaceToListRequest,
+    CreateListRequest,
+    GetListPlacesResponse,
+    GetUserListsResponse,
+    List,
+    ListError,
+    ListPlace,
+    ListPlaceWithDetails,
+    UpdateListRequest,
 } from '@/types/lists';
 import {
-  addDoc,
-  arrayUnion,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  increment,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where,
+    addDoc,
+    arrayUnion,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    increment,
+    limit,
+    orderBy,
+    query,
+    serverTimestamp,
+    setDoc,
+    updateDoc,
+    where,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
@@ -553,20 +554,110 @@ class ListsService {
   }
 
   /**
+   * Deletar uma lista usando Firestore diretamente
+   */
+  async deleteListDirect(listId: string, userId: string): Promise<void> {
+    try {
+      console.log('🔥 Deleting list directly in Firestore:', listId);
+
+      // Verificar se lista existe e se usuário é o dono
+      const listRef = doc(firestore, 'lists', listId);
+      const listDoc = await getDoc(listRef);
+
+      if (!listDoc.exists()) {
+        throw {
+          code: 'list_not_found',
+          message: 'Lista não encontrada',
+        } as ListError;
+      }
+
+      const listData = listDoc.data();
+
+      if (listData.ownerId !== userId) {
+        throw {
+          code: 'permission_denied',
+          message: 'Apenas o dono pode deletar a lista',
+        } as ListError;
+      }
+
+      if (!listData.canDelete) {
+        throw {
+          code: 'permission_denied',
+          message: 'Esta lista não pode ser deletada',
+        } as ListError;
+      }
+
+      // Buscar todos os places da lista para deletar primeiro
+      console.log('🔥 Searching for list places to delete...');
+      const listPlacesRef = collection(firestore, 'listPlaces');
+      const listPlacesQuery = query(listPlacesRef, where('listId', '==', listId));
+      const listPlacesSnapshot = await getDocs(listPlacesQuery);
+
+      console.log('🔥 Found', listPlacesSnapshot.size, 'places to delete');
+
+      // Deletar todos os places da lista primeiro
+      const deletePromises = listPlacesSnapshot.docs.map(placeDoc => 
+        deleteDoc(placeDoc.ref)
+      );
+      
+      if (deletePromises.length > 0) {
+        await Promise.all(deletePromises);
+        console.log('🔥 Successfully deleted all list places');
+      }
+
+      // Deletar a lista
+      await deleteDoc(listRef);
+
+      console.log('✅ Successfully deleted list in Firestore:', listId);
+    } catch (error: any) {
+      console.error('❌ Error deleting list in Firestore:', error);
+
+      // Se o erro já é um ListError, propague-o
+      if (error.code) {
+        throw error;
+      }
+
+      throw {
+        code: 'firestore_error',
+        message: `Erro ao deletar lista: ${error.message}`,
+      } as ListError;
+    }
+  }
+
+  /**
    * Deletar uma lista
+   * Tenta primeiro usar Firestore diretamente, depois Cloud Functions
    */
   async deleteList(listId: string): Promise<void> {
     try {
-      console.log('🔥 Calling deleteList function for list:', listId);
+      // Obter usuário atual
+      const user = auth.currentUser;
+      if (!user) {
+        throw {
+          code: 'not_authenticated',
+          message: 'Usuário deve estar logado para deletar listas',
+        } as ListError;
+      }
 
-      const deleteList = httpsCallable(this.functions, 'deleteList');
-      const result = await deleteList({ listId });
-
-      console.log('🔥 deleteList function result:', result);
-      console.log('✅ Successfully deleted list:', listId);
+      // 1. Try direct Firestore access first
+      console.log('🔥 Trying to delete list with direct Firestore access');
+      await this.deleteListDirect(listId, user.uid);
     } catch (error: any) {
-      console.error('❌ Error deleting list:', error);
-      throw this.mapErrorToListError(error);
+      console.warn('❌ Direct Firestore delete failed, trying Cloud Functions:', error);
+
+      try {
+        // 2. Fallback to Cloud Functions
+        console.log('🔥 Calling deleteList function for list:', listId);
+
+        const deleteListFunction = httpsCallable(this.functions, 'deleteList');
+        const result = await deleteListFunction({ listId });
+
+        console.log('🔥 deleteList function result:', result);
+        console.log('✅ Successfully deleted list:', listId);
+      } catch (functionsError: any) {
+        console.error('❌ Error deleting list via Cloud Functions:', functionsError);
+        throw this.mapErrorToListError(functionsError);
+      }
     }
   }
 

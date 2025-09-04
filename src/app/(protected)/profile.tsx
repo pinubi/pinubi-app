@@ -82,66 +82,66 @@ const ProfileScreen = () => {
   ];
 
   const profileSections: ProfileSection[] = [
-    {
-      id: 'social',
-      title: 'Social',
-      icon: 'people-outline',
-      items: [
-        {
-          id: 'followers-following',
-          label: 'Seguidores e Seguindo',
-          value: 'Ver conexões e solicitações',
-          icon: 'people-outline',
-          iconColor: '#8b5cf6',
-          showChevron: true,
-          onPress: () => {
-            router.push('/(protected)/followers');
-          },
-        },
-      ],
-    },
-    {
-      id: 'account',
-      title: 'Conta',
-      icon: 'person-circle-outline',
-      items: [
-        {
-          id: 'personal-info',
-          label: 'Informações Pessoais',
-          value: 'Editar perfil e preferências',
-          icon: 'person-outline',
-          showChevron: true,
-          onPress: () => {
-            // Navigate to personal info edit screen
-            Alert.alert('Em breve', 'Funcionalidade de edição de perfil será implementada em breve!');
-          },
-        },
-        {
-          id: 'account-type',
-          label: 'Tipo de Conta',
-          value: 'Gratuita',
-          icon: 'card-outline',
-          iconColor: '#10b981',
-          showChevron: true,
-          onPress: () => {
-            // Navigate to subscription screen
-            Alert.alert('Upgrade', 'Deseja fazer upgrade para Premium?');
-          },
-        },
-        {
-          id: 'invite-friends',
-          label: 'Convidar Amigos',
-          value: 'Compartilhe o Pinubi',
-          icon: 'share-outline',
-          iconColor: '#3b82f6',
-          showChevron: true,
-          onPress: () => {
-            // Navigate to invite friends screen
-            Alert.alert('Convites', 'Funcionalidade de convites será implementada em breve!');
-          },
-        },
-      ],
-    },
+    // {
+    //   id: 'social',
+    //   title: 'Social',
+    //   icon: 'people-outline',
+    //   items: [
+    //     {
+    //       id: 'followers-following',
+    //       label: 'Seguidores e Seguindo',
+    //       value: 'Ver conexões e solicitações',
+    //       icon: 'people-outline',
+    //       iconColor: '#8b5cf6',
+    //       showChevron: true,
+    //       onPress: () => {
+    //         router.push('/(protected)/followers');
+    //       },
+    //     },
+    //   ],
+    // },
+    // {
+    //   id: 'account',
+    //   title: 'Conta',
+    //   icon: 'person-circle-outline',
+    //   items: [
+    //     {
+    //       id: 'personal-info',
+    //       label: 'Informações Pessoais',
+    //       value: 'Editar perfil e preferências',
+    //       icon: 'person-outline',
+    //       showChevron: true,
+    //       onPress: () => {
+    //         // Navigate to personal info edit screen
+    //         Alert.alert('Em breve', 'Funcionalidade de edição de perfil será implementada em breve!');
+    //       },
+    //     },
+    //     {
+    //       id: 'account-type',
+    //       label: 'Tipo de Conta',
+    //       value: 'Gratuita',
+    //       icon: 'card-outline',
+    //       iconColor: '#10b981',
+    //       showChevron: true,
+    //       onPress: () => {
+    //         // Navigate to subscription screen
+    //         Alert.alert('Upgrade', 'Deseja fazer upgrade para Premium?');
+    //       },
+    //     },
+    //     {
+    //       id: 'invite-friends',
+    //       label: 'Convidar Amigos',
+    //       value: 'Compartilhe o Pinubi',
+    //       icon: 'share-outline',
+    //       iconColor: '#3b82f6',
+    //       showChevron: true,
+    //       onPress: () => {
+    //         // Navigate to invite friends screen
+    //         Alert.alert('Convites', 'Funcionalidade de convites será implementada em breve!');
+    //       },
+    //     },
+    //   ],
+    // },
     // {
     //   id: 'preferences',
     //   title: 'Preferências',
@@ -375,12 +375,12 @@ const ProfileScreen = () => {
         </View>
 
         {/* Stats Section */}
-        <View className='px-4 mt-6'>
+        {/* <View className='px-4 mt-6'>
           <Text className='text-gray-600 font-semibold text-base mb-4 px-2 uppercase tracking-wide'>Estatísticas</Text>
           <View className='flex-row'>
             {userStats.map(renderStatCard)}
           </View>
-        </View>
+        </View> */}
 
         {/* Profile Sections */}
         <View className='mt-8'>

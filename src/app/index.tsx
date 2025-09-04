@@ -20,12 +20,6 @@ const Index = () => {
       isActive,
     });
 
-    console.log('Index: Checking conditions...');
-    console.log('- Not authenticated?', !isSignedIn && !isAuthenticated);
-    console.log('- Authenticated + not can access?', 
-      (isSignedIn || isAuthenticated) && !canAccessProtected);
-    console.log('- Can access protected?', canAccessProtected);
-
     // User is not authenticated at all - redirect to login
     if (!isSignedIn && !isAuthenticated) {
       console.log('Index: Navegando para login - não autenticado');
@@ -44,8 +38,8 @@ const Index = () => {
 
     // User is fully validated and active - go to protected area
     if (canAccessProtected) {
-      console.log('Index: Navegando para discover - usuário validado e ativo');
-      router.replace('/(protected)/(tabs)/discover');
+      console.log('Index: Navegando para social - usuário validado e ativo');
+      router.replace('/(protected)/(tabs)/social');
       return;
     }
 

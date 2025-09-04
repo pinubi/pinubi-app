@@ -221,6 +221,8 @@ const ListPlacesScreen = () => {
   const listTitle = (params.title as string) || 'Lista';
   const listEmoji = (params.emoji as string) || '🍽️';
   const listDescription = (params.description as string) || '';
+  const canDelete = params.canDelete === 'true';
+  const canRename = params.canRename === 'true';
   const isPublic = params.isPublic === 'true';
 
   // Use the list places hook
@@ -574,6 +576,8 @@ const ListPlacesScreen = () => {
         <TouchableOpacity
           onPress={handleEditList}
           className="flex-row items-center px-4 py-3 border-b border-gray-100"
+          disabled={!canRename}
+          style={{ opacity: !canRename ? 0.5 : 1 }}
         >
           <Ionicons name="pencil-outline" size={18} color="#374151" />
           <Text className="text-gray-800 font-medium ml-3">Editar</Text>
@@ -582,6 +586,8 @@ const ListPlacesScreen = () => {
         <TouchableOpacity
           onPress={handleDeleteList}
           className="flex-row items-center px-4 py-3"
+          disabled={!canDelete}
+          style={{ opacity: !canRename ? 0.5 : 1 }}
         >
           <Ionicons name="trash-outline" size={18} color="#EF4444" />
           <Text className="text-red-500 font-medium ml-3">Apagar</Text>
@@ -610,13 +616,13 @@ const ListPlacesScreen = () => {
 
       {/* Header */}
       <Header
+        className='bg-white border-b border-gray-100'
         title=''
         onLeftPress={handleBack}
-        onRightPress={handleShare}
         rightIcon='share-outline'
         secondaryRightIcon='ellipsis-horizontal'
+        onRightPress={handleShare}
         onSecondaryRightPress={handleMoreOptions}
-        className='bg-white border-b border-gray-100'
       />
 
       {/* More Options Dropdown */}
@@ -702,7 +708,7 @@ const ListPlacesScreen = () => {
               </View>
 
               {/* Sort Options - only show in list view */}
-              {viewMode === 'list' && (
+              {/* {viewMode === 'list' && (
                 <TouchableOpacity
                   onPress={() => {
                     const options = ['recent', 'rating', 'distance'];
@@ -719,7 +725,7 @@ const ListPlacesScreen = () => {
                   </Text>
                   <Ionicons name='chevron-down' size={16} color='#6B7280' style={{ marginLeft: 4 }} />
                 </TouchableOpacity>
-              )}
+              )} */}
             </View>
           </View>
 

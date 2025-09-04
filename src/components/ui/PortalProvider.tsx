@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useState } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 import { View } from 'react-native';
 
 interface PortalContextType {
@@ -24,16 +24,16 @@ interface PortalItem {
 export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [portals, setPortals] = useState<PortalItem[]>([]);
 
-  const showPortal = (content: ReactNode, id: string = 'default') => {
+  const showPortal = useCallback((content: ReactNode, id: string = 'default') => {
     setPortals(prev => {
       const filtered = prev.filter(p => p.id !== id);
       return [...filtered, { id, content }];
     });
-  };
+  }, []);
 
-  const hidePortal = (id: string = 'default') => {
+  const hidePortal = useCallback((id: string = 'default') => {
     setPortals(prev => prev.filter(p => p.id !== id));
-  };
+  }, []);
 
   return (
     <PortalContext.Provider value={{ showPortal, hidePortal }}>
