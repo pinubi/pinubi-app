@@ -9,9 +9,6 @@ PODS:
   - DoubleConversion (1.1.6)
   - EASClient (0.14.4):
     - ExpoModulesCore
-  - EXAppAuth (11.1.1):
-    - AppAuth (~> 1.2)
-    - ExpoModulesCore
   - EXApplication (6.1.5):
     - ExpoModulesCore
   - EXConstants (17.1.7):
@@ -347,8 +344,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - ExpoSecureStore (14.2.3):
-    - ExpoModulesCore
   - ExpoSplashScreen (0.30.10):
     - ExpoModulesCore
   - ExpoSymbols (0.4.5):
@@ -2378,7 +2373,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (4.11.1):
+  - RNScreens (4.15.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2402,9 +2397,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 4.11.1)
+    - RNScreens/common (= 4.15.4)
     - Yoga
-  - RNScreens/common (4.11.1):
+  - RNScreens/common (4.15.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2496,7 +2491,6 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EASClient (from `../node_modules/expo-eas-client/ios`)
-  - EXAppAuth (from `../node_modules/expo-app-auth/ios`)
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -2523,7 +2517,6 @@ DEPENDENCIES:
   - ExpoLocation (from `../node_modules/expo-location/ios`)
   - ExpoMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
-  - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - ExpoSymbols (from `../node_modules/expo-symbols/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
@@ -2637,8 +2630,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EASClient:
     :path: "../node_modules/expo-eas-client/ios"
-  EXAppAuth:
-    :path: "../node_modules/expo-app-auth/ios"
   EXApplication:
     :path: "../node_modules/expo-application/ios"
   EXConstants:
@@ -2691,8 +2682,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-media-library/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
-  ExpoSecureStore:
-    :path: "../node_modules/expo-secure-store/ios"
   ExpoSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   ExpoSymbols:
@@ -2870,7 +2859,6 @@ SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EASClient: 5944ca4aea2836e5ecc5158381f3d4eb43b30e56
-  EXAppAuth: 7dd6417aaf6e147ce4cee768977cbca29bd59066
   EXApplication: 50cc8ea58c138da6e3f25cd789634219c86b90d5
   EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
@@ -2897,7 +2885,6 @@ SPEC CHECKSUMS:
   ExpoLocation: 6ca806fc40d02be589782f1ca72fd7c220408c90
   ExpoMediaLibrary: 68f0c81280fe7efef3588ab498dae313b85932e9
   ExpoModulesCore: 16f74d8df26d7e4b6bf7eb3d0effaf0f15df7b80
-  ExpoSecureStore: 3148869ad24ab94f9e0c5777c7941d7a37d60399
   ExpoSplashScreen: 6f9213be0c60f2756a2f8220c36f4b90c55e3dbd
   ExpoSymbols: bd4e20b0b6a9dbacc31dd7c861e0d6d01b56e1f2
   ExpoSystemUI: 46c8903a9c8d78232ebd7b82c4d14175700231e5
@@ -2989,7 +2976,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: ccf4105b125002bd88e39d2a1f2b7e6001bcdf34
   RNGoogleSignin: 3efef72385ba7c109d0486d17d46bd3d03f1c490
   RNReanimated: 8b24b49fc13fce9a6e1729ccff645a63d2b7a6d1
-  RNScreens: c2e3cc506212228c607b4785b315205e28acbf0f
+  RNScreens: 5fc633a16a513f598d9aaf515c380a82812a8bfc
   RNSVG: ee32efbed652c5151fd3f98bed13c68af285bc38
   SDWebImage: f29024626962457f3470184232766516dee8dfea
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90

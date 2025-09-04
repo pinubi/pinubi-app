@@ -115,7 +115,6 @@ export const useListsStore = create<ListsState>()(
           
           console.log('📋 Successfully created list:', newList.id);
           
-          // Add the new list to the current lists
           const currentLists = get().lists;
           const updatedLists = [newList, ...currentLists];
           
@@ -151,7 +150,6 @@ export const useListsStore = create<ListsState>()(
           
           console.log('📋 Successfully updated list:', updatedList.id);
           
-          // Update the list in the current lists array
           const currentLists = get().lists;
           const updatedLists = currentLists.map(list => 
             list.id === listId ? updatedList : list
@@ -188,7 +186,6 @@ export const useListsStore = create<ListsState>()(
           
           console.log('📋 Successfully deleted list:', listId);
           
-          // Remove the list from the current lists array
           const currentLists = get().lists;
           const updatedLists = currentLists.filter(list => list.id !== listId);
           

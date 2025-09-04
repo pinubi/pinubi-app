@@ -118,11 +118,8 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
     const nearbyPlaces = getNearbyPlaces();
     
     if (nearbyPlaces.length === 1) {
-      // If only one nearby place, open it directly
       onPlacePress?.(nearbyPlaces[0]);
     } else if (nearbyPlaces.length > 1) {
-      // If multiple nearby places, you could show a modal/list
-      // For now, we'll just log them - you can implement a modal later
       console.log('📍 Lugares próximos:', nearbyPlaces.map(p => p.googleData.name));
       
       // Optional: Show the first one or implement a selection modal
@@ -278,7 +275,6 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
         loadingEnabled={true}
         loadingIndicatorColor="#b13bff"
         loadingBackgroundColor="#fafafa"
-        // Additional props for better simulator compatibility
         onMapReady={() => {
           if (isExpoGoSimulator) {
             console.log('📍 Map ready in iOS Simulator with Expo Go - red tiles are expected');

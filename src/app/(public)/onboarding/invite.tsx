@@ -45,14 +45,7 @@ const InviteScreen = () => {
     try {
       setLoading(true);
       
-      console.log('Starting onboarding completion with invite code:', inviteCode);
-      
-      // Validate that we have all required onboarding data
-      if (!data?.preferences || !data?.location || !data?.permissions) {
-        Alert.alert('Erro', 'Dados de onboarding incompletos. Por favor, complete todas as etapas anteriores.');
-        router.push('/onboarding/welcome' as any);
-        return;
-      }
+      console.log('Starting invite code validation:', inviteCode);
       
       // Store invite code in onboarding store
       updateSignup({
@@ -60,12 +53,29 @@ const InviteScreen = () => {
         inviteCode: inviteCode.trim().toUpperCase(),
       });
 
+      // Since we're skipping other onboarding steps, create default data
+      const defaultPreferences = {
+        categories: [], // User will set preferences later
+        priceRange: [1, 4], // Default price range
+        dietaryRestrictions: [], // User will set restrictions later
+      };
+      
+      const defaultLocation = {
+        country: 'Brasil',
+        state: '', // User will set location later
+        city: '', // User will set location later
+      };
+      
+      const defaultPermissions = {
+        locationGranted: false, // User will grant permissions later
+      };
+
       // Call the complete onboarding flow with Cloud Functions
       const result = await completeOnboardingFlow(
         inviteCode.trim().toUpperCase(),
-        data.preferences,
-        data.location,
-        data.permissions
+        defaultPreferences,
+        defaultLocation,
+        defaultPermissions
       );
       
       if (result.success) {
@@ -122,7 +132,8 @@ const InviteScreen = () => {
   };
 
   const handleBack = () => {
-    router.back();
+    // Since we're skipping onboarding steps, go back to signup
+    router.navigate('/(public)/signin');
   };
 
   return (
@@ -142,9 +153,9 @@ const InviteScreen = () => {
             <Ionicons name='arrow-back' size={24} color='#6b7280' />
           </TouchableOpacity>
           
-          <View className='flex-1 mx-4'>
+          {/* <View className='flex-1 mx-4'>
             <Text className='text-center text-sm text-neutral-600 mb-2'>
-              Passo 5 de 5
+              Código de Convite
             </Text>
             <View className='h-2 bg-neutral-200 rounded-full'>
               <View 
@@ -152,7 +163,7 @@ const InviteScreen = () => {
                 style={{ width: '100%' }}
               />
             </View>
-          </View>
+          </View> */}
           
           <View className='w-10' />
         </View>

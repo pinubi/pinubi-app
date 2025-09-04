@@ -36,9 +36,9 @@ const Index = () => {
     // User is authenticated but not validated/active - must complete onboarding
     // This is the source of truth - Firebase validation status, not local onboarding store
     if ((isSignedIn || isAuthenticated) && !canAccessProtected) {
-      console.log('Index: Navegando para onboarding - usuário não validado/ativo');
-      // Note: Welcome screen will reset onboarding store for fresh start
-      router.replace('/(public)/onboarding/welcome');
+      console.log('Index: Navegando para invite - usuário não validado/ativo');
+      // Skip other onboarding steps and go directly to invite
+      router.replace('/(public)/onboarding/invite');
       return;
     }
 

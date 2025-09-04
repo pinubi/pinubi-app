@@ -1,4 +1,5 @@
 import { firestore, functions } from '@/config/firebase';
+import { userService } from '@/services/userService';
 import type { User } from '@/types/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -36,6 +37,11 @@ export const getUserValidationStatus = async (userId: string): Promise<{
       };
     } else {
       console.log('FirestoreHelper: User document not found, returning default values');
+      const isInitUser = await userService.initializeNewUser();
+
+      if (isInitUser) {
+        return getUserValidationStatus(userId);
+      }
       // User document doesn't exist yet - return default values
       return {
         isValidated: false,
@@ -231,6 +237,9 @@ export const updateUserPreferences = async (preferences: {
 /**
  * Complete onboarding flow: validate invite and update preferences
  * This combines both invite validation and preference updates in the correct order
+ * 
+ * Note: Updated to support simplified flow where only invite code is required.
+ * Preferences, location, and permissions can be provided as defaults and updated later.
  */
 export const completeOnboardingFlow = async (
   inviteCode: string,

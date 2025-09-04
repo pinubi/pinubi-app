@@ -113,6 +113,19 @@ class UserService {
     this.functions = functions;
   }
 
+  async initializeNewUser(): Promise<boolean> {
+    try {
+      console.log('🚀 Initializing new user via Cloud Function');
+      const initiateUser = httpsCallable(this.functions, 'initializeNewUser');
+      await initiateUser();
+
+      return true;      
+    } catch (error: any) {
+      console.error('💥 Exception in initializeNewUser:', error);
+      return false;
+    }
+  }
+
   /**
    * Search for users by various filters
    */

@@ -94,10 +94,10 @@ const SignupScreen = () => {
         }
       );
 
-      console.log('Signup básico concluído, redirecionando para onboarding...');
+      console.log('Signup básico concluído, redirecionando para convite...');
       
-      // Redirect to onboarding flow
-      router.replace('/(public)/onboarding/welcome');
+      // Redirect directly to invite screen (skipping welcome, preferences, location, permissions)
+      router.replace('/(public)/onboarding/invite');
       
     } catch (err) {
       console.error('Erro no signup:', err);
@@ -268,7 +268,7 @@ const SignupScreen = () => {
 
         {/* Link para login */}
         <TouchableOpacity 
-          onPress={() => router.navigate('/(public)/login' as any)} 
+          onPress={() => router.navigate('/(public)/login')} 
           className='items-center'
         >
           <Text className='text-primary-600 font-medium text-sm'>

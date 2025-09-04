@@ -31,8 +31,8 @@ const ProtectedLayout = () => {
 
     // Authenticated but not validated/active - must complete onboarding
     if ((isSignedIn || isAuthenticated) && !canAccessProtected) {
-      console.log('ProtectedLayout: Redirecionando para onboarding - não validado/ativo');
-      router.replace('/(public)/onboarding/welcome');
+      console.log('ProtectedLayout: Redirecionando para invite - não validado/ativo');
+      router.replace('/(public)/onboarding/invite');
       return;
     }
 
