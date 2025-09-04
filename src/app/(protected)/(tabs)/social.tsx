@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useRef } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 const SocialScreen = () => {
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
@@ -135,9 +135,9 @@ const SocialScreen = () => {
       <Header
         title='Pinubi'
         className='border-b border-gray-100'
-        rightIcon='search-outline'
+        // rightIcon='search-outline'
         secondaryRightIcon='person-outline'
-        onRightPress={handleSearchPress}
+        // onRightPress={handleSearchPress}
         onSecondaryRightPress={handleProfilePress}
       />
 
@@ -161,8 +161,10 @@ const SocialScreen = () => {
         </TouchableOpacity>
       </View>
 
+      
+
       {/* Feed List */}
-      <View className='flex-1 relative'>
+      {/* <View className='flex-1 relative'>
         {loading && activities.length === 0 ? (
           renderLoadingOverlay()
         ) : (
@@ -179,7 +181,7 @@ const SocialScreen = () => {
             showsVerticalScrollIndicator={false}
           />
         )}
-      </View>
+      </View> */}
 
       {/* Profile Bottom Sheet */}
       <ProfileBottomSheetPortal ref={profileBottomSheetRef} onClose={() => profileBottomSheetRef.current?.close()} />
