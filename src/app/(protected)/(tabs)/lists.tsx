@@ -37,7 +37,7 @@ const ListCard: React.FC<ListCardProps> = ({
     <TouchableOpacity
       onPress={onPress}
       onLongPress={onLongPress}
-      className='bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex-1 mx-1 mb-4'
+      className='bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex-1 mx-1 mb-4 h-[180px] max-w-[196px]'
       style={{ elevation: 2 }}
     >
       {/* Emoji Icon */}
@@ -47,8 +47,8 @@ const ListCard: React.FC<ListCardProps> = ({
 
       {/* Content */}
       <View className='flex-1'>
-        <Text className='text-base font-semibold text-gray-900 mb-1'>{title}</Text>
-        <Text className='text-sm text-gray-600 flex-1 leading-relaxed'>{subtitle}</Text>
+        <Text className='text-base font-semibold text-gray-900 mb-1' numberOfLines={1} ellipsizeMode='tail'>{title}</Text>
+        <Text className='text-sm text-gray-600 flex-1 leading-relaxed' numberOfLines={2} ellipsizeMode='tail'>{subtitle}</Text>
 
         {/* Footer */}
         <View className='flex-row items-center justify-between mt-2'>
@@ -70,7 +70,7 @@ const NewListCard: React.FC<{ onPress?: () => void }> = ({ onPress }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className='bg-white rounded-2xl p-4 flex-1 mx-1 mb-4 border-2 border-dashed border-gray-300 items-center justify-center min-h-[180px] max-w-[196px]'
+      className='bg-white rounded-2xl p-4 flex-1 mx-1 mb-4 border-2 border-dashed border-gray-300 items-center justify-center h-[180px] max-w-[196px]'
     >
       <View className='w-12 h-12 bg-gray-100 rounded-xl items-center justify-center mb-3'>
         <Ionicons name='add' size={24} color='#9CA3AF' />
