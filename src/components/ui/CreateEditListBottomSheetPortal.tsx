@@ -94,8 +94,7 @@ const CreateEditListBottomSheetPortal = forwardRef<BottomSheetRef, CreateEditLis
     }));
 
     const handleSheetChanges = useCallback(
-      (index: number) => {
-        console.log('CreateEditListBottomSheet index changed to:', index);
+      (index: number) => {        
         if (index === -1) {
           hideBottomSheet();
           onClose?.();

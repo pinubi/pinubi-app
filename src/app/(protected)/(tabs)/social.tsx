@@ -1,4 +1,4 @@
-import { EmptyFeedComponent, FeedItemComponent } from '@/components/feed';
+import { FeedItemComponent } from '@/components/feed';
 import Header from '@/components/Header';
 import { ProfileBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
@@ -101,7 +101,7 @@ const SocialScreen = () => {
     );
   };
 
-  const renderEmptyComponent = () => <EmptyFeedComponent onRefresh={refresh} handleSearchPress={handleSearchPress} />;
+  // const renderEmptyComponent = () => <EmptyFeedComponent onRefresh={refresh} handleSearchPress={handleSearchPress} />;
 
   const renderLoadingOverlay = () => {
     return (

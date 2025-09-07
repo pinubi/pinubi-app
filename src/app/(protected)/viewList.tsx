@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
 import { AddPlaceBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
+import CreateEditListBottomSheetPortal from '@/components/ui/CreateEditListBottomSheetPortal';
 import PlaceDetailsBottomSheetPortal from '@/components/ui/PlaceDetailsBottomSheetPortal';
 import { useListPlaces } from '@/hooks/useListPlaces';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +21,7 @@ import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native
 
 import { useLists } from '@/hooks/useLists';
 import { googlePlacesService } from '@/services/googlePlacesService';
-import type { AddPlaceToListRequest, ListPlaceWithDetails } from '@/types/lists';
+import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@/types/lists';
 import type { Place } from '@/types/places';
 
 interface PlaceCardProps {
@@ -219,6 +220,7 @@ const ListPlacesScreen = () => {
   const params = useLocalSearchParams();
   const addPlaceBottomSheetRef = useRef<BottomSheetRef>(null);
   const placeDetailsBottomSheetRef = useRef<BottomSheetRef>(null);
+  const editListBottomSheetRef = useRef<BottomSheetRef>(null);
 
   // State for selected place in details view
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -226,11 +228,23 @@ const ListPlacesScreen = () => {
   // State for dropdown menu
   const [showMoreOptionsDropdown, setShowMoreOptionsDropdown] = useState(false);
 
+  // State for current list data (can be updated)
+  const [currentListData, setCurrentListData] = useState<{
+    title: string;
+    emoji: string;
+    description: string;
+    visibility: 'public' | 'private';
+    tags: string[];
+  }>({
+    title: (params.title as string) || 'Lista',
+    emoji: (params.emoji as string) || '🍽️',
+    description: (params.description as string) || '',
+    visibility: (params.isPublic === 'true' ? 'public' : 'private'),
+    tags: [],
+  });
+
   // Get list data from params
   const listId = params.listId as string;
-  const listTitle = (params.title as string) || 'Lista';
-  const listEmoji = (params.emoji as string) || '🍽️';
-  const listDescription = (params.description as string) || '';
   const canDelete = params.canDelete === 'true';
   const canRename = params.canRename === 'true';
   const isPublic = params.isPublic === 'true';
@@ -239,7 +253,7 @@ const ListPlacesScreen = () => {
   const { places, placesCount, loading, error, addPlace, removePlace, refresh, clearError, hasPlaces, isEmpty } =
     useListPlaces(listId);
 
-  const { refresh: refreshLists, updateList, deleteList } = useLists();
+  const { refresh: refreshLists, updateList, deleteList, getListById } = useLists();
 
   // State for sorting
   const [sortBy, setSortBy] = useState<'recent' | 'rating' | 'distance'>('recent');
@@ -259,7 +273,7 @@ const ListPlacesScreen = () => {
 
       await Share.share({
         message: `Confira a minha lista no Pinubi: ${urlPublic}`,
-        title: listTitle,
+        title: currentListData.title,
       });
     } catch (error) {
       console.error('Error sharing:', error);
@@ -272,16 +286,40 @@ const ListPlacesScreen = () => {
 
   const handleEditList = () => {
     setShowMoreOptionsDropdown(false);
-    // TODO: Implement edit list functionality
-    // This would involve opening a modal or navigating to an edit screen
-    Alert.alert('Editar Lista', 'Funcionalidade de edição será implementada em breve.');
+    editListBottomSheetRef.current?.snapToIndex(0);
+  };
+
+  const handleSaveEditList = async (listData: ListFormData) => {
+    try {
+      const success = await updateList(listId, listData);
+      if (success) {
+        // Update local state immediately for UI responsiveness
+        setCurrentListData({
+          title: listData.title,
+          emoji: listData.emoji,
+          description: listData.description,
+          visibility: listData.visibility,
+          tags: listData.tags || [],
+        });
+        
+        Alert.alert('Sucesso!', 'Lista atualizada com sucesso!');
+        
+        // Refresh lists to ensure consistency
+        await refreshLists();
+      } else {
+        Alert.alert('Erro', 'Não foi possível atualizar a lista. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Error updating list:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar a lista. Tente novamente.');
+    }
   };
 
   const handleDeleteList = () => {
     setShowMoreOptionsDropdown(false);
     Alert.alert(
       'Apagar Lista',
-      `Tem certeza que deseja apagar a lista "${listTitle}"? Esta ação não pode ser desfeita.`,
+      `Tem certeza que deseja apagar a lista "${currentListData.title}"? Esta ação não pode ser desfeita.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -544,6 +582,30 @@ const ListPlacesScreen = () => {
     }
   }, [error, clearError]);
 
+  // Fetch complete list data to get tags and other details
+  React.useEffect(() => {
+    const fetchListData = async () => {
+      try {
+        const fullListData = getListById(listId);
+        if (fullListData) {
+          setCurrentListData({
+            title: fullListData.title,
+            emoji: fullListData.emoji,
+            description: fullListData.description,
+            visibility: fullListData.visibility,
+            tags: fullListData.tags || [],
+          });
+        }
+      } catch (error) {
+        console.warn('Error fetching complete list data:', error);
+      }
+    };
+
+    if (listId) {
+      fetchListData();
+    }
+  }, [listId, getListById]);
+
   // Close dropdown when touching outside
   React.useEffect(() => {
     const handleOutsidePress = () => {
@@ -643,9 +705,9 @@ const ListPlacesScreen = () => {
           {/* List Header */}
           <View className='bg-white px-4 py-6 border-b border-gray-100'>
             <View className='items-center'>
-              <Text className='text-4xl mb-2'>{listEmoji}</Text>
+              <Text className='text-4xl mb-2'>{currentListData.emoji}</Text>
               <Text className='text-2xl font-bold text-gray-900 mb-2'>
-                {listTitle} ({placesCount})
+                {currentListData.title} ({placesCount})
               </Text>
 
               {/* List Meta */}
@@ -659,8 +721,8 @@ const ListPlacesScreen = () => {
               </View>
 
               {/* Description */}
-              {listDescription && (
-                <Text className='text-center text-gray-600 mb-4 leading-relaxed'>{listDescription}</Text>
+              {currentListData.description && (
+                <Text className='text-center text-gray-600 mb-4 leading-relaxed'>{currentListData.description}</Text>
               )}
 
               {/* Add Place Button */}
@@ -795,10 +857,10 @@ const ListPlacesScreen = () => {
             <View className='flex-row items-center justify-between'>
               {/* Left side - List info */}
               <View className='flex-row items-center flex-1'>
-                <Text className='text-2xl mr-3'>{listEmoji}</Text>
+                <Text className='text-2xl mr-3'>{currentListData.emoji}</Text>
                 <View>
                   <Text className='text-lg font-bold text-gray-900'>
-                    {listTitle} ({placesCount})
+                    {currentListData.title} ({placesCount})
                   </Text>
                   <Text className='text-sm text-gray-600'>
                     {placesCount === 0 ? 'Nenhum lugar' : `${placesCount} ${placesCount === 1 ? 'lugar' : 'lugares'}`}
@@ -958,6 +1020,22 @@ const ListPlacesScreen = () => {
         listId={listId}
         onSave={handleSavePlace}
         onClose={() => addPlaceBottomSheetRef.current?.close()}
+      />
+
+      {/* Edit List Bottom Sheet */}
+      <CreateEditListBottomSheetPortal
+        ref={editListBottomSheetRef}
+        mode="edit"
+        listId={listId}
+        initialData={{
+          title: currentListData.title,
+          emoji: currentListData.emoji,
+          description: currentListData.description,
+          visibility: currentListData.visibility,
+          tags: currentListData.tags,
+        }}
+        onSave={handleSaveEditList}
+        onClose={() => editListBottomSheetRef.current?.close()}
       />
 
       {/* Place Details Bottom Sheet */}
