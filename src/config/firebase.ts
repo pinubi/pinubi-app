@@ -49,25 +49,14 @@ if (isDevelopment) {
   } catch (error) {
     console.log('Firestore emulator já conectado');
   }
-
-  // Para Google Sign-In, escolha uma opção:
-
-  // OPÇÃO A: Auth Emulator (apenas email/senha - SEM Google Sign-In)
+  
   import('firebase/auth').then(({ connectAuthEmulator }) => {
     try {
-      connectAuthEmulator(auth, 'http://127.0.0.1:9099');
-      console.log('🔧 Auth Emulator conectado - use usuários do seed');
+      connectAuthEmulator(auth, 'http://127.0.0.1:9099');      
     } catch (error) {
       console.log('Auth emulator já conectado');
     }
-  });
-
-  // OPÇÃO B: Auth Real (permite Google Sign-In real + Functions locais)
-  // Para usar Google Sign-In com emuladores, comente a seção acima e descomente abaixo:
-  /*
-  console.log("🔧 Auth Real + Functions Emulator - Google Sign-In disponível");
-  // Neste caso, use firebaseConfigProd para auth e emulador para functions
-  */
+  });  
 }
 
 // For more information on how to access Firebase in your project,

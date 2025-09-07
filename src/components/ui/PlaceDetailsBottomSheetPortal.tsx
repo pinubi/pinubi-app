@@ -32,10 +32,6 @@ const { width } = Dimensions.get('window');
 const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  useEffect(() => {
-    console.log('🔵 PhotoScrollComponent - currentIndex changed to:', currentIndex);
-  }, [currentIndex]);
-
   const hasPhotos = photos.length > 0;
 
   return (
@@ -49,16 +45,13 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
           decelerationRate="fast"
           onScroll={(event) => {
             const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            console.log('🔵 PhotoScrollComponent onScroll - calculated index:', index, 'contentOffset:', event.nativeEvent.contentOffset.x);
             
             if (index >= 0 && index < photos.length && index !== currentIndex) {
-              console.log('🔵 PhotoScrollComponent onScroll - UPDATING INDEX to:', index);
               setCurrentIndex(index);
             }
           }}
           onMomentumScrollEnd={(event) => {
             const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            console.log('🔵 PhotoScrollComponent onMomentumScrollEnd - calculated index:', index);
             
             if (index >= 0 && index < photos.length) {
               setCurrentIndex(index);
@@ -111,21 +104,13 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
     // Automatically show bottom sheet when place is set
     useEffect(() => {
       if (place) {
-        console.log('🔵 Place changed, showing bottom sheet:', place.googleData.name);
-        console.log('🔵 Place data structure:', JSON.stringify(place, null, 2));
         // Reset photo index when place changes
         setCurrentPhotoIndex(0);
         showBottomSheet();
       } else {
-        console.log('🔵 Place cleared, hiding bottom sheet');
         hideBottomSheet();
       }
     }, [place]);
-
-    // Debug effect to track currentPhotoIndex changes
-    useEffect(() => {
-      console.log('🔵 currentPhotoIndex changed to:', currentPhotoIndex);
-    }, [currentPhotoIndex]);
 
     // Mock reviews data - replace with real data
     const mockReviews: ReviewData[] = [
@@ -157,7 +142,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
     // Expose methods to parent component
     React.useImperativeHandle(ref, () => ({
       snapToIndex: (index: number) => {
-        console.log('🔵 PlaceDetailsBottomSheetPortal snapToIndex called:', { index, hasPlace: !!place });
         if (index >= 0) {
           showBottomSheet();
         } else {
@@ -165,7 +149,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
         }
       },
       close: () => {
-        console.log('🔵 PlaceDetailsBottomSheetPortal close called');
         hideBottomSheet();
       },
       collapse: () => hideBottomSheet(),
@@ -176,7 +159,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
     const handleSheetChanges = useCallback(
       (index: number) => {
-        console.log('PlaceDetailsBottomSheet index changed to:', index);
         if (index === -1) {
           hideBottomSheet();
           onClose?.();
@@ -186,9 +168,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
     );
 
     const showBottomSheet = () => {
-      console.log('🔵 showBottomSheet called:', { hasPlace: !!place, placeName: place?.googleData.name });
       if (!place || !place.googleData) {
-        console.log('🔴 Cannot show bottom sheet: no place data or googleData');
         return;
       }
 
@@ -262,8 +242,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
     const renderHeaderImage = () => {
       const photos = place?.googleData.photos || [];
-
-      console.log('🔵 renderHeaderImage - photos count:', photos.length);
 
       return (
         <View className='relative'>
@@ -536,7 +514,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
           title: placeName,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        // Handle share error silently
       }
     };
 

@@ -15,19 +15,11 @@ export const getUserValidationStatus = async (userId: string): Promise<{
   userData?: any;
 }> => {
   try {
-    console.log('FirestoreHelper: Fetching validation status for user:', userId);
-    
     const userDocRef = doc(firestore, 'users', userId);
     const userDocSnap = await getDoc(userDocRef);
     
     if (userDocSnap.exists()) {
       const userData = userDocSnap.data();
-      console.log('FirestoreHelper: User document found:', {
-        id: userId,
-        isValidated: userData.isValidated,
-        isActive: userData.isActive,
-        onboardingComplete: userData.onboardingComplete
-      });
       
       return {
         isValidated: userData.isValidated || false,
@@ -36,7 +28,6 @@ export const getUserValidationStatus = async (userId: string): Promise<{
         userData
       };
     } else {
-      console.log('FirestoreHelper: User document not found, returning default values');
       const isInitUser = await userService.initializeNewUser();
 
       if (isInitUser) {
@@ -50,7 +41,6 @@ export const getUserValidationStatus = async (userId: string): Promise<{
       };
     }
   } catch (error) {
-    console.error('FirestoreHelper: Error fetching user validation status:', error);
     // On error, return safe defaults
     return {
       isValidated: false,
@@ -71,18 +61,10 @@ export const updateUserValidationInFirestore = async (
   onboardingComplete: boolean = true
 ): Promise<boolean> => {
   try {
-    console.log('FirestoreHelper: Updating user validation in Firestore:', {
-      userId,
-      isValidated,
-      isActive,
-      onboardingComplete
-    });
-    
     const userDocRef = doc(firestore, 'users', userId);
     
     // For now, we'll just log this since we don't want to directly update Firestore
     // In production, this would be handled by Cloud Functions
-    console.log('FirestoreHelper: Would update user document with validation status');
     
     // TODO: In production, this should call a Cloud Function like:
     // const { data } = await httpsCallable(functions, 'updateUserValidation')({
@@ -93,7 +75,6 @@ export const updateUserValidationInFirestore = async (
     
     return true;
   } catch (error) {
-    console.error('FirestoreHelper: Error updating user validation in Firestore:', error);
     return false;
   }
 };
@@ -136,15 +117,11 @@ export const validateInviteAndActivateUser = async (inviteCode: string): Promise
   data?: any;
 }> => {
   try {
-    console.log('FirestoreHelper: Validating invite code:', inviteCode);
-    
     const validateInvite = httpsCallable(functions, 'validateInviteAndActivateUser');
     
     const result = await validateInvite({
       inviteCode: inviteCode.trim().toUpperCase()
     });
-    
-    console.log('FirestoreHelper: Invite validation result:', result.data);
     
     return {
       success: true,
@@ -152,8 +129,6 @@ export const validateInviteAndActivateUser = async (inviteCode: string): Promise
     };
     
   } catch (error: any) {
-    console.error('FirestoreHelper: Error validating invite code:', error);
-    
     // Parse Cloud Functions error messages
     let errorMessage = 'Erro inesperado. Tente novamente.';
     
@@ -192,8 +167,6 @@ export const updateUserPreferences = async (preferences: {
   data?: any;
 }> => {
   try {
-    console.log('FirestoreHelper: Updating user preferences:', preferences);
-    
     const updateProfile = httpsCallable(functions, 'updateUserProfile');
     
     const result = await updateProfile({
@@ -204,16 +177,12 @@ export const updateUserPreferences = async (preferences: {
       }
     });
     
-    console.log('FirestoreHelper: User preferences updated successfully:', result.data);
-    
     return {
       success: true,
       data: result.data
     };
     
   } catch (error: any) {
-    console.error('FirestoreHelper: Error updating user preferences:', error);
-    
     // Parse Cloud Functions error messages
     let errorMessage = 'Erro ao atualizar preferências. Tente novamente.';
     
@@ -262,35 +231,25 @@ export const completeOnboardingFlow = async (
   data?: any;
 }> => {
   try {
-    console.log('FirestoreHelper: Starting complete onboarding flow');
-    
     // Step 1: Validate invite code and activate user
-    console.log('FirestoreHelper: Step 1 - Validating invite code');
     const inviteResult = await validateInviteAndActivateUser(inviteCode);
     
     if (!inviteResult.success) {
-      console.error('FirestoreHelper: Invite validation failed:', inviteResult.error);
       return {
         success: false,
         error: inviteResult.error
       };
     }
     
-    console.log('FirestoreHelper: Invite validation successful, user is now activated');
-    
     // Step 2: Update user preferences (only after successful validation)
-    console.log('FirestoreHelper: Step 2 - Updating user preferences');
     const preferencesResult = await updateUserPreferences(preferences);
     
     if (!preferencesResult.success) {
-      console.error('FirestoreHelper: Preferences update failed:', preferencesResult.error);
       return {
         success: false,
         error: `Convite validado, mas falha ao salvar preferências: ${preferencesResult.error}`
       };
     }
-    
-    console.log('FirestoreHelper: Complete onboarding flow successful');
     
     return {
       success: true,
@@ -303,7 +262,6 @@ export const completeOnboardingFlow = async (
     };
     
   } catch (error: any) {
-    console.error('FirestoreHelper: Error in complete onboarding flow:', error);
     return {
       success: false,
       error: 'Erro inesperado durante o onboarding. Tente novamente.'

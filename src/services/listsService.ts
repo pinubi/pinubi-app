@@ -1,32 +1,32 @@
 import { auth, firestore, functions } from '@/config/firebase';
 import { firebaseService } from '@/services/firebaseService';
 import type {
-    AddPlaceToListRequest,
-    CreateListRequest,
-    GetListPlacesResponse,
-    GetUserListsResponse,
-    List,
-    ListError,
-    ListPlace,
-    ListPlaceWithDetails,
-    UpdateListRequest,
+  AddPlaceToListRequest,
+  CreateListRequest,
+  GetListPlacesResponse,
+  GetUserListsResponse,
+  List,
+  ListError,
+  ListPlace,
+  ListPlaceWithDetails,
+  UpdateListRequest,
 } from '@/types/lists';
 import {
-    addDoc,
-    arrayUnion,
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    increment,
-    limit,
-    orderBy,
-    query,
-    serverTimestamp,
-    setDoc,
-    updateDoc,
-    where,
+  addDoc,
+  arrayUnion,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  increment,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
@@ -82,8 +82,6 @@ class ListsService {
    */
   async getUserListsDirect(userId: string): Promise<List[]> {
     try {
-      console.log('🔥 Fetching user lists directly from Firestore for user:', userId);
-
       // Buscar todas as listas do usuário
       const listsQuery = query(
         collection(firestore, 'lists'),
@@ -145,10 +143,8 @@ class ListsService {
         lists.push(list);
       }
 
-      console.log('✅ Successfully fetched lists from Firestore:', lists.length);
       return lists;
     } catch (error: any) {
-      console.error('❌ Error fetching user lists from Firestore:', error);
       throw {
         code: 'firestore_error',
         message: `Erro ao buscar listas: ${error.message}`,
@@ -163,46 +159,24 @@ class ListsService {
   async getUserLists(userId: string): Promise<List[]> {
     try {
       // Primeiro, tente usar Firestore diretamente
-      console.log('🔥 Trying direct Firestore access first for user:', userId);
       return await this.getUserListsDirect(userId);
     } catch (firestoreError: any) {
-      console.warn('⚠️ Direct Firestore access failed, trying Cloud Functions:', firestoreError.message);
-
       try {
         // Se Firestore direto falhar, tente Cloud Functions
-        console.log('🔥 Calling getUserLists Cloud Function for user:', userId);
-        console.log('🔥 Functions instance:', this.functions);
-        console.log('🔥 Firebase app config:', this.functions.app.options);
-
         const getUserLists = httpsCallable(this.functions, 'getUserLists');
         const result = await getUserLists({ userId });
-
-        console.log('🔥 getUserLists function result:', result);
 
         const responseData = result.data as GetUserListsResponse;
 
         if (responseData && responseData.lists && Array.isArray(responseData.lists)) {
-          console.log('✅ Successfully fetched lists via Cloud Functions:', responseData.lists.length);
           return responseData.lists;
         } else {
-          console.log('⚠️ No lists found or invalid response format, returning empty array');
-          console.log('⚠️ Response data structure:', responseData);
           return [];
         }
       } catch (functionsError: any) {
-        console.error('❌ Error fetching user lists via Cloud Functions:', functionsError);
-        console.error('❌ Functions error details:', {
-          code: functionsError.code,
-          message: functionsError.message,
-          details: functionsError.details,
-          stack: functionsError.stack,
-        });
-
         // Se Cloud Functions também falhar e for "not-found", use mock data
         if (functionsError.code === 'not-found') {
-          console.log('🚀 Cloud Function not found, returning mock data for development');
           const mockLists = this.generateMockLists(userId);
-          console.log('🚀 Generated mock lists:', mockLists);
           return mockLists;
         }
 
@@ -217,8 +191,6 @@ class ListsService {
    */
   async createListDirect(listData: CreateListRequest, userId: string): Promise<List> {
     try {
-      console.log('🔥 Creating list directly in Firestore with data:', listData);
-
       // Validações
       if (!listData.title || listData.title.trim().length < 2) {
         throw {
@@ -316,11 +288,8 @@ class ListsService {
         previewPlaces: [],
       };
 
-      console.log('✅ Successfully created list in Firestore:', newList.id);
       return newList;
     } catch (error: any) {
-      console.error('❌ Error creating list in Firestore:', error);
-
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
@@ -338,8 +307,6 @@ class ListsService {
    */
   async updateListDirect(updateData: UpdateListRequest, userId: string): Promise<List> {
     try {
-      console.log('🔥 Updating list directly in Firestore with data:', updateData);
-
       const { listId, ...updates } = updateData;
 
       // Verificar se lista existe e se usuário é o dono
@@ -417,11 +384,8 @@ class ListsService {
         previewPlaces: listData.previewPlaces || [],
       };
 
-      console.log('✅ Successfully updated list in Firestore:', updatedList.id);
       return updatedList;
     } catch (error: any) {
-      console.error('❌ Error updating list in Firestore:', error);
-
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
@@ -444,34 +408,23 @@ class ListsService {
       const currentUserId = userId || 'current-user'; // Em produção, obter do contexto de auth
 
       // Primeiro, tente usar Firestore diretamente
-      console.log('🔥 Trying direct Firestore creation first');
       return await this.createListDirect(listData, currentUserId);
     } catch (firestoreError: any) {
-      console.warn('⚠️ Direct Firestore creation failed, trying Cloud Functions:', firestoreError.message);
-
       try {
         // Se Firestore direto falhar, tente Cloud Functions
-        console.log('🔥 Calling createList Cloud Function with data:', listData);
-
         const createList = httpsCallable(this.functions, 'createList');
         const result = await createList(listData);
-
-        console.log('🔥 createList function result:', result);
 
         const responseData = result.data as { list: List };
 
         if (responseData && responseData.list) {
-          console.log('✅ Successfully created list via Cloud Functions:', responseData.list.id);
           return responseData.list;
         } else {
           throw new Error('Invalid response format from createList function');
         }
       } catch (functionsError: any) {
-        console.error('❌ Error creating list via Cloud Functions:', functionsError);
-
         // Se Cloud Functions também falhar e for "not-found", use mock data
         if (functionsError.code === 'not-found') {
-          console.log('🚀 createList Cloud Function not found, creating mock list for development');
           const mockList: List = {
             id: `mock-list-${Date.now()}`,
             title: listData.title,
@@ -488,7 +441,6 @@ class ListsService {
             updatedAt: new Date().toISOString(),
             previewPlaces: [],
           };
-          console.log('🚀 Generated mock list:', mockList);
           return mockList;
         }
 
@@ -504,31 +456,21 @@ class ListsService {
   async updateList(updateData: UpdateListRequest, userId: string): Promise<List> {
     try {
       // 1. Try direct Firestore access first
-      console.log('🔥 Trying to update list with direct Firestore access');
       return await this.updateListDirect(updateData, userId);
     } catch (error: any) {
-      console.warn('❌ Direct Firestore update failed, trying Cloud Functions:', error);
-
       try {
         // 2. Fallback to Cloud Functions
-        console.log('🔥 Calling updateList function with data:', updateData);
-
         const updateList = httpsCallable(this.functions, 'updateList');
         const result = await updateList(updateData);
-
-        console.log('🔥 updateList function result:', result);
 
         const responseData = result.data as { list: List };
 
         if (responseData && responseData.list) {
-          console.log('✅ Successfully updated list via Cloud Functions:', responseData.list.id);
           return responseData.list;
         } else {
           throw new Error('Invalid response format from updateList function');
         }
       } catch (functionsError: any) {
-        console.warn('❌ Cloud Functions update failed, using mock data:', functionsError);
-
         // 3. Fallback to mock/simulation
         const mockUpdatedList: List = {
           id: updateData.listId,
@@ -547,7 +489,6 @@ class ListsService {
           previewPlaces: [],
         };
 
-        console.log('✅ Using mock updated list:', mockUpdatedList);
         return mockUpdatedList;
       }
     }
@@ -558,8 +499,6 @@ class ListsService {
    */
   async deleteListDirect(listId: string, userId: string): Promise<void> {
     try {
-      console.log('🔥 Deleting list directly in Firestore:', listId);
-
       // Verificar se lista existe e se usuário é o dono
       const listRef = doc(firestore, 'lists', listId);
       const listDoc = await getDoc(listRef);
@@ -588,12 +527,9 @@ class ListsService {
       }
 
       // Buscar todos os places da lista para deletar primeiro
-      console.log('🔥 Searching for list places to delete...');
       const listPlacesRef = collection(firestore, 'listPlaces');
       const listPlacesQuery = query(listPlacesRef, where('listId', '==', listId));
       const listPlacesSnapshot = await getDocs(listPlacesQuery);
-
-      console.log('🔥 Found', listPlacesSnapshot.size, 'places to delete');
 
       // Deletar todos os places da lista primeiro
       const deletePromises = listPlacesSnapshot.docs.map(placeDoc => 
@@ -602,16 +538,12 @@ class ListsService {
       
       if (deletePromises.length > 0) {
         await Promise.all(deletePromises);
-        console.log('🔥 Successfully deleted all list places');
       }
 
       // Deletar a lista
       await deleteDoc(listRef);
 
-      console.log('✅ Successfully deleted list in Firestore:', listId);
     } catch (error: any) {
-      console.error('❌ Error deleting list in Firestore:', error);
-
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
@@ -640,22 +572,14 @@ class ListsService {
       }
 
       // 1. Try direct Firestore access first
-      console.log('🔥 Trying to delete list with direct Firestore access');
       await this.deleteListDirect(listId, user.uid);
     } catch (error: any) {
-      console.warn('❌ Direct Firestore delete failed, trying Cloud Functions:', error);
-
       try {
         // 2. Fallback to Cloud Functions
-        console.log('🔥 Calling deleteList function for list:', listId);
-
         const deleteListFunction = httpsCallable(this.functions, 'deleteList');
         const result = await deleteListFunction({ listId });
 
-        console.log('🔥 deleteList function result:', result);
-        console.log('✅ Successfully deleted list:', listId);
       } catch (functionsError: any) {
-        console.error('❌ Error deleting list via Cloud Functions:', functionsError);
         throw this.mapErrorToListError(functionsError);
       }
     }
@@ -665,13 +589,6 @@ class ListsService {
    * Map Firebase function errors to ListError
    */
   private mapErrorToListError(error: any): ListError {
-    console.log('🔍 Mapping error:', {
-      code: error.code,
-      message: error.message,
-      name: error.name,
-      fullError: error,
-    });
-
     if (error.code) {
       // Firebase function error
       switch (error.code) {
@@ -725,9 +642,6 @@ class ListsService {
    */
   async addPlaceToListDirect(addPlaceData: AddPlaceToListRequest, userId: string): Promise<ListPlace> {
     try {
-      console.log('🔥 Adding place to list with direct Firestore access');
-      console.log('🔥 Request data:', { addPlaceData, userId });
-
       const { listId, placeId, personalNote = '', tags = [] } = addPlaceData;
 
       // Verificar se os parâmetros são válidos
@@ -739,12 +653,10 @@ class ListsService {
       }
 
       // Verificar se lista existe e permissões
-      console.log('🔥 Checking list exists:', listId);
       const listRef = doc(firestore, 'lists', listId);
       const listDoc = await getDoc(listRef);
 
       if (!listDoc.exists()) {
-        console.error('❌ List not found:', listId);
         throw {
           code: 'list_not_found',
           message: 'Lista não encontrada',
@@ -752,11 +664,9 @@ class ListsService {
       }
 
       const listData = listDoc.data();
-      console.log('🔥 List data:', { ownerId: listData?.ownerId, placesCount: listData?.placesCount });
 
       // Verificar permissões (dono ou editor)
       const hasPermission = listData?.ownerId === userId;
-      console.log('🔥 Permission check:', { hasPermission, listOwnerId: listData?.ownerId, currentUserId: userId });
 
       if (!hasPermission) {
         throw {
@@ -766,12 +676,9 @@ class ListsService {
       }
 
       // Verificar limites Free (15 lugares por lista)
-      console.log('🔥 Checking user limits:', userId);
       const userRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userRef);
       const user = userDoc.exists() ? userDoc.data() : null;
-
-      console.log('🔥 User data:', { accountType: user?.accountType, exists: userDoc.exists() });
 
       if (user?.accountType === 'free' && (listData?.placesCount || 0) >= 15) {
         throw {
@@ -824,12 +731,9 @@ class ListsService {
         tags: tags || [],
       };
 
-      console.log('🔥 Creating listPlace document:', listPlaceData);
-
       // Salvar o documento
       await setDoc(listPlaceRef, listPlaceData);
 
-      console.log('🔥 Updating list counter...');
       // Atualizar contador da lista
       await updateDoc(listRef, {
         placesCount: increment(1),
@@ -838,14 +742,12 @@ class ListsService {
 
       // Atualizar contador do usuário
       if (userDoc.exists()) {
-        console.log('🔥 Updating user counter...');
         await updateDoc(userRef, {
           placesCount: increment(1),
           updatedAt: serverTimestamp(),
         });
       }
 
-      console.log('🔥 Updating place counter...');
       // Atualizar lugar (adicionar usuário que adicionou)
       await updateDoc(placeRef, {
         addedBy: arrayUnion(userId),
@@ -864,11 +766,8 @@ class ListsService {
         tags: tags || [],
       };
 
-      console.log('✅ Successfully added place to list in Firestore:', resultListPlace.id);
       return resultListPlace;
     } catch (error: any) {
-      console.error('❌ Error adding place to list in Firestore:', error);
-
       // Se o erro já é um ListError, propague-o
       if (error.code) {
         throw error;
@@ -886,12 +785,9 @@ class ListsService {
    */
   async addPlaceToList(addPlaceData: AddPlaceToListRequest, userId: string): Promise<ListPlace> {
     try {
-      console.log('🔥 Adding place to list using Cloud Function:', addPlaceData);
-
       // Para Google Places, precisamos buscar os dados primeiro
       if (addPlaceData.placeId.startsWith('ChIJ')) {
         // É um Google Place ID, precisamos buscar os dados do Google Places
-        console.log('🏢 Google Place detected, fetching details for cloud function...');
 
         // Buscar dados do Google Places API
         const placeDetailsResponse = await firebaseService.getPlaceDetails(addPlaceData.placeId);
@@ -928,23 +824,12 @@ class ListsService {
           tags: addPlaceData.tags || [],
         };
 
-        console.log('🔥 Calling addPlaceToList Cloud Function with Google Place data:', {
-          googlePlaceId: cloudFunctionData.googlePlaceId,
-          listId: cloudFunctionData.listId,
-          personalNote: cloudFunctionData.personalNote,
-          tags: cloudFunctionData.tags,
-        });
-
         const addPlaceToListFn = httpsCallable(this.functions, 'addPlaceToList');
         const result = await addPlaceToListFn(cloudFunctionData);
-
-        console.log('🔥 addPlaceToList Cloud Function result:', result.data);
 
         const responseData = result.data as any;
 
         if (responseData && responseData.success) {
-          console.log('✅ Successfully added place to list via Cloud Function:', responseData.message);
-
           // A cloud function deve retornar o listPlace criado
           if (responseData.listPlace) {
             return responseData.listPlace;
@@ -966,19 +851,14 @@ class ListsService {
         }
       } else {
         // Para lugares manuais, usar o método direto do Firestore
-        console.log('📝 Manual place detected, using direct Firestore method...');
         return await this.addPlaceToListDirect(addPlaceData, userId);
       }
     } catch (error: any) {
-      console.error('❌ Error adding place to list via Cloud Function:', error);
-
       // Se for erro de cloud function, tentar fallback para Firestore direto
       if (error.code === 'not-found' || error.message?.includes('not-found')) {
-        console.warn('⚠️ Cloud Function not found, falling back to direct Firestore...');
         try {
           return await this.addPlaceToListDirect(addPlaceData, userId);
         } catch (firestoreError: any) {
-          console.error('❌ Firestore fallback also failed:', firestoreError);
           throw this.mapErrorToListError(firestoreError);
         }
       }
@@ -992,8 +872,6 @@ class ListsService {
    */
   async getListPlacesDirect(listId: string): Promise<ListPlaceWithDetails[]> {
     try {
-      console.log('🔥 Fetching list places with direct Firestore access for list:', listId);
-
       // Buscar todos os listPlaces para esta lista
       const listPlacesQuery = query(
         collection(firestore, 'listPlaces'),
@@ -1004,7 +882,6 @@ class ListsService {
       const listPlacesSnapshot = await getDocs(listPlacesQuery);
 
       if (listPlacesSnapshot.empty) {
-        console.log('✅ No places found for list:', listId);
         return [];
       }
 
@@ -1073,11 +950,8 @@ class ListsService {
         };
       });
 
-      console.log('✅ Successfully fetched list places from Firestore:', placesWithDetails.length);
       return placesWithDetails;
     } catch (error: any) {
-      console.error('❌ Error fetching list places from Firestore:', error);
-
       throw {
         code: 'firestore_error',
         message: `Erro ao buscar lugares da lista: ${error.message}`,
@@ -1092,31 +966,21 @@ class ListsService {
   async getListPlaces(listId: string): Promise<ListPlaceWithDetails[]> {
     try {
       // 1. Try direct Firestore access first
-      console.log('🔥 Trying to fetch list places with direct Firestore access');
       return await this.getListPlacesDirect(listId);
     } catch (error: any) {
-      console.warn('❌ Direct Firestore fetch list places failed, trying Cloud Functions:', error);
-
       try {
         // 2. Fallback to Cloud Functions
-        console.log('🔥 Calling getListPlaces function for list:', listId);
-
         const getListPlaces = httpsCallable(this.functions, 'getListPlaces');
         const result = await getListPlaces({ listId });
-
-        console.log('🔥 getListPlaces function result:', result);
 
         const responseData = result.data as GetListPlacesResponse;
 
         if (responseData && responseData.places) {
-          console.log('✅ Successfully fetched list places via Cloud Functions:', responseData.places.length);
           return responseData.places;
         } else {
           throw new Error('Invalid response format from getListPlaces function');
         }
       } catch (functionsError: any) {
-        console.warn('❌ Cloud Functions fetch list places failed, using mock data:', functionsError);
-
         // 3. Fallback to mock/simulation
         const mockPlaces: ListPlaceWithDetails[] = [
           {
@@ -1165,7 +1029,6 @@ class ListsService {
           },
         ];
 
-        console.log('✅ Using mock list places:', mockPlaces.length);
         return mockPlaces;
       }
     }
@@ -1185,12 +1048,6 @@ class ListsService {
       return result.data;
       
     } catch (error: any) {
-      console.error('🔥 Firebase function error details:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        fullError: error
-      });
       const errorMessage = error.message || 'Erro desconhecido';
       return { success: false, error: errorMessage, data: [] };
     }

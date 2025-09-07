@@ -5,7 +5,17 @@ import { useListPlaces } from '@/hooks/useListPlaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Platform, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { useLists } from '@/hooks/useLists';
@@ -212,7 +222,7 @@ const ListPlacesScreen = () => {
 
   // State for selected place in details view
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  
+
   // State for dropdown menu
   const [showMoreOptionsDropdown, setShowMoreOptionsDropdown] = useState(false);
 
@@ -244,8 +254,8 @@ const ListPlacesScreen = () => {
   const handleShare = async () => {
     if (!listId) return;
 
-    try {      
-      const urlPublic = 'https://www.pinubi.com/'
+    try {
+      const urlPublic = 'https://www.pinubi.com/';
 
       await Share.share({
         message: `Confira a minha lista no Pinubi: ${urlPublic}`,
@@ -264,7 +274,6 @@ const ListPlacesScreen = () => {
     setShowMoreOptionsDropdown(false);
     // TODO: Implement edit list functionality
     // This would involve opening a modal or navigating to an edit screen
-    console.log('Edit list:', listId);
     Alert.alert('Editar Lista', 'Funcionalidade de edição será implementada em breve.');
   };
 
@@ -360,8 +369,6 @@ const ListPlacesScreen = () => {
 
   const handleSavePlace = async (placeData: AddPlaceToListRequest) => {
     try {
-      console.log('🏗️ Adding place to list:', placeData);
-
       // Use the addPlace function from useListPlaces hook
       // This handles the complete flow:
       // 1. Check if place exists in Firestore
@@ -413,43 +420,56 @@ const ListPlacesScreen = () => {
     const name = place.place?.name?.toLowerCase() || '';
     const types = place.place?.types?.join(' ').toLowerCase() || '';
     const searchText = `${name} ${types}`;
-    
+
     // Pizza places
     if (searchText.includes('pizza')) return '🍕';
-    
+
     // Coffee/Cafes
     if (searchText.includes('café') || searchText.includes('coffee')) return '☕';
-    
+
     // Sushi/Japanese
     if (searchText.includes('sushi') || searchText.includes('japonês') || searchText.includes('japanese')) return '🍣';
-    
+
     // Italian
     if (searchText.includes('italiano') || searchText.includes('italian')) return '🍝';
-    
+
     // Bakery/Padaria/Dessert
-    if (searchText.includes('padaria') || searchText.includes('bakery') || searchText.includes('bistrô') || searchText.includes('armazém')) return '🥐';
-    
+    if (
+      searchText.includes('padaria') ||
+      searchText.includes('bakery') ||
+      searchText.includes('bistrô') ||
+      searchText.includes('armazém')
+    )
+      return '🥐';
+
     // Fast food/Burger
-    if (searchText.includes('lanche') || searchText.includes('burger') || searchText.includes('hambúrguer') || searchText.includes('fast food')) return '🍔';
-    
+    if (
+      searchText.includes('lanche') ||
+      searchText.includes('burger') ||
+      searchText.includes('hambúrguer') ||
+      searchText.includes('fast food')
+    )
+      return '🍔';
+
     // Ice cream
     if (searchText.includes('sorvete') || searchText.includes('ice cream')) return '🍦';
-    
+
     // Chinese
     if (searchText.includes('chinês') || searchText.includes('chinese')) return '🥡';
-    
+
     // Barbecue/Churrasco
-    if (searchText.includes('churrasco') || searchText.includes('barbecue') || searchText.includes('carne')) return '🥩';
-    
+    if (searchText.includes('churrasco') || searchText.includes('barbecue') || searchText.includes('carne'))
+      return '🥩';
+
     // Mexican
     if (searchText.includes('mexicano') || searchText.includes('mexican')) return '🌮';
-    
+
     // Lebanese/Middle Eastern
     if (searchText.includes('libanês') || searchText.includes('árabe') || searchText.includes('lebanese')) return '🥙';
-    
+
     // Bar/Drinks
     if (searchText.includes('bar')) return '🍺';
-    
+
     // Default food emoji for restaurants
     return '🍽️';
   };
@@ -464,31 +484,32 @@ const ListPlacesScreen = () => {
     if (!places || places.length === 0) {
       // Default to São Paulo if no places
       return {
-        latitude: -23.550520,
+        latitude: -23.55052,
         longitude: -46.633309,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       };
     }
 
-    const validPlaces = places.filter(place => 
-      place.place?.coordinates?.lat && 
-      place.place?.coordinates?.lng &&
-      place.place.coordinates.lat !== 0 &&
-      place.place.coordinates.lng !== 0
+    const validPlaces = places.filter(
+      (place) =>
+        place.place?.coordinates?.lat &&
+        place.place?.coordinates?.lng &&
+        place.place.coordinates.lat !== 0 &&
+        place.place.coordinates.lng !== 0
     );
 
     if (validPlaces.length === 0) {
       return {
-        latitude: -23.550520,
+        latitude: -23.55052,
         longitude: -46.633309,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       };
     }
 
-    const lats = validPlaces.map(place => place.place!.coordinates!.lat);
-    const lngs = validPlaces.map(place => place.place!.coordinates!.lng);
+    const lats = validPlaces.map((place) => place.place!.coordinates!.lat);
+    const lngs = validPlaces.map((place) => place.place!.coordinates!.lng);
 
     const minLat = Math.min(...lats);
     const maxLat = Math.max(...lats);
@@ -511,18 +532,6 @@ const ListPlacesScreen = () => {
   };
 
   const sortedPlaces = getSortedPlaces();
-
-  // Debug logging
-  console.log('🔍 [ViewList] Component state:', {
-    listId,
-    places: places?.length || 0,
-    placesCount,
-    loading,
-    error,
-    hasPlaces,
-    isEmpty,
-    sortedPlaces: sortedPlaces?.length || 0,
-  });
 
   // Clear error when component unmounts or user dismisses
   React.useEffect(() => {
@@ -554,7 +563,7 @@ const ListPlacesScreen = () => {
     if (!showMoreOptionsDropdown) return null;
 
     return (
-      <View 
+      <View
         style={{
           position: 'absolute',
           top: 60, // Position below the header
@@ -575,22 +584,22 @@ const ListPlacesScreen = () => {
       >
         <TouchableOpacity
           onPress={handleEditList}
-          className="flex-row items-center px-4 py-3 border-b border-gray-100"
+          className='flex-row items-center px-4 py-3 border-b border-gray-100'
           disabled={!canRename}
           style={{ opacity: !canRename ? 0.5 : 1 }}
         >
-          <Ionicons name="pencil-outline" size={18} color="#374151" />
-          <Text className="text-gray-800 font-medium ml-3">Editar</Text>
+          <Ionicons name='pencil-outline' size={18} color='#374151' />
+          <Text className='text-gray-800 font-medium ml-3'>Editar</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           onPress={handleDeleteList}
-          className="flex-row items-center px-4 py-3"
+          className='flex-row items-center px-4 py-3'
           disabled={!canDelete}
           style={{ opacity: !canRename ? 0.5 : 1 }}
         >
-          <Ionicons name="trash-outline" size={18} color="#EF4444" />
-          <Text className="text-red-500 font-medium ml-3">Apagar</Text>
+          <Ionicons name='trash-outline' size={18} color='#EF4444' />
+          <Text className='text-red-500 font-medium ml-3'>Apagar</Text>
         </TouchableOpacity>
       </View>
     );
@@ -676,32 +685,30 @@ const ListPlacesScreen = () => {
                     viewMode === 'list' ? 'bg-white shadow-sm' : ''
                   }`}
                 >
-                  <Ionicons 
-                    name='list-outline' 
-                    size={18} 
-                    color={viewMode === 'list' ? '#b13bff' : '#6B7280'} 
-                  />
-                  <Text className={`ml-2 text-sm font-medium ${
-                    viewMode === 'list' ? 'text-primary-600' : 'text-gray-600'
-                  }`}>
+                  <Ionicons name='list-outline' size={18} color={viewMode === 'list' ? '#b13bff' : '#6B7280'} />
+                  <Text
+                    className={`ml-2 text-sm font-medium ${viewMode === 'list' ? 'text-primary-600' : 'text-gray-600'}`}
+                  >
                     Lista
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   onPress={() => setViewMode('map')}
                   className={`px-4 py-2 rounded-md flex-row items-center ${
                     (viewMode as 'list' | 'map') === 'map' ? 'bg-white shadow-sm' : ''
                   }`}
                 >
-                  <Ionicons 
-                    name='map-outline' 
-                    size={18} 
-                    color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'} 
+                  <Ionicons
+                    name='map-outline'
+                    size={18}
+                    color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'}
                   />
-                  <Text className={`ml-2 text-sm font-medium ${
-                    (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
-                  }`}>
+                  <Text
+                    className={`ml-2 text-sm font-medium ${
+                      (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
+                    }`}
+                  >
                     Mapa
                   </Text>
                 </TouchableOpacity>
@@ -817,32 +824,36 @@ const ListPlacesScreen = () => {
                   (viewMode as 'list' | 'map') === 'list' ? 'bg-white shadow-sm' : ''
                 }`}
               >
-                <Ionicons 
-                  name='list-outline' 
-                  size={18} 
-                  color={(viewMode as 'list' | 'map') === 'list' ? '#b13bff' : '#6B7280'} 
+                <Ionicons
+                  name='list-outline'
+                  size={18}
+                  color={(viewMode as 'list' | 'map') === 'list' ? '#b13bff' : '#6B7280'}
                 />
-                <Text className={`ml-2 text-sm font-medium ${
-                  (viewMode as 'list' | 'map') === 'list' ? 'text-primary-600' : 'text-gray-600'
-                }`}>
+                <Text
+                  className={`ml-2 text-sm font-medium ${
+                    (viewMode as 'list' | 'map') === 'list' ? 'text-primary-600' : 'text-gray-600'
+                  }`}
+                >
                   Lista
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 onPress={() => setViewMode('map')}
                 className={`flex-1 px-4 py-2 rounded-md flex-row items-center justify-center ${
                   (viewMode as 'list' | 'map') === 'map' ? 'bg-white shadow-sm' : ''
                 }`}
               >
-                <Ionicons 
-                  name='map-outline' 
-                  size={18} 
-                  color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'} 
+                <Ionicons
+                  name='map-outline'
+                  size={18}
+                  color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'}
                 />
-                <Text className={`ml-2 text-sm font-medium ${
-                  (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
-                }`}>
+                <Text
+                  className={`ml-2 text-sm font-medium ${
+                    (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
+                  }`}
+                >
                   Mapa
                 </Text>
               </TouchableOpacity>
@@ -875,12 +886,12 @@ const ListPlacesScreen = () => {
                   style={{ flex: 1 }}
                   provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
                   initialRegion={getMapRegion()}
-                  userInterfaceStyle="light"
+                  userInterfaceStyle='light'
                   showsUserLocation={false}
                   showsMyLocationButton={false}
                   showsCompass={false}
                   showsScale={false}
-                  mapType="standard"
+                  mapType='standard'
                   showsBuildings={false}
                   showsIndoors={false}
                   showsPointsOfInterest={false}
@@ -890,20 +901,19 @@ const ListPlacesScreen = () => {
                   zoomEnabled={true}
                   pitchEnabled={false}
                   loadingEnabled={true}
-                  loadingIndicatorColor="#b13bff"
-                  loadingBackgroundColor="#fafafa"
+                  loadingIndicatorColor='#b13bff'
+                  loadingBackgroundColor='#fafafa'
                 >
                   {/* Places markers */}
                   {sortedPlaces.map((place) => {
                     // Only render markers with valid coordinates
                     const lat = place.place?.coordinates?.lat;
                     const lng = place.place?.coordinates?.lng;
-                    
+
                     if (!lat || !lng || lat === 0 || lng === 0) {
-                      console.log('Skipping place with invalid coordinates:', place.place?.name, lat, lng);
                       return null;
                     }
-                    
+
                     return (
                       <Marker
                         key={place.id}
@@ -915,11 +925,11 @@ const ListPlacesScreen = () => {
                         title={place.place?.name || 'Local sem nome'}
                         description={place.place?.address || place.personalNote || 'Endereço não disponível'}
                       >
-                        <View className="relative">
+                        <View className='relative'>
                           {/* Food place marker with emoji */}
-                          <View className="w-12 h-12 bg-primary-500 rounded-full items-center justify-center shadow-lg border-2 border-white">
+                          <View className='w-12 h-12 bg-primary-500 rounded-full items-center justify-center shadow-lg border-2 border-white'>
                             <Text style={{ fontSize: 20 }}>{getFoodEmoji(place)}</Text>
-                          </View>                
+                          </View>
                         </View>
                       </Marker>
                     );
@@ -957,7 +967,6 @@ const ListPlacesScreen = () => {
         onClose={handlePlaceDetailsClose}
         onSavePlace={(place) => {
           // Handle save place action
-          console.log('Save place:', place);
         }}
         onReserveTable={(place) => {
           // Handle reserve table action
@@ -967,8 +976,7 @@ const ListPlacesScreen = () => {
           ]);
         }}
         onShowOnMap={(place) => {
-          // Handle show on map action
-          console.log('Show on map:', place);
+          // Handle show on map action          
         }}
       />
     </View>

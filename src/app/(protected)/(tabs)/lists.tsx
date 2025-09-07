@@ -131,18 +131,14 @@ const ListsScreen = () => {
   };
 
   const handleEditList = (listId: string) => {
-    // TODO: Load list data and open in edit mode
-    console.log('Edit list:', listId);
+    // TODO: Load list data and open in edit mode    
     createEditListBottomSheetRef.current?.snapToIndex(0);
   };
 
   const handleSaveList = async (data: ListFormData) => {
     try {
-      console.log('Save list data:', data);
-      
       const result = await createList(data);
       if (result) {
-        console.log('Successfully created list:', result.id);
         // Bottom sheet will close automatically due to successful creation
       } else {
         // Error handled by the store, show alert if needed

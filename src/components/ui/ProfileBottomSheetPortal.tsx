@@ -56,8 +56,7 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
   }));
 
   const handleSheetChanges = useCallback(
-    (index: number) => {
-      console.log('ProfileBottomSheet index changed to:', index);
+    (index: number) => {      
       if (index === -1) {
         hideBottomSheet();
         onClose?.();

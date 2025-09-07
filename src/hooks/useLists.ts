@@ -25,8 +25,7 @@ export const useLists = () => {
 
   // Auto-fetch lists when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      console.log('🎣 useLists: Auto-fetching lists for user:', user.id);
+    if (isAuthenticated && user?.id) {      
       fetchUserLists(user.id);
     }
   }, [isAuthenticated, user?.id, fetchUserLists]);

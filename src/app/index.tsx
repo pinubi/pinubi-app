@@ -12,39 +12,27 @@ const Index = () => {
     // Wait for auth state to be determined
     if (loading) return;
 
-    console.log('Index: Current auth state:', {
-      isSignedIn,
-      isAuthenticated,
-      canAccessProtected,
-      isValidated,
-      isActive,
-    });
-
     // User is not authenticated at all - redirect to login
-    if (!isSignedIn && !isAuthenticated) {
-      console.log('Index: Navegando para login - não autenticado');
+    if (!isSignedIn && !isAuthenticated) {      
       router.replace('/(public)/login');
       return;
     }
 
     // User is authenticated but not validated/active - must complete onboarding
     // This is the source of truth - Firebase validation status, not local onboarding store
-    if ((isSignedIn || isAuthenticated) && !canAccessProtected) {
-      console.log('Index: Navegando para invite - usuário não validado/ativo');
+    if ((isSignedIn || isAuthenticated) && !canAccessProtected) {      
       // Skip other onboarding steps and go directly to invite
       router.replace('/(public)/onboarding/invite');
       return;
     }
 
     // User is fully validated and active - go to protected area
-    if (canAccessProtected) {
-      console.log('Index: Navegando para social - usuário validado e ativo');
+    if (canAccessProtected) {      
       router.replace('/(protected)/(tabs)/social');
       return;
     }
 
-    // Fallback - if something is wrong, go to login
-    console.log('Index: Fallback - navegando para login');
+    // Fallback - if something is wrong, go to login    
     router.replace('/(public)/login');
   }, [isSignedIn, isAuthenticated, loading, canAccessProtected, isValidated, isActive, router]);
 

@@ -3,12 +3,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,16 +30,13 @@ const LoginScreen = () => {
   // Navigate to protected route when user is signed in (including mock)
   useEffect(() => {
     if (isSignedIn || isAuthenticated) {
-      console.log('Navegando para tela protegida - isSignedIn:', isSignedIn, 'isAuthenticated:', isAuthenticated);
       router.replace('/(protected)/(tabs)/social');
     }
   }, [isSignedIn, isAuthenticated, router]);
 
   const handleGoogleSignIn = async () => {
     try {
-      console.log('Iniciando login com Google...');
       await signInWithGoogle();
-      console.log('Login com Google concluído');
     } catch (err) {
       // Error is handled by the auth store and useEffect above
       console.error('Erro de login no componente:', err);
@@ -53,9 +50,7 @@ const LoginScreen = () => {
     }
 
     try {
-      console.log('Iniciando login com email...');
       await signInWithEmailAndPassword(email, password);
-      console.log('Login com email concluído');
     } catch (err) {
       console.error('Erro de login com email:', err);
       // Error is handled by the auth store and useEffect above

@@ -8,36 +8,23 @@ const ProtectedLayout = () => {
   const { isSignedIn, isAuthenticated, loading, canAccessProtected, isValidated, isActive, user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    console.log('ProtectedLayout: Estado atual:', {
-      loading,
-      isSignedIn,
-      isAuthenticated,
-      canAccessProtected,
-      isValidated,
-      isActive,
-      userName: user?.name || 'null'
-    });
-    
+  useEffect(() => {    
     // Don't redirect while loading
     if (loading) return;
 
     // Not authenticated at all - go to login
-    if (!isSignedIn && !isAuthenticated) {
-      console.log('ProtectedLayout: Redirecionando para login - não autenticado');
+    if (!isSignedIn && !isAuthenticated) {      
       router.replace('/(public)/login');
       return;
     }
 
     // Authenticated but not validated/active - must complete onboarding
-    if ((isSignedIn || isAuthenticated) && !canAccessProtected) {
-      console.log('ProtectedLayout: Redirecionando para invite - não validado/ativo');
+    if ((isSignedIn || isAuthenticated) && !canAccessProtected) {      
       router.replace('/(public)/onboarding/invite');
       return;
     }
 
-    // If we reach here, user should have access to protected routes
-    console.log('ProtectedLayout: Usuário autorizado para rotas protegidas');
+    // If we reach here, user should have access to protected routes    
   }, [isSignedIn, isAuthenticated, loading, canAccessProtected, isValidated, isActive, router, user]);
 
   // Show loading spinner while checking authentication
