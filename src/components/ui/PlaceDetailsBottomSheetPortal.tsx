@@ -1,8 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Dimensions, Image, Modal, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import type { CheckInBottomSheetRef } from '@/components/checkin';
+import { CheckInBottomSheetPortal, CheckInHistory } from '@/components/checkin';
 import { googlePlacesService } from '@/services/googlePlacesService';
 import { Place } from '@/types/places';
 
@@ -26,6 +37,132 @@ interface PlaceDetailsBottomSheetPortalProps {
 }
 
 const { width, height } = Dimensions.get('window');
+
+// Animated Floating Check-in Button Component
+const AnimatedFloatingCheckInButton = ({ onPress }: { onPress: () => void }) => {
+  const scale = useSharedValue(1);
+  const pulse = useSharedValue(1);
+  const shadowOpacity = useSharedValue(0.2);
+
+  useEffect(() => {
+    // Create a subtle pulsing animation that repeats
+    pulse.value = withRepeat(
+      withTiming(1.05, { duration: 2000 }),
+      -1, // infinite repeat
+      true // reverse
+    );
+
+    // Create shadow animation that repeats
+    shadowOpacity.value = withRepeat(
+      withTiming(0.4, { duration: 2000 }),
+      -1, // infinite repeat
+      true // reverse
+    );
+  }, [pulse, shadowOpacity]);
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value * pulse.value }],
+    };
+  });
+
+  const animatedShadowStyle = useAnimatedStyle(() => {
+    const elevation = interpolate(
+      shadowOpacity.value,
+      [0.2, 0.4],
+      [8, 16],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      shadowOpacity: shadowOpacity.value,
+      elevation,
+    };
+  });
+
+  return (
+    <View className='px-4 pb-6'>
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={0.9}
+          className='overflow-hidden rounded-2xl'
+        >
+          <Animated.View
+            className='bg-primary-500 px-8 py-5 flex-row items-center justify-center relative'
+            style={[
+              {
+                backgroundColor: '#9333EA',
+                shadowColor: '#9333EA',
+                shadowOffset: { width: 0, height: 8 },
+                shadowRadius: 20,
+                borderRadius: 16,
+              },
+              animatedShadowStyle,
+            ]}
+          >
+            {/* Animated background overlay for extra glow effect */}
+            <View 
+              className='absolute inset-0'
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: 16,
+              }}
+            />
+            
+            {/* Subtle highlight effect */}
+            <View 
+              className='absolute top-0 left-0 right-0'
+              style={{
+                height: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+              }}
+            />
+
+            <View className='flex-row items-center justify-center'>
+              <View 
+                className='w-8 h-8 rounded-full items-center justify-center mr-4'
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+              >
+                <Ionicons name='location' size={20} color='white' />
+              </View>
+              <View className='flex-col items-center'>
+                <Text className='text-white font-bold text-lg tracking-wide'>Fazer Check-in</Text>
+                <Text 
+                  className='text-sm font-medium mt-1'
+                  style={{ color: 'rgba(255, 255, 255, 0.8)' }}
+                >
+                  Compartilhe sua experiência
+                </Text>
+              </View>
+              <View className='ml-4' style={{ opacity: 0.6 }}>
+                <Ionicons name='chevron-forward' size={20} color='white' />
+              </View>
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+};
 
 // Separate component for photo scrolling to isolate state
 const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
@@ -93,6 +230,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
   ({ place, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
     const [isVisible, setIsVisible] = useState(false);
     const photoScrollViewRef = useRef<ScrollView>(null);
+    const checkInRef = useRef<CheckInBottomSheetRef>(null);
     const [isSaved, setIsSaved] = useState(false);
     const [showAllHours, setShowAllHours] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -344,6 +482,19 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       </View>
     );
 
+    const renderCheckInSection = () => (
+      <AnimatedFloatingCheckInButton onPress={handleCheckIn} />
+    );
+
+    const renderCheckInHistory = () => (
+      <View className='px-2 pb-6'>
+        <CheckInHistory 
+          placeId={place?.id || ''} 
+          onShowAll={handleShowAllCheckIns}
+        />
+      </View>
+    );
+
     const renderRatingInfo = () => {
       const rating = place?.googleData.rating;
       const totalRatings = place?.googleData.userRatingsTotal;
@@ -409,6 +560,27 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
     const handleRenderHours = () => {
       setShowAllHours(prevState => !prevState);
+    };
+
+    // Check-in handlers
+    const handleCheckIn = () => {
+      if (place) {
+        checkInRef.current?.present();
+      }
+    };
+
+    const handleCheckInComplete = (completedPlace: Place) => {
+      console.log('Check-in completed for:', completedPlace.googleData.name);
+      // Could trigger a refresh of check-in history here if needed
+    };
+
+    const handleShowAllCheckIns = () => {
+      // TODO: Navigate to full check-in history screen
+      Alert.alert(
+        'Histórico de Check-ins',
+        'Tela de histórico completo em desenvolvimento.',
+        [{ text: 'OK' }]
+      );
     };
 
     // Helper function to safely extract address string
@@ -529,6 +701,12 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
                 {/* Address and Location */}
                 {renderLocationInfo()}
 
+                {/* Check-in Section */}
+                {renderCheckInSection()}
+
+                {/* Check-in History */}
+                {renderCheckInHistory()}
+
                 {/* Rating and Reviews */}
                 {/* {renderRatingInfo()} */}
 
@@ -537,6 +715,13 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
               </ScrollView>
             </>
           )}
+
+          {/* Check-in Modal */}
+          <CheckInBottomSheetPortal
+            ref={checkInRef}
+            place={place}
+            onCheckInComplete={handleCheckInComplete}
+          />
         </View>
       </Modal>
     );
