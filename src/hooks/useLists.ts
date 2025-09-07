@@ -21,6 +21,7 @@ export const useLists = () => {
     refreshLists,
     getListById,
     getListsByVisibility,
+    getListPlaces,
   } = useListsStore();
 
   // Auto-fetch lists when user is authenticated
@@ -69,6 +70,7 @@ export const useLists = () => {
     // Helpers
     getListById,
     getListsByVisibility,
+    getListPlaces,
     
     // Computed
     privateLists: getListsByVisibility('private'),

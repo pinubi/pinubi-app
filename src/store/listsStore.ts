@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { listsService } from '@/services/listsService';
-import type { List, ListError, ListFormData } from '@/types/lists';
+import type { List, ListError, ListFormData, ListPlaceWithDetails } from '@/types/lists';
 
 interface ListsState {
   lists: List[];
@@ -17,6 +17,7 @@ interface ListsState {
   deleteList: (listId: string) => Promise<boolean>;
   clearError: () => void;
   refreshLists: (userId: string) => Promise<void>;
+  getListPlaces: (listId: string) => Promise<ListPlaceWithDetails[]>;
   
   // UI helpers
   getListById: (listId: string) => List | null;
@@ -203,6 +204,17 @@ export const useListsStore = create<ListsState>()(
 
       clearError: () => {
         set({ error: null });
+      },
+
+      getListPlaces: async (listId: string): Promise<ListPlaceWithDetails[]> => {
+        try {
+          const places = await listsService.getListPlaces(listId);
+          return places;
+        } catch (error: any) {
+          console.error('Error fetching list places:', error);
+          // Don't set global error state for this - let caller handle it
+          return [];
+        }
       },
 
       // UI helper methods

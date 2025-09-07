@@ -379,7 +379,6 @@ const ListPlacesScreen = () => {
 
   const handlePlaceDetailsClose = () => {
     setSelectedPlace(null);
-    placeDetailsBottomSheetRef.current?.close();
   };
 
   const handleDeletePlace = async (place: ListPlaceWithDetails) => {

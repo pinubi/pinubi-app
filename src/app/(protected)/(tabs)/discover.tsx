@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
@@ -19,12 +19,15 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
+import { useLists } from '@/hooks/useLists';
 import { firebaseService } from '@/services/firebaseService';
 import { AutocompleteResult } from '@/types/googlePlaces';
+import { ListPlaceWithDetails } from '@/types/lists';
 import { Place } from '@/types/places';
 
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
+  const { favoritesList, getListPlaces } = useLists();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
   const placeDetailsBottomSheetRef = useRef<BottomSheetRef>(null);
@@ -91,45 +94,59 @@ const DiscoverScreen = () => {
     }, [])
   );
 
-  // Mock data for demonstration - replace with real data
-  const [places] = useState<Place[]>([
-    {
-      id: 'place-1',
+  // User's favorite places - fetched from favorites list
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+
+  // Helper function to convert ListPlaceWithDetails to Place
+  const convertListPlaceToPlace = (listPlace: ListPlaceWithDetails): Place | null => {
+    if (!listPlace.place) return null;
+
+    return {
+      id: listPlace.place.id,
       googleData: {
-        name: 'Café da Manhã',
-        address: 'Rua das Flores, 123 - Centro',
-        coordinates: { lat: -23.55052, lng: -46.633308 },
-        rating: 4.5,
-        types: ['cafe', 'restaurant'],
+        name: listPlace.place.name,
+        address: listPlace.place.address,
+        coordinates: listPlace.place.coordinates,
+        rating: listPlace.place.rating,
+        photos: listPlace.place.photos,
+        types: listPlace.place.types,
+        phone: listPlace.place.phone,
+        website: listPlace.place.website,
+        priceLevel: listPlace.place.priceLevel,
       },
-      coordinates: { lat: -23.55052, lng: -46.633308 },
-      categories: ['cafe'],
-    },
-    {
-      id: 'place-2',
-      googleData: {
-        name: 'Restaurante Italiano',
-        address: 'Av. Paulista, 456 - Bela Vista',
-        coordinates: { lat: -23.561684, lng: -46.656139 },
-        rating: 4.8,
-        types: ['restaurant', 'italian'],
-      },
-      coordinates: { lat: -23.561684, lng: -46.656139 },
-      categories: ['italian', 'restaurant'],
-    },
-    {
-      id: 'place-3',
-      googleData: {
-        name: 'Parque Ibirapuera',
-        address: 'Av. Pedro Álvares Cabral - Vila Mariana',
-        coordinates: { lat: -23.587416, lng: -46.657834 },
-        rating: 4.6,
-        types: ['park'],
-      },
-      coordinates: { lat: -23.587416, lng: -46.657834 },
-      categories: ['park'],
-    },
-  ]);
+      coordinates: listPlace.place.coordinates,
+      categories: listPlace.place.types || [],
+    };
+  };
+
+  // Fetch places from favorites list
+  const fetchFavoritesPlaces = useCallback(async () => {
+    if (!favoritesList?.id) {
+      setPlaces([]);
+      return;
+    }
+
+    try {
+      setFavoritesLoading(true);
+      const listPlaces = await getListPlaces(favoritesList.id);
+
+      // Convert ListPlaceWithDetails to Place[]
+      const convertedPlaces = listPlaces.map(convertListPlaceToPlace).filter((place): place is Place => place !== null);
+
+      setPlaces(convertedPlaces);
+    } catch (error) {
+      console.error('Error fetching favorites places:', error);
+      setPlaces([]);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  }, [favoritesList?.id, getListPlaces]);
+
+  // Fetch favorites places when favorites list is available
+  useEffect(() => {
+    fetchFavoritesPlaces();
+  }, [fetchFavoritesPlaces]);
 
   const tabs = [
     { id: 'pinubi' as const, label: 'Lista da Pinubi', icon: 'star' as const },
@@ -219,7 +236,11 @@ const DiscoverScreen = () => {
     // Set the selected place and the bottom sheet will open automatically
     setSelectedPlace(place);
 
-    placeDetailsBottomSheetRef.current?.snapToIndex(1);
+    bottomSheetRef.current?.close();
+
+    setTimeout(() => {
+      placeDetailsBottomSheetRef.current?.snapToIndex(1);
+    }, 1000);
   };
 
   // Place details action handlers
@@ -244,6 +265,10 @@ const DiscoverScreen = () => {
 
   const handlePlaceDetailsClose = useCallback(() => {
     setSelectedPlace(null);
+    setBottomSheetIndex(0);
+    setTimeout(() => {
+      bottomSheetRef.current?.collapse();
+    }, 500);
   }, []);
 
   // Filter places based on search query
@@ -337,6 +362,26 @@ const DiscoverScreen = () => {
     );
   };
 
+  const renderBottomSheetMapMode = useMemo(() => {
+    {
+      /* Bottom Sheet - only show in map mode */
+    }
+    return (
+      viewMode === 'map' && (
+        <BottomSheet
+          ref={bottomSheetRef}
+          snapPoints={['30%', '65%', '98%']}
+          index={bottomSheetIndex}
+          // onChange={handleBottomSheetChange}
+          enablePanDownToClose={false}
+          enableContentPanningGesture={true}
+        >
+          {renderBottomSheetContent()}
+        </BottomSheet>
+      )
+    );
+  }, [selectedPlace, viewMode, renderBottomSheetContent, bottomSheetIndex]);
+
   return (
     <View className='flex-1 bg-gray-50'>
       {/* Header */}
@@ -353,19 +398,7 @@ const DiscoverScreen = () => {
       <View className='flex-1'>
         {renderContent()}
 
-        {/* Bottom Sheet - only show in map mode */}
-        {viewMode === 'map' && (
-          <BottomSheet
-            ref={bottomSheetRef}
-            snapPoints={['30%', '65%', '98%']}
-            index={bottomSheetIndex}
-            // onChange={handleBottomSheetChange}
-            enablePanDownToClose={false}
-            enableContentPanningGesture={true}
-          >
-            {renderBottomSheetContent()}
-          </BottomSheet>
-        )}
+        {renderBottomSheetMapMode}
       </View>
 
       {/* Profile Bottom Sheet */}

@@ -1,13 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Dimensions, Image, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Dimensions, Image, Modal, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { googlePlacesService } from '@/services/googlePlacesService';
 import { Place } from '@/types/places';
-import { usePortal } from './PortalProvider';
 
-export type BottomSheetRef = BottomSheet;
+export type BottomSheetRef = {
+  present: () => void;
+  dismiss: () => void;
+  snapToIndex: (index: number) => void;
+  close: () => void;
+  collapse: () => void;
+  expand: () => void;
+  snapToPosition: () => void;
+  forceClose: () => void;
+};
 
 interface PlaceDetailsBottomSheetPortalProps {
   place: Place | null;
@@ -17,7 +25,7 @@ interface PlaceDetailsBottomSheetPortalProps {
   onShowOnMap?: (place: Place) => void;
 }
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 // Separate component for photo scrolling to isolate state
 const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
@@ -83,14 +91,14 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
 
 const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBottomSheetPortalProps>(
   ({ place, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
-    const { showPortal, hidePortal } = usePortal();
-    const bottomSheetRef = useRef<BottomSheetRef>(null);
+    const [isVisible, setIsVisible] = useState(false);
     const photoScrollViewRef = useRef<ScrollView>(null);
     const [isSaved, setIsSaved] = useState(false);
     const [showAllHours, setShowAllHours] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const insets = useSafeAreaInsets();
 
-    const snapPoints = useMemo(() => ['100%'], []);
+    const snapPoints = useMemo(() => [height], [height]); // Use exact screen height in pixels
 
     // Automatically show bottom sheet when place is set
     useEffect(() => {
@@ -101,10 +109,16 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       } else {
         hideBottomSheet();
       }
-    }, [place, showAllHours]);
+    }, [place]);
 
     // Expose methods to parent component
     React.useImperativeHandle(ref, () => ({
+      present: () => {
+        showBottomSheet();
+      },
+      dismiss: () => {
+        hideBottomSheet();
+      },
       snapToIndex: (index: number) => {
         if (index >= 0) {
           showBottomSheet();
@@ -121,84 +135,17 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       forceClose: () => hideBottomSheet(),
     }));
 
-    const handleSheetChanges = useCallback(
-      (index: number) => {
-        if (index === -1) {
-          hideBottomSheet();
-          onClose?.();
-        }
-      },
-      [onClose]
-    );
-
     const showBottomSheet = () => {
       if (!place || !place.googleData) {
         return;
       }
-
-      const bottomSheetContent = (
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={0}
-          snapPoints={snapPoints}
-          enablePanDownToClose={true}
-          onChange={handleSheetChanges}
-          enableOverDrag={false}
-          keyboardBehavior='interactive'
-          keyboardBlurBehavior='restore'
-          style={{
-            zIndex: 1002,
-            elevation: 1002,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.25,
-            shadowRadius: 16,
-          }}
-          backgroundStyle={{
-            backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-          handleStyle={{
-            display: 'none',
-          }}
-          handleIndicatorStyle={{
-            display: 'none',
-          }}
-        >
-          {/* Header Image - Outside of BottomSheetScrollView to avoid conflicts */}
-          {renderHeaderImage()}
-
-          <BottomSheetScrollView
-            style={{ flex: 1, backgroundColor: 'white' }}
-            contentContainerStyle={{ paddingTop: 0 }}
-          >
-            {/* Place Info */}
-            {renderPlaceInfo()}
-
-            {/* Place Types and Category */}
-            {renderPlaceTypes()}
-
-            {/* Contact and Opening Hours */}
-            {renderContactInfo()}
-
-            {/* Address and Location */}
-            {renderLocationInfo()}
-
-            {/* Rating and Reviews */}
-            {/* {renderRatingInfo()} */}
-
-            {/* Fixed Bottom Actions */}
-            {/* {renderBottomActions()} */}
-          </BottomSheetScrollView>
-        </BottomSheet>
-      );
-
-      showPortal(bottomSheetContent, 'place-details-bottom-sheet');
+      
+      setIsVisible(true);
     };
 
     const hideBottomSheet = () => {
-      hidePortal('place-details-bottom-sheet');
+      setIsVisible(false);
+      onClose?.();
     };
 
     const renderHeaderImage = () => {
@@ -552,8 +499,47 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       return typeMap[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
     };
 
-    // This component doesn't render anything itself - it uses the portal
-    return null;
+    // This component now renders a full-screen Modal
+    return (
+      <Modal
+        visible={isVisible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={hideBottomSheet}
+      >
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF', height, width }}>
+          {place && (
+            <>
+              {/* Header Image */}
+              {renderHeaderImage()}
+
+              <ScrollView
+                style={{ flex: 1, backgroundColor: 'white' }}
+                contentContainerStyle={{ paddingTop: 0 }}
+              >
+                {/* Place Info */}
+                {renderPlaceInfo()}
+
+                {/* Place Types and Category */}
+                {renderPlaceTypes()}
+
+                {/* Contact and Opening Hours */}
+                {renderContactInfo()}
+
+                {/* Address and Location */}
+                {renderLocationInfo()}
+
+                {/* Rating and Reviews */}
+                {/* {renderRatingInfo()} */}
+
+                {/* Fixed Bottom Actions */}
+                {/* {renderBottomActions()} */}
+              </ScrollView>
+            </>
+          )}
+        </View>
+      </Modal>
+    );
   }
 );
 

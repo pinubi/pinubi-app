@@ -1,5 +1,7 @@
 import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
-import { View } from 'react-native';
+import { Dimensions, View } from 'react-native';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface PortalContextType {
   showPortal: (content: ReactNode, id?: string) => void;
@@ -50,6 +52,8 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
               left: 0,
               right: 0,
               bottom: 0,
+              width: screenWidth,
+              height: screenHeight,
               zIndex: 1000,
               elevation: 1000,
             }}
