@@ -73,10 +73,10 @@ const DatePickerSection: React.FC<DatePickerSectionProps> = ({
 
   return (
     <View className='px-4 py-6'>
-      <Text className='text-2xl font-bold text-gray-900 mb-2'>Data da Visita</Text>
+      {/* <Text className='text-2xl font-bold text-gray-900 mb-2'>Data da Visita</Text>
       <Text className='text-gray-600 mb-6'>
         Confirme quando você esteve aqui
-      </Text>
+      </Text> */}
       
       {/* Selected Date Display */}
       <TouchableOpacity 

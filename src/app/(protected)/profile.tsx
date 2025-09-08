@@ -243,7 +243,7 @@ const ProfileScreen = () => {
             setLoading(true);
             try {
               await signOut();
-              router.replace('/(public)/login');
+              router.replace('/(public)/signin');
             } catch (error) {
               console.error('Error signing out:', error);
               Alert.alert('Erro', 'Não foi possível sair. Tente novamente.');

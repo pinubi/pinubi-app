@@ -12,9 +12,9 @@ const Index = () => {
     // Wait for auth state to be determined
     if (loading) return;
 
-    // User is not authenticated at all - redirect to login
+    // User is not authenticated at all - redirect to signin
     if (!isSignedIn && !isAuthenticated) {      
-      router.replace('/(public)/login');
+      router.replace('/(public)/signin');
       return;
     }
 
@@ -33,7 +33,7 @@ const Index = () => {
     }
 
     // Fallback - if something is wrong, go to login    
-    router.replace('/(public)/login');
+    router.replace('/(public)/signin');
   }, [isSignedIn, isAuthenticated, loading, canAccessProtected, isValidated, isActive, router]);
 
   // Show loading screen while checking auth state and redirecting

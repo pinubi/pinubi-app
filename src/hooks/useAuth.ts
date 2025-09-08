@@ -16,6 +16,7 @@ export const useAuth = () => {
     checkAuthState,
     clearError,
     updateUserValidation,
+    resetPassword,
   } = useAuthStore();
 
   // Initialize auth state check on hook mount
@@ -38,6 +39,7 @@ export const useAuth = () => {
     signOut,
     clearError,
     updateUserValidation,
+    resetPassword,
     
     // Computed values
     isSignedIn: isAuthenticated && user !== null,

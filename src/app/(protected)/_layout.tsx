@@ -12,9 +12,9 @@ const ProtectedLayout = () => {
     // Don't redirect while loading
     if (loading) return;
 
-    // Not authenticated at all - go to login
+    // Not authenticated at all - go to signin
     if (!isSignedIn && !isAuthenticated) {      
-      router.replace('/(public)/login');
+      router.replace('/(public)/signin');
       return;
     }
 

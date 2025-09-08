@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Image, Modal, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -10,7 +10,6 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { CheckInBottomSheetRef } from '@/components/checkin';
 import { CheckInBottomSheetPortal, CheckInHistory } from '@/components/checkin';
@@ -228,16 +227,12 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
 
 const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBottomSheetPortalProps>(
   ({ place, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
-    const [isVisible, setIsVisible] = useState(false);
-    const photoScrollViewRef = useRef<ScrollView>(null);
+    const [isVisible, setIsVisible] = useState(false);    
     const checkInRef = useRef<CheckInBottomSheetRef>(null);
     const [isSaved, setIsSaved] = useState(false);
     const [showAllHours, setShowAllHours] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    const insets = useSafeAreaInsets();
-
-    const snapPoints = useMemo(() => [height], [height]); // Use exact screen height in pixels
-
+    
     // Automatically show bottom sheet when place is set
     useEffect(() => {
       if (place) {

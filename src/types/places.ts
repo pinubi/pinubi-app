@@ -30,6 +30,27 @@ export interface Place {
   categories?: string[];
   createdAt?: string;
   lastGoogleSync?: string;
+  
+  // Review system fields
+  averageRatings?: PlaceAverageRatings;
+  socialMetrics?: {
+    [userId: string]: {
+      friendsAverage: number;
+      friendsCount: number;
+      lastUpdated: string;
+    };
+  };
+  updatedAt?: string;
+}
+
+export interface PlaceAverageRatings {
+  overall: number;
+  food?: number;
+  drink?: number;
+  dessert?: number;
+  service?: number;
+  ambiance?: number;
+  totalReviews: number;
 }
 
 export interface MapRegion {

@@ -22,7 +22,7 @@ const InviteScreen = () => {
   const router = useRouter();
   const { updateUserValidation } = useAuth();
   const { data, updateSignup, completeOnboarding } = useOnboardingStore();
-  const [inviteCode, setInviteCode] = useState(data?.signup?.inviteCode || '');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Validation

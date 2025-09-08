@@ -135,7 +135,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
             />
             <TouchableOpacity
               onPress={() => removePhoto(index)}
-              className='absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full items-center justify-center'
+              className='absolute -top-0 -right-2 w-6 h-6 bg-red-500 rounded-full items-center justify-center'
             >
               <Ionicons name='close' size={16} color='white' />
             </TouchableOpacity>

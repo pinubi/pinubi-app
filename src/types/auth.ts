@@ -45,6 +45,7 @@ export interface AuthStore extends AuthState {
   checkAuthState: () => Promise<(() => void) | undefined>;
   clearError: () => void;
   updateUserValidation: (isValidated: boolean, isActive: boolean, onboardingComplete?: boolean) => void;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 export interface GoogleSignInError {
@@ -62,4 +63,6 @@ export type AuthError =
   | 'wrong_password'
   | 'too_many_requests'
   | 'user_disabled'
+  | 'password_reset_sent'
+  | 'password_reset_failed'
   | 'unknown_error';

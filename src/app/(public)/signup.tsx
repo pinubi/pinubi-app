@@ -3,13 +3,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -268,7 +268,7 @@ const SignupScreen = () => {
 
         {/* Link para login */}
         <TouchableOpacity 
-          onPress={() => router.navigate('/(public)/login')} 
+          onPress={() => router.navigate('/(public)/signin')} 
           className='items-center'
         >
           <Text className='text-primary-600 font-medium text-sm'>

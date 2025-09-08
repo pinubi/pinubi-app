@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithCredential,
   updateProfile,
 } from 'firebase/auth';
@@ -115,6 +116,10 @@ const getErrorMessage = (error: AuthError): string => {
       return 'Muitas tentativas. Tente novamente mais tarde';
     case 'user_disabled':
       return 'Conta desabilitada. Entre em contato com o suporte';
+    case 'password_reset_sent':
+      return 'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha';
+    case 'password_reset_failed':
+      return 'Erro ao enviar email de recuperação. Tente novamente';
     case 'unknown_error':
     default:
       return 'Ocorreu um erro inesperado';
@@ -426,6 +431,37 @@ export const useAuthStore = create<AuthStore>()(
           };
 
           set({ user: updatedUser });
+        }
+      },
+
+      resetPassword: async (email: string) => {
+        try {
+          set({ loading: true, error: null });
+
+          await sendPasswordResetEmail(auth, email);
+
+          set({
+            loading: false,
+            error: getErrorMessage('password_reset_sent'),
+          });
+        } catch (error: any) {
+          const authError = mapFirebaseAuthErrorToAuthError(error);
+          let errorMessage = getErrorMessage(authError);
+
+          // Handle specific password reset errors
+          if (error.code === 'auth/user-not-found') {
+            // For security, we don't reveal if the email exists
+            errorMessage = getErrorMessage('password_reset_sent');
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email inválido. Verifique o formato do email.';
+          } else {
+            errorMessage = getErrorMessage('password_reset_failed');
+          }
+
+          set({
+            loading: false,
+            error: errorMessage,
+          });
         }
       },
     }),
