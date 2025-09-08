@@ -1,5 +1,5 @@
 import { functions } from '@/config/firebase';
-import { Place } from '@/types/places';
+import { Place, PlaceDetailsResponse } from '@/types/places';
 import { httpsCallable } from 'firebase/functions';
 
 interface FindNearbyPlacesResponse {
@@ -10,7 +10,7 @@ interface FindNearbyPlacesResponse {
 
 interface GetPlaceDetailsResponse {
   success: boolean;
-  data: Place | null;
+  data: Partial<PlaceDetailsResponse> | null;
   error?: string;
 }
 
@@ -25,31 +25,31 @@ class FirebaseService {
     try {
       const findNearbyPlaces = httpsCallable(this.functions, 'findNearbyPlaces');
       const result = await findNearbyPlaces({ latitude, longitude, radius });
-      
+
       // Handle the actual response format from Firebase
       const responseData = result.data as any;
-      
-      if (responseData && responseData.places && Array.isArray(responseData.places)) {                
+
+      if (responseData && responseData.places && Array.isArray(responseData.places)) {
         // Map the Firebase response format to Place format (based on Database Schema)
         const mappedPlaces: Place[] = responseData.places.map((place: any, index: number) => {
           // Extract coordinates - they should be in the format from your schema
           // Your log shows coordinates object with latitude/longitude, so let's handle both formats
           let lat = 0;
           let lng = 0;
-          
+
           if (place.coordinates) {
             lat = place.coordinates.lat || place.coordinates._latitude || 0;
             lng = place.coordinates.lng || place.coordinates._longitude || 0;
           }
-          
+
           const mappedPlace: Place = {
             id: place.id || `place-${Date.now()}-${Math.random()}`,
-            googleData: {              
+            googleData: {
               name: place.name || 'Local sem nome',
               address: place.address || 'Endereço não disponível',
               coordinates: {
                 lat,
-                lng
+                lng,
               },
               phone: place.phone,
               website: place.website,
@@ -65,18 +65,18 @@ class FirebaseService {
             searchableText: place.searchableText,
             coordinates: {
               lat,
-              lng
+              lng,
             },
             addedBy: place.addedBy,
             totalAdds: place.totalAdds,
             categories: place.categories,
             createdAt: place.createdAt,
-            lastGoogleSync: place.lastGoogleSync
+            lastGoogleSync: place.lastGoogleSync,
           };
-          
+
           return mappedPlace;
         });
-        
+
         return { success: true, data: mappedPlaces };
       } else {
         return { success: true, data: [] };
@@ -94,26 +94,26 @@ class FirebaseService {
   async getPlaceDetails(placeId: string, forceRefresh = false, language = 'pt-BR'): Promise<GetPlaceDetailsResponse> {
     try {
       const getPlaceDetails = httpsCallable(this.functions, 'getPlaceDetails');
-      const result = await getPlaceDetails({ 
-        placeId, 
-        forceRefresh, 
-        language 
+      const result = await getPlaceDetails({
+        placeId,
+        forceRefresh,
+        language,
       });
-      
+
       const responseData = result.data as any;
-      
+
       if (responseData && responseData.place) {
         const place = responseData.place;
-        
+
         // Extract coordinates
         let lat = 0;
         let lng = 0;
-        
+
         if (place.coordinates) {
           lat = place.coordinates.lat || place.coordinates._latitude || 0;
           lng = place.coordinates.lng || place.coordinates._longitude || 0;
         }
-        
+
         const mappedPlace: Place = {
           id: place.id || placeId,
           googleData: {
@@ -121,7 +121,7 @@ class FirebaseService {
             address: place.address || 'Endereço não disponível',
             coordinates: {
               lat,
-              lng
+              lng,
             },
             phone: place.googleData.phone,
             website: place.googleData.website,
@@ -131,21 +131,21 @@ class FirebaseService {
             types: place.googleData.types || place.googleData.categories,
             priceLevel: place.googleData.priceLevel,
             openingHours: place.googleData.openingHours,
-            lastUpdated: place.googleData.lastUpdated
+            lastUpdated: place.googleData.lastUpdated,
           },
           searchableText: place.searchableText,
           coordinates: {
             lat,
-            lng
+            lng,
           },
           addedBy: place.addedBy,
           totalAdds: place.totalAdds,
           categories: place.categories,
           createdAt: place.createdAt,
-          lastGoogleSync: place.lastGoogleSync
+          lastGoogleSync: place.lastGoogleSync,
         };
-        
-        return { success: true, data: mappedPlace };
+
+        return { success: true, data: { ...responseData, place: mappedPlace } };
       } else {
         return { success: false, data: null, error: 'Local não encontrado' };
       }

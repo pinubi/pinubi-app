@@ -14,7 +14,7 @@ import Animated, {
 import type { CheckInBottomSheetRef } from '@/components/checkin';
 import { CheckInBottomSheetPortal, CheckInHistory } from '@/components/checkin';
 import { googlePlacesService } from '@/services/googlePlacesService';
-import { Place } from '@/types/places';
+import { Place, Reviews, UserPlaceList } from '@/types/places';
 
 export type BottomSheetRef = {
   present: () => void;
@@ -29,6 +29,8 @@ export type BottomSheetRef = {
 
 interface PlaceDetailsBottomSheetPortalProps {
   place: Place | null;
+  userLists: UserPlaceList[] | null;
+  reviews: Reviews[] | null;
   onClose?: () => void;
   onSavePlace?: (place: Place) => void;
   onReserveTable?: (place: Place) => void;
@@ -226,7 +228,7 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
 };
 
 const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBottomSheetPortalProps>(
-  ({ place, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
+  ({ place, userLists, reviews, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {    
     const [isVisible, setIsVisible] = useState(false);    
     const checkInRef = useRef<CheckInBottomSheetRef>(null);
     const [isSaved, setIsSaved] = useState(false);
@@ -486,6 +488,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
         <CheckInHistory 
           placeId={place?.id || ''} 
           onShowAll={handleShowAllCheckIns}
+          checkIns={reviews || []}
         />
       </View>
     );

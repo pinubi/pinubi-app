@@ -67,6 +67,7 @@ const CheckInBottomSheetPortal = forwardRef<CheckInBottomSheetRef, CheckInBottom
     const formData: CheckInFormData = {
       visitDate: currentCheckIn.formData.visitDate || new Date(),
       rating: currentCheckIn.formData.rating ?? 5.0,
+      reviewType: currentCheckIn.formData.reviewType || 'overall',
       description: currentCheckIn.formData.description || '',
       wouldReturn: currentCheckIn.formData.wouldReturn ?? null,
       photos: currentCheckIn.formData.photos || [],
@@ -77,7 +78,8 @@ const CheckInBottomSheetPortal = forwardRef<CheckInBottomSheetRef, CheckInBottom
       field: K, 
       value: CheckInFormData[K]
     ) => {
-      updateFormData({ ...formData, [field]: value });
+      console.log(`🔄 Updating field ${field} with value:`, value);
+      updateFormData({ [field]: value } as Partial<CheckInFormData>);
     };
 
     // Clear errors when they occur
@@ -149,6 +151,41 @@ const CheckInBottomSheetPortal = forwardRef<CheckInBottomSheetRef, CheckInBottom
     const handleComplete = async () => {
       if (!place) return;
 
+      console.log('📝 Completing check-in with form data:', formData);
+      console.log('📝 Review type:', formData.reviewType);
+      console.log('📝 Would return:', formData.wouldReturn);
+      console.log('📝 Rating:', formData.rating);
+      console.log('📝 Visit date:', formData.visitDate);
+
+      // Final validation before sending to Firebase
+      const requiredFields: (keyof CheckInFormData)[] = ['visitDate', 'rating', 'reviewType', 'wouldReturn'];
+      const missingFields = requiredFields.filter(field => {
+        const value = formData[field];
+        if (field === 'wouldReturn') return value === null || value === undefined;
+        if (field === 'rating') {
+          const rating = value as number;
+          return rating === undefined || rating === null || rating < 0 || rating > 10;
+        }
+        return !value;
+      });
+
+      if (missingFields.length > 0) {
+        Alert.alert(
+          'Dados Incompletos',
+          `Por favor, preencha os seguintes campos: ${missingFields.map(field => {
+            switch (field) {
+              case 'visitDate': return 'Data da visita';
+              case 'rating': return 'Avaliação';
+              case 'reviewType': return 'Tipo de avaliação';
+              case 'wouldReturn': return 'Recomendação';
+              default: return field;
+            }
+          }).join(', ')}`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       try {
         await createCheckIn(place.id, formData);
         completeCheckIn();
@@ -171,8 +208,8 @@ const CheckInBottomSheetPortal = forwardRef<CheckInBottomSheetRef, CheckInBottom
           return true;
         case 2: // Date - required
           return !!formData.visitDate;
-        case 3: // Rating - required
-          return formData.rating >= 0 && formData.rating <= 10;
+        case 3: // Rating and Review Type - required
+          return formData.rating >= 0 && formData.rating <= 10 && !!formData.reviewType;
         case 4: // Return decision - required
           return formData.wouldReturn !== null;
         default:
@@ -203,6 +240,8 @@ const CheckInBottomSheetPortal = forwardRef<CheckInBottomSheetRef, CheckInBottom
               onRatingChange={(rating) => updateFormField('rating', rating)}
               description={formData.description}
               onDescriptionChange={(description) => updateFormField('description', description)}
+              reviewType={formData.reviewType}
+              onReviewTypeChange={(reviewType) => updateFormField('reviewType', reviewType)}
             />
           );
         case 4:

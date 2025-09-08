@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import { AddPlaceBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
 import CreateEditListBottomSheetPortal from '@/components/ui/CreateEditListBottomSheetPortal';
-import PlaceDetailsBottomSheetPortal from '@/components/ui/PlaceDetailsBottomSheetPortal';
+import PlaceDetailsBottomSheetPortal, { type BottomSheetRef as PlaceDetailsBottomSheetRef } from '@/components/ui/PlaceDetailsBottomSheetPortal';
 import { useListPlaces } from '@/hooks/useListPlaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -22,7 +22,7 @@ import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native
 import { useLists } from '@/hooks/useLists';
 import { googlePlacesService } from '@/services/googlePlacesService';
 import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@/types/lists';
-import type { Place } from '@/types/places';
+import type { Place, PlaceDetailsResponse } from '@/types/places';
 
 interface PlaceCardProps {
   place: ListPlaceWithDetails;
@@ -219,11 +219,11 @@ const ListPlacesScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const addPlaceBottomSheetRef = useRef<BottomSheetRef>(null);
-  const placeDetailsBottomSheetRef = useRef<BottomSheetRef>(null);
+  const placeDetailsBottomSheetRef = useRef<PlaceDetailsBottomSheetRef>(null);
   const editListBottomSheetRef = useRef<BottomSheetRef>(null);
 
   // State for selected place in details view
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceDetailsResponse | null>(null);
 
   // State for dropdown menu
   const [showMoreOptionsDropdown, setShowMoreOptionsDropdown] = useState(false);
@@ -373,7 +373,21 @@ const ListPlacesScreen = () => {
       createdAt: place.addedAt,
     };
 
-    setSelectedPlace(convertedPlace);
+    // Create a PlaceDetailsResponse structure from the Place
+    const placeDetailsResponse: PlaceDetailsResponse = {
+      success: true,
+      place: convertedPlace,
+      fromCache: false,
+      _meta: {
+        fromCache: false,
+        language: 'pt-BR'
+      },
+      userLists: undefined,
+      userInteraction: null,
+      reviews: null
+    };
+
+    setSelectedPlace(placeDetailsResponse);
     placeDetailsBottomSheetRef.current?.snapToIndex(0);
   };
 
@@ -1040,7 +1054,9 @@ const ListPlacesScreen = () => {
       {/* Place Details Bottom Sheet */}
       <PlaceDetailsBottomSheetPortal
         ref={placeDetailsBottomSheetRef}
-        place={selectedPlace}
+        place={selectedPlace?.place ? selectedPlace.place : null}
+        userLists={selectedPlace?.userLists ? selectedPlace.userLists : null}
+        reviews={selectedPlace?.reviews ? [selectedPlace.reviews] : null}
         onClose={handlePlaceDetailsClose}
         onSavePlace={(place) => {
           // Handle save place action

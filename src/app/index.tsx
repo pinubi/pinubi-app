@@ -13,24 +13,24 @@ const Index = () => {
     if (loading) return;
 
     // User is not authenticated at all - redirect to signin
-    if (!isSignedIn && !isAuthenticated) {      
-      router.replace('/(public)/signin');
-      return;
-    }
+    // if (!isSignedIn && !isAuthenticated) {      
+    //   router.replace('/(public)/signin');
+    //   return;
+    // }
 
-    // User is authenticated but not validated/active - must complete onboarding
-    // This is the source of truth - Firebase validation status, not local onboarding store
-    if ((isSignedIn || isAuthenticated) && !canAccessProtected) {      
-      // Skip other onboarding steps and go directly to invite
-      router.replace('/(public)/onboarding/invite');
-      return;
-    }
+    // // User is authenticated but not validated/active - must complete onboarding
+    // // This is the source of truth - Firebase validation status, not local onboarding store
+    // if ((isSignedIn || isAuthenticated) && !canAccessProtected) {      
+    //   // Skip other onboarding steps and go directly to invite
+    //   router.replace('/(public)/onboarding/invite');
+    //   return;
+    // }
 
-    // User is fully validated and active - go to protected area
-    if (canAccessProtected) {      
-      router.replace('/(protected)/(tabs)/social');
-      return;
-    }
+    // // User is fully validated and active - go to protected area
+    // if (canAccessProtected) {      
+    //   router.replace('/(protected)/(tabs)/social');
+    //   return;
+    // }
 
     // Fallback - if something is wrong, go to login    
     router.replace('/(public)/signin');
@@ -39,7 +39,7 @@ const Index = () => {
   // Show loading screen while checking auth state and redirecting
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      <ActivityIndicator size="large" color="#4285F4" />
+      <ActivityIndicator size="large" color="#b13bff" />
     </View>
   );
 };

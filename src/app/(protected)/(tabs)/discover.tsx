@@ -17,24 +17,25 @@ import {
   type BottomSheetRef,
   type ViewMode,
 } from '@/components/ui';
+import { type BottomSheetRef as PlaceDetailsBottomSheetRef } from '@/components/ui/PlaceDetailsBottomSheetPortal';
 import { useAuth } from '@/hooks/useAuth';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
 import { useLists } from '@/hooks/useLists';
 import { firebaseService } from '@/services/firebaseService';
 import { AutocompleteResult } from '@/types/googlePlaces';
 import { ListPlaceWithDetails } from '@/types/lists';
-import { Place } from '@/types/places';
+import { Place, PlaceDetailsResponse } from '@/types/places';
 
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();
   const { favoritesList, getListPlaces } = useLists();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const profileBottomSheetRef = useRef<BottomSheetRef>(null);
-  const placeDetailsBottomSheetRef = useRef<BottomSheetRef>(null);
+  const placeDetailsBottomSheetRef = useRef<PlaceDetailsBottomSheetRef>(null);
   const [activeTab, setActiveTab] = useState<'pinubi' | 'hype' | 'places'>('pinubi');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceDetailsResponse | null>(null);
   const [bottomSheetIndex, setBottomSheetIndex] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -197,10 +198,10 @@ const DiscoverScreen = () => {
       try {
         // Get full place details from Firebase
         const placeDetails = await firebaseService.getPlaceDetails(result.place_id);
-
+        
         if (placeDetails.success && placeDetails.data) {
           // Set the selected place and the bottom sheet will open automatically
-          setSelectedPlace(placeDetails.data);
+          setSelectedPlace(placeDetails.data as PlaceDetailsResponse);
         } else {
           // Show friendly error message
           Alert.alert('Local não encontrado', 'Não foi possível carregar os detalhes deste local no momento.', [
@@ -233,8 +234,21 @@ const DiscoverScreen = () => {
   // }, [isKeyboardVisible, isSearchFocused]);
 
   const handlePlacePress = (place: Place) => {
-    // Set the selected place and the bottom sheet will open automatically
-    setSelectedPlace(place);
+    // Create a PlaceDetailsResponse structure from the Place
+    const placeDetailsResponse: PlaceDetailsResponse = {
+      success: true,
+      place: place,
+      fromCache: false,
+      _meta: {
+        fromCache: false,
+        language: 'pt-BR'
+      },
+      userLists: undefined,
+      userInteraction: null,
+      reviews: null
+    };
+    
+    setSelectedPlace(placeDetailsResponse);
 
     bottomSheetRef.current?.close();
 
@@ -407,7 +421,9 @@ const DiscoverScreen = () => {
       {/* Place Details Bottom Sheet */}
       <PlaceDetailsBottomSheetPortal
         ref={placeDetailsBottomSheetRef}
-        place={selectedPlace}
+        place={selectedPlace?.place ? selectedPlace.place : null}
+        userLists={selectedPlace?.userLists ? selectedPlace.userLists : null}
+        reviews={selectedPlace?.reviews ? selectedPlace.reviews : null}
         onClose={handlePlaceDetailsClose}
         onSavePlace={handleSavePlace}
         onReserveTable={handleReserveTable}
