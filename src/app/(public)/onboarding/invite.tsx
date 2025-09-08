@@ -43,9 +43,7 @@ const InviteScreen = () => {
     if (!validateInviteCode()) return;
     
     try {
-      setLoading(true);
-      
-      console.log('Starting invite code validation:', inviteCode);
+      setLoading(true);          
       
       // Store invite code in onboarding store
       updateSignup({
@@ -78,17 +76,14 @@ const InviteScreen = () => {
         defaultPermissions
       );
       
-      if (result.success) {
-        console.log('Onboarding completed successfully:', result.data);
+      if (result.success) {        
         
         // Mark onboarding as completed in store
         completeOnboarding();
         
         // Update user validation status to allow access to protected routes
         // The Cloud Function should have already updated the user in Firestore
-        updateUserValidation(true, true, true);
-        
-        console.log('User is now validated and active - redirecting to protected app');
+        updateUserValidation(true, true, true);                
         
         // Show success message and redirect
         Alert.alert(

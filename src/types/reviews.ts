@@ -6,9 +6,9 @@
 export type ReviewType = 'food' | 'drink' | 'dessert' | 'service' | 'ambiance' | 'overall';
 
 export interface PhotoData {
-  url: string;
-  thumbnail?: string;
-  size: number;
+  base64: string;
+  fileName: string;
+  mimeType: string;
   width: number;
   height: number;
 }

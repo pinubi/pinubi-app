@@ -2,14 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import GoogleLogo from '@/components/GoogleLogo';
@@ -18,8 +11,16 @@ import { useAuth } from '@/hooks/useAuth';
 
 const LoginScreen = () => {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmailAndPassword, loading, error, isSignedIn, isAuthenticated, clearError, resetPassword } =
-    useAuth();
+  const {
+    signInWithGoogle,
+    signInWithEmailAndPassword,
+    loading,
+    error,
+    isSignedIn,
+    isAuthenticated,
+    clearError,
+    resetPassword,
+  } = useAuth();
 
   // State for email/password login
   const [email, setEmail] = useState('');
@@ -59,7 +60,10 @@ const LoginScreen = () => {
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      Alert.alert('Email necessário', 'Por favor, insira seu email primeiro para receber as instruções de recuperação.');
+      Alert.alert(
+        'Email necessário',
+        'Por favor, insira seu email primeiro para receber as instruções de recuperação.'
+      );
       return;
     }
 
@@ -78,9 +82,15 @@ const LoginScreen = () => {
     clearError();
   };
 
-  return (
-    <SafeAreaView className='flex-1'>      
+  const handleBack = () => {
+    setIsEmailLogin(false);
+    setEmail('');
+    setPassword('');
+    clearError();
+  };
 
+  return (
+    <SafeAreaView className='flex-1'>
       {/* Background Gradient */}
       <LinearGradient
         colors={['#f4e6ff', '#ffffff', '#f4e6ff']}
@@ -94,13 +104,19 @@ const LoginScreen = () => {
       <View className='absolute top-32 right-8 w-20 h-20 bg-primary-200 rounded-full opacity-30' />
       <View className='absolute bottom-32 left-8 w-16 h-16 bg-primary-300 rounded-full opacity-25' />
       <View className='absolute bottom-48 right-6 w-20 h-20 bg-primary-100 rounded-full opacity-20' />
-      
+
       {/* Additional decorative elements for better visual hierarchy */}
       <View className='absolute top-48 left-12 w-12 h-12 bg-primary-50 rounded-full opacity-40' />
       <View className='absolute bottom-64 right-12 w-14 h-14 bg-primary-200 rounded-full opacity-20' />
-      
+
       {/* Main Content */}
       <View className='flex-1 justify-between items-center px-6 py-8'>
+        {isEmailLogin && (
+          <TouchableOpacity onPress={handleBack} className='w-10 h-10 items-center justify-center self-start'>
+            <Ionicons name='arrow-back' size={24} color='#374151' />
+          </TouchableOpacity>
+        )}
+
         {/* Top Section - Brand and Login */}
         <View className='flex-1 justify-center items-center w-full'>
           {/* Brand Section */}
@@ -138,11 +154,11 @@ const LoginScreen = () => {
                       autoCapitalize='none'
                       autoCorrect={false}
                       className='flex-1 ml-3 text-neutral-800 text-base'
-                      style={{ 
+                      style={{
                         paddingVertical: 0,
                         textAlignVertical: 'center',
                         includeFontPadding: false,
-                        lineHeight: 20
+                        lineHeight: 20,
                       }}
                     />
                   </View>
@@ -162,11 +178,11 @@ const LoginScreen = () => {
                       autoCapitalize='none'
                       autoCorrect={false}
                       className='flex-1 ml-3 text-neutral-800 text-base'
-                      style={{ 
+                      style={{
                         paddingVertical: 0,
                         textAlignVertical: 'center',
                         includeFontPadding: false,
-                        lineHeight: 20
+                        lineHeight: 20,
                       }}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -176,14 +192,8 @@ const LoginScreen = () => {
                 </View>
 
                 {/* Forgot Password */}
-                <TouchableOpacity 
-                  onPress={handleForgotPassword}
-                  disabled={loading}
-                  className='self-end'
-                >
-                  <Text className='text-primary-600 font-medium text-sm'>
-                    Esqueceu sua senha?
-                  </Text>
+                <TouchableOpacity onPress={handleForgotPassword} disabled={loading} className='self-end'>
+                  <Text className='text-primary-600 font-medium text-sm'>Esqueceu sua senha?</Text>
                 </TouchableOpacity>
 
                 {/* Email Sign In Button */}
@@ -208,31 +218,6 @@ const LoginScreen = () => {
                   ) : (
                     <Text className='text-white font-semibold text-base'>Entrar</Text>
                   )}
-                </TouchableOpacity>
-
-                {/* Divider */}
-                <View className='flex-row items-center my-6'>
-                  <View className='flex-1 h-px bg-neutral-300' />
-                  <Text className='px-4 text-neutral-500 text-sm'>ou</Text>
-                  <View className='flex-1 h-px bg-neutral-300' />
-                </View>
-
-                {/* Google Sign In Button */}
-                <TouchableOpacity
-                  onPress={handleGoogleSignIn}
-                  disabled={loading}
-                  className='bg-white border-2 border-neutral-200 rounded-xl px-6 py-4 flex-row items-center justify-center shadow-lg h-14'
-                  style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                    transform: loading ? [{ scale: 0.98 }] : [{ scale: 1 }],
-                  }}
-                >
-                  <GoogleLogo size={20} />
-                  <Text className='ml-3 text-neutral-800 font-semibold text-base'>Continuar com Google</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -314,13 +299,6 @@ const LoginScreen = () => {
               </View>
             )}
 
-            {/* Toggle Login Method */}
-            <TouchableOpacity onPress={toggleLoginMethod} className='mt-6 items-center'>
-              <Text className='text-primary-600 font-medium text-sm'>
-                {isEmailLogin ? 'Voltar para opções de login' : 'Já tem uma conta? Entre com email'}
-              </Text>
-            </TouchableOpacity>
-
             {/* Error Display */}
             {error && (
               <TouchableOpacity
@@ -338,15 +316,12 @@ const LoginScreen = () => {
 
         {/* Footer */}
         <View className='items-center px-6 pb-2'>
-          <TouchableOpacity 
-            onPress={() => router.navigate('/(public)/signup' as any)} 
-            className='mb-4 py-2'
-          >
-            <Text className='text-primary-600 font-medium text-sm'>
-              Não tem uma conta? Criar conta
-            </Text>
-          </TouchableOpacity>
-          
+          {isEmailLogin && (
+            <TouchableOpacity onPress={() => router.navigate('/(public)/signup' as any)} className='mb-4 py-2'>
+              <Text className='text-primary-600 font-medium text-sm'>Não tem uma conta? Criar conta</Text>
+            </TouchableOpacity>
+          )}
+
           <Text className='text-neutral-400 text-xs text-center leading-4'>
             Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
           </Text>

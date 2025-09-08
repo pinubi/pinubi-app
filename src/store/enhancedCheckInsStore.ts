@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { convertPhotosToPhotoData } from '@/components/checkin/PhotoUploadSection';
 import { reviewService } from '@/services/reviewService';
 import type { CheckIn, CheckInFormData, CheckInState } from '@/types/checkins';
 import type { CreateReviewRequest, PhotoData, ReviewType } from '@/types/reviews';
@@ -78,13 +79,11 @@ export const useCheckInsStore = create<CheckInsStore>()(
         try {
           set({ loading: true, error: null });
 
-          // Convert photos to PhotoData format
-          const photos: PhotoData[] = data.photos.map((url, index) => ({
-            url,
-            size: 0, // Will be set by backend
-            width: 0, // Will be set by backend
-            height: 0, // Will be set by backend
-          }));
+          // Convert raw photos to PhotoData format for the component
+          const convertedPhotos = await convertPhotosToPhotoData(data.photos);          
+          
+          // The converted photos already match the PhotoData interface
+          const photos: PhotoData[] = convertedPhotos;          
 
           // Create review using the review service
           const reviewRequest: CreateReviewRequest = {
@@ -116,9 +115,9 @@ export const useCheckInsStore = create<CheckInsStore>()(
             reviewType: data.reviewType,
             description: data.description || '',
             wouldReturn: data.wouldReturn ?? false,
-            photos: data.photos.map((url, index) => ({
+            photos: convertedPhotos.map((photo, index) => ({
               id: `photo_${index}`,
-              url,
+              url: photo.base64, // Use the base64 data as URL for local storage
               order: index,
             })),
             createdAt: new Date().toISOString(),
@@ -162,6 +161,12 @@ export const useCheckInsStore = create<CheckInsStore>()(
             throw new Error('Check-in não encontrado');
           }
 
+          // Convert photos if provided
+          let convertedPhotos: PhotoData[] | undefined;
+          if (data.photos) {
+            convertedPhotos = await convertPhotosToPhotoData(data.photos);
+          }
+
           // Update using review service
           const updateRequest = {
             reviewId: checkInId, // Using checkIn ID as review ID
@@ -170,14 +175,7 @@ export const useCheckInsStore = create<CheckInsStore>()(
             ...(data.wouldReturn !== undefined && data.wouldReturn !== null && { wouldReturn: data.wouldReturn }),
             ...(data.description !== undefined && { comment: data.description }),
             ...(data.visitDate && { visitDate: data.visitDate.toISOString() }),
-            ...(data.photos && { 
-              photos: data.photos.map(url => ({
-                url,
-                size: 0,
-                width: 0,
-                height: 0,
-              }))
-            }),
+            ...(convertedPhotos && { photos: convertedPhotos }),
           };
 
           const response = await reviewService.updateReview(updateRequest);
@@ -197,10 +195,10 @@ export const useCheckInsStore = create<CheckInsStore>()(
                     ...(data.description !== undefined && { description: data.description }),
                     ...(data.wouldReturn !== undefined && data.wouldReturn !== null && { wouldReturn: data.wouldReturn }),
                     ...(data.visitDate && { visitDate: data.visitDate.toISOString() }),
-                    ...(data.photos && { 
-                      photos: data.photos.map((url, index) => ({
+                    ...(data.photos && convertedPhotos && { 
+                      photos: convertedPhotos.map((photo, index) => ({
                         id: `photo_${index}`,
-                        url,
+                        url: photo.base64,
                         order: index,
                       }))
                     }),

@@ -1,3 +1,4 @@
+import { RawPhoto } from '@/components/checkin/PhotoUploadSection';
 import { ReviewType } from './reviews';
 
 export interface CheckIn {
@@ -33,7 +34,7 @@ export interface CheckInFormData {
   reviewType: ReviewType;
   description: string;
   wouldReturn: boolean | null;
-  photos: string[];
+  photos: RawPhoto[];
 }
 
 export interface CheckInStep {

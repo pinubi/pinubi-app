@@ -1,13 +1,66 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import type { PhotoData } from '@/types/reviews';
+
+export interface RawPhoto {
+  uri: string;
+  fileName?: string;
+}
+
 interface PhotoUploadSectionProps {
-  photos: string[];
-  onPhotosChange: (photos: string[]) => void;
+  photos: RawPhoto[];
+  onPhotosChange: (photos: RawPhoto[]) => void;
   maxPhotos?: number;
 }
+
+// Export the conversion function to be used when finalizing
+export const convertPhotosToPhotoData = async (rawPhotos: RawPhoto[]): Promise<PhotoData[]> => {
+  const photoPromises = rawPhotos.map(async (rawPhoto, index) => {
+    try {
+      // Read image as base64
+      const base64 = await FileSystem.readAsStringAsync(rawPhoto.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Get image dimensions
+      const getImageDimensions = (): Promise<{ width: number; height: number }> => {
+        return new Promise((resolve, reject) => {
+          Image.getSize(
+            rawPhoto.uri,
+            (width, height) => resolve({ width, height }),
+            (error) => reject(error)
+          );
+        });
+      };
+
+      const dimensions = await getImageDimensions();
+
+      // Generate filename if not provided
+      const generatedFileName = rawPhoto.fileName || `foto_${Date.now()}_${index}.jpg`;
+      
+      // Determine mime type from file extension or default to jpeg
+      const extension = generatedFileName.split('.').pop()?.toLowerCase() || 'jpg';
+      const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
+
+      return {
+        base64: `data:${mimeType};base64,${base64}`,
+        fileName: generatedFileName,
+        mimeType,
+        width: dimensions.width,
+        height: dimensions.height,
+      };
+    } catch (error) {
+      console.error('Error converting image:', error);
+      throw error;
+    }
+  });
+
+  return Promise.all(photoPromises);
+};
 
 const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   photos,
@@ -42,7 +95,11 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       });
 
       if (!result.canceled && result.assets) {
-        const newPhotos = result.assets.map(asset => asset.uri);
+        const newPhotos: RawPhoto[] = result.assets.map((asset, index) => ({
+          uri: asset.uri,
+          fileName: asset.fileName || `galeria_${Date.now()}_${index}.jpg`
+        }));
+        
         const updatedPhotos = [...photos, ...newPhotos].slice(0, maxPhotos);
         onPhotosChange(updatedPhotos);
       }
@@ -83,7 +140,11 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       });
 
       if (!result.canceled && result.assets) {
-        const newPhoto = result.assets[0].uri;
+        const asset = result.assets[0];
+        const newPhoto: RawPhoto = {
+          uri: asset.uri,
+          fileName: `camera_${Date.now()}.jpg`
+        };
         const updatedPhotos = [...photos, newPhoto].slice(0, maxPhotos);
         onPhotosChange(updatedPhotos);
       }
@@ -129,7 +190,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
         {photos.map((photo, index) => (
           <View key={index} className='relative mr-3'>
             <Image 
-              source={{ uri: photo }} 
+              source={{ uri: photo.uri }} 
               className='w-24 h-24 rounded-xl' 
               resizeMode='cover'
             />
@@ -194,7 +255,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
                 Dica para fotos incríveis
               </Text>
               <Text className='text-blue-700 text-sm'>
-                Adicione fotos da comida, ambiente ou momentos especiais para compartilhar sua experiência!
+                Adicione fotos da comida, ambiente ou momentos especiais para compartilhar sua experiência! As fotos serão processadas apenas quando você finalizar.
               </Text>
             </View>
           </View>

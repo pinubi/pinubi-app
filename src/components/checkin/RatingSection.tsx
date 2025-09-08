@@ -3,16 +3,51 @@ import Slider from '@react-native-community/slider';
 import React from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import type { ReviewType } from '@/types/reviews';
+
 interface RatingSectionProps {
   rating: number;
   onRatingChange: (rating: number) => void;
   description: string;
   onDescriptionChange: (description: string) => void;
+  reviewType: ReviewType;
+  onReviewTypeChange: (reviewType: ReviewType) => void;
 }
 
-const RatingSection: React.FC<RatingSectionProps> = ({ rating, onRatingChange, description, onDescriptionChange }) => {
+const RatingSection: React.FC<RatingSectionProps> = ({ 
+  rating, 
+  onRatingChange, 
+  description, 
+  onDescriptionChange,
+  reviewType,
+  onReviewTypeChange
+}) => {
   // Debug log to check if component is rendering
-  console.log('RatingSection rendering with rating:', rating);
+  console.log('RatingSection rendering with rating:', rating, 'reviewType:', reviewType);
+
+  const getReviewTypeDisplayName = (type: ReviewType): string => {
+    const displayNames: { [key in ReviewType]: string } = {
+      food: 'Comida',
+      drink: 'Bebida',
+      dessert: 'Sobremesa',
+      service: 'Atendimento',
+      ambiance: 'Ambiente',
+      overall: 'Geral'
+    };
+    return displayNames[type];
+  };
+
+  const getReviewTypeEmoji = (type: ReviewType): string => {
+    const emojis: { [key in ReviewType]: string } = {
+      food: '🍽️',
+      drink: '🍹',
+      dessert: '🍰',
+      service: '👨‍💼',
+      ambiance: '🏛️',
+      overall: '⭐'
+    };
+    return emojis[type];
+  };
 
   const getRatingDescription = (rating: number): string => {
     if (rating >= 9) return 'Excepcional';
@@ -51,6 +86,29 @@ const RatingSection: React.FC<RatingSectionProps> = ({ rating, onRatingChange, d
     <View className='px-4 py-6'>
       <Text className='text-2xl font-bold text-gray-900 mb-2'>Sua Avaliação</Text>
       <Text className='text-gray-600 mb-6'>Como foi sua experiência?</Text>
+
+      {/* Review Type Selector */}
+      <View className='mb-6'>
+        <Text className='text-gray-900 font-medium mb-3'>Tipo de avaliação</Text>
+        <View className='flex-row flex-wrap gap-2'>
+          {(['overall', 'food', 'drink', 'dessert', 'service', 'ambiance'] as ReviewType[]).map((type) => (
+            <TouchableOpacity
+              key={type}
+              onPress={() => onReviewTypeChange(type)}
+              className={`flex-row items-center px-3 py-2 rounded-full border ${
+                reviewType === type ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <Text className='mr-1'>{getReviewTypeEmoji(type)}</Text>
+              <Text className={`font-medium text-sm ${
+                reviewType === type ? 'text-primary-700' : 'text-gray-700'
+              }`}>
+                {getReviewTypeDisplayName(type)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       {/* Rating Display */}
       <View className='items-center mb-6'>

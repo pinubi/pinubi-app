@@ -39,7 +39,7 @@ class ReviewService {
         'createReview'
       );
       
-      const result = await createReview(reviewData);
+      const result = await createReview(reviewData);      
       return result.data;
     } catch (error: any) {
       console.error('Error creating review:', error);
@@ -363,6 +363,92 @@ class ReviewService {
    */
   convertFrom5StarScale(rating: number): number {
     return Math.round((rating / 5) * 10 * 10) / 10;
+  }
+
+  // Check-in specific methods
+
+  /**
+   * Create a check-in review (always isVisited = true)
+   */
+  async createCheckInReview(reviewData: Omit<CreateReviewRequest, 'isVisited'>): Promise<CreateReviewResponse> {
+    return this.createReview({
+      ...reviewData,
+      isVisited: true // Check-ins are always visits
+    });
+  }
+
+  /**
+   * Get all check-ins (visited reviews) for a place
+   */
+  async getPlaceCheckIns(placeId: string, userId?: string): Promise<{
+    success: boolean;
+    checkIns: Review[];
+    error?: string;
+  }> {
+    try {
+      const response = await this.getPlaceReviews({ 
+        placeId, 
+        userId,
+        limit: 100 
+      });
+      
+      if (!response.success) {
+        return {
+          success: false,
+          checkIns: [],
+          error: response.error
+        };
+      }
+
+      // Filter only visited reviews (check-ins)
+      const checkIns = response.reviews.filter(review => review.isVisited);
+
+      return {
+        success: true,
+        checkIns
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        checkIns: [],
+        error: error.message || 'Erro desconhecido'
+      };
+    }
+  }
+
+  /**
+   * Get user's check-ins across all places
+   */
+  async getUserCheckIns(userId: string): Promise<{
+    success: boolean;
+    checkIns: Review[];
+    error?: string;
+  }> {
+    try {
+      const response = await this.getUserReviews({ userId, limit: 100 });
+      
+      if (!response.success) {
+        return {
+          success: false,
+          checkIns: [],
+          error: response.error
+        };
+      }
+
+      // Filter only visited reviews (check-ins)
+      const checkIns = response.reviews.filter(review => review.isVisited);
+
+      return {
+        success: true,
+        checkIns
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        checkIns: [],
+        error: error.message || 'Erro desconhecido'
+      };
+    }
   }
 }
 

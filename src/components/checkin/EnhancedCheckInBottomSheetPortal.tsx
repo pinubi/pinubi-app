@@ -245,6 +245,8 @@ const EnhancedCheckInBottomSheetPortal = forwardRef<CheckInBottomSheetRef, Check
               onRatingChange={(rating) => updateFormField('rating', rating)}
               description={formData.description}
               onDescriptionChange={(description) => updateFormField('description', description)}
+              reviewType={formData.reviewType}
+              onReviewTypeChange={(reviewType) => updateFormField('reviewType', reviewType)}
             />
           );
         case 5:
