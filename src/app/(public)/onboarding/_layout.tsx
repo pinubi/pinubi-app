@@ -8,13 +8,10 @@ const OnboardingLayout = () => {
   const { isSignedIn, isAuthenticated, loading, user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    console.log('OnboardingLayout: Checking auth state - loading:', loading, 'isSignedIn:', isSignedIn, 'user:', user?.name || 'null');
-    
+  useEffect(() => {        
     // Only redirect if we're definitely not authenticated
-    if (!loading && !isSignedIn && !isAuthenticated && !user) {
-      console.log('OnboardingLayout: No auth detected, redirecting to login');
-      router.replace('/(public)/login');
+    if (!loading && !isSignedIn && !isAuthenticated && !user) {      
+      router.replace('/(public)/signin');
     }
     
     // TODO: Check if user has already completed onboarding

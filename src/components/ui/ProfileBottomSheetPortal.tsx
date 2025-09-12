@@ -56,8 +56,7 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
   }));
 
   const handleSheetChanges = useCallback(
-    (index: number) => {
-      console.log('ProfileBottomSheet index changed to:', index);
+    (index: number) => {      
       if (index === -1) {
         hideBottomSheet();
         onClose?.();
@@ -132,7 +131,7 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
           {/* Menu Sections */}
           <View className='pt-6'>
             {renderMenuSection('RECURSOS INTELIGENTES', intelligentResources)}
-            {renderMenuSection('CONFIGURAÇÕES', configurations)}
+            {/* {renderMenuSection('CONFIGURAÇÕES', configurations)} */}
           </View>
 
           {/* Footer */}

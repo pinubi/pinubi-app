@@ -39,14 +39,11 @@ class PlacesService {
     try {
       const { placeId, googleData } = request;
       
-      console.log('🏢 Creating or getting place from Google:', placeId);
-      
       // 1. Verificar se já existe no Firestore
       const placeRef = doc(firestore, 'places', placeId);
       const existingPlace = await getDoc(placeRef);
       
       if (existingPlace.exists()) {
-        console.log('✅ Place already exists in Firestore:', placeId);
         const placeData = existingPlace.data();
         
         // Converter para formato Place
@@ -58,9 +55,7 @@ class PlacesService {
       let placeDetails;
       if (googleData) {
         placeDetails = googleData;
-        console.log('📋 Using provided Google data for place:', placeId);
       } else {
-        console.log('🔍 Fetching place details from Google for:', placeId);
         const detailsResponse = await googlePlacesService.getPlaceDetails(placeId);        
 
         if (!detailsResponse || !detailsResponse.success) {
@@ -76,7 +71,6 @@ class PlacesService {
       
       // 3. Create place using Firebase function
       const processAndSaveGooglePlace = httpsCallable(functions, 'processAndSaveGooglePlace');
-      console.log("🚀 ~ PlacesService ~ createOrGetPlaceFromGoogle ~ processAndSaveGooglePlace:", processAndSaveGooglePlace)
 
       const result = await processAndSaveGooglePlace({
         googleData: placeDetails,
@@ -86,8 +80,6 @@ class PlacesService {
       const resultData = result.data as FirebaseFunctionResponse;
       
       if (resultData.success) {
-        console.log('✅ Successfully created place via Firebase function:', placeId);
-        
         // 4. Fetch the created place from Firestore to return it
         const createdPlaceDoc = await getDoc(placeRef);
         if (createdPlaceDoc.exists()) {
@@ -105,7 +97,6 @@ class PlacesService {
       }
       
     } catch (error: any) {
-      console.error('❌ Error creating place from Google:', error);
       return {
         success: false,
         place: null,
@@ -119,15 +110,12 @@ class PlacesService {
    */
   async createOrGetPlaceFromAutocomplete(autocompleteResult: AutocompleteResult): Promise<CreatePlaceFromGoogleResponse> {
     try {
-      console.log('🔍 Creating place from autocomplete result:', autocompleteResult.place_id);
-      
       // Usar o método principal com o placeId
       return await this.createOrGetPlaceFromGoogle({
         placeId: autocompleteResult.place_id
       });
       
     } catch (error: any) {
-      console.error('❌ Error creating place from autocomplete:', error);
       return {
         success: false,
         place: null,
@@ -149,8 +137,6 @@ class PlacesService {
   }): Promise<CreatePlaceFromGoogleResponse> {
     try {
       const { name, description, category, priceRange, cuisine, userId } = manualData;
-      
-      console.log('📝 Creating manual place:', name);
       
       // Gerar ID único para lugar manual
       const placeId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -183,8 +169,6 @@ class PlacesService {
       const placeRef = doc(firestore, 'places', placeId);
       await setDoc(placeRef, manualPlaceData);
       
-      console.log('✅ Successfully created manual place:', placeId);
-      
       // Retornar o lugar criado
       const createdPlace: Place = this.mapFirestorePlaceToPlace(placeId, {
         ...manualPlaceData,
@@ -194,7 +178,6 @@ class PlacesService {
       return { success: true, place: createdPlace };
       
     } catch (error: any) {
-      console.error('❌ Error creating manual place:', error);
       return {
         success: false,
         place: null,

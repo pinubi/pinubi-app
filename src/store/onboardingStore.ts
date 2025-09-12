@@ -33,7 +33,6 @@ interface OnboardingState {
 }
 
 interface OnboardingStore extends OnboardingState {
-  // Update onboarding data
   updatePreferences: (preferences: OnboardingData['preferences']) => void;
   updateLocation: (location: OnboardingData['location']) => void;
   updatePermissions: (permissions: OnboardingData['permissions']) => void;
@@ -47,7 +46,6 @@ interface OnboardingStore extends OnboardingState {
   // Complete onboarding
   completeOnboarding: () => void;
   
-  // Reset onboarding data
   resetOnboarding: () => void;
 }
 

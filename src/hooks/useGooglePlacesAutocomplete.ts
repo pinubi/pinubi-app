@@ -70,8 +70,7 @@ export const useGooglePlacesAutocomplete = (
     setLoading(true);
     setError(null);
 
-    try {
-      console.log('🔍 Iniciando busca autocomplete:', query);
+    try {      
       
       const response = await googlePlacesService.autocomplete({
         input: query.trim(),
@@ -80,13 +79,7 @@ export const useGooglePlacesAutocomplete = (
       });
 
       if (response.success) {
-        setResults(response.results);
-        console.log('✅ Autocomplete concluído:', {
-          query,
-          resultCount: response.results.length,
-          restaurants: response.results.filter(r => r.isRestaurant).length,
-          attractions: response.results.filter(r => r.isTouristAttraction).length,
-        });
+        setResults(response.results);        
       } else {
         setError(response.error || 'Erro na busca de autocomplete');
         setResults([]);
@@ -152,8 +145,7 @@ export const useGooglePlacesAutocomplete = (
       try {
         const available = await googlePlacesService.isAvailable();
         if (isMounted) {
-          setIsApiAvailable(available);
-          console.log('🔗 Google Places API disponível:', available);
+          setIsApiAvailable(available);          
         }
       } catch {
         if (isMounted) {

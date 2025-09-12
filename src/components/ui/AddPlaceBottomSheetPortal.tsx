@@ -124,8 +124,7 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
     }));
 
     const handleSheetChanges = useCallback(
-      (index: number) => {
-        console.log('AddPlaceBottomSheet index changed to:', index);
+      (index: number) => {        
         if (index === -1) {
           hideBottomSheet();
           onClose?.();

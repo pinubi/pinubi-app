@@ -24,8 +24,7 @@ export const useListPlaces = (listId: string) => {
 
   // Auto-fetch places when listId changes and user is authenticated
   useEffect(() => {
-    if (listId && isAuthenticated) {
-      console.log('🎣 useListPlaces: Auto-fetching places for list:', listId);
+    if (listId && isAuthenticated) {      
       fetchListPlaces(listId);
     }
 
@@ -74,17 +73,7 @@ export const useListPlaces = (listId: string) => {
   const places = getListPlaces(listId);
   const placesCount = getListPlacesCount(listId);
   const loading = isLoading(listId);
-  const error = getError(listId);
-
-  // Debug logging
-  console.log('🎣 [useListPlaces] Hook state for listId:', listId, {
-    places: places?.length || 0,
-    placesCount,
-    loading,
-    error,
-    hasPlaces: places?.length > 0,
-    isEmpty: places?.length === 0 && !loading
-  });
+  const error = getError(listId);  
 
   return {
     // State

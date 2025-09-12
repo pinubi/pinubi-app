@@ -1,40 +1,173 @@
 import { Ionicons } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Dimensions, Image, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import { Alert, Dimensions, Image, Modal, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming
+} from 'react-native-reanimated';
 
+import type { CheckInBottomSheetRef } from '@/components/checkin';
+import { CheckInBottomSheetPortal, CheckInHistory } from '@/components/checkin';
 import { googlePlacesService } from '@/services/googlePlacesService';
-import { Place } from '@/types/places';
-import { usePortal } from './PortalProvider';
+import { Place, Reviews, UserPlaceList } from '@/types/places';
 
-export type BottomSheetRef = BottomSheet;
+export type BottomSheetRef = {
+  present: () => void;
+  dismiss: () => void;
+  snapToIndex: (index: number) => void;
+  close: () => void;
+  collapse: () => void;
+  expand: () => void;
+  snapToPosition: () => void;
+  forceClose: () => void;
+};
 
 interface PlaceDetailsBottomSheetPortalProps {
   place: Place | null;
+  userLists: UserPlaceList[] | null;
+  reviews: Reviews[] | null;
   onClose?: () => void;
   onSavePlace?: (place: Place) => void;
   onReserveTable?: (place: Place) => void;
   onShowOnMap?: (place: Place) => void;
 }
 
-interface ReviewData {
-  id: string;
-  author: string;
-  rating: number;
-  comment: string;
-  timeAgo: string;
-  avatar?: string;
-}
+const { width, height } = Dimensions.get('window');
 
-const { width } = Dimensions.get('window');
+// Animated Floating Check-in Button Component
+const AnimatedFloatingCheckInButton = ({ onPress }: { onPress: () => void }) => {
+  const scale = useSharedValue(1);
+  const pulse = useSharedValue(1);
+  const shadowOpacity = useSharedValue(0.2);
+
+  useEffect(() => {
+    // Create a subtle pulsing animation that repeats
+    pulse.value = withRepeat(
+      withTiming(1.05, { duration: 2000 }),
+      -1, // infinite repeat
+      true // reverse
+    );
+
+    // Create shadow animation that repeats
+    shadowOpacity.value = withRepeat(
+      withTiming(0.4, { duration: 2000 }),
+      -1, // infinite repeat
+      true // reverse
+    );
+  }, [pulse, shadowOpacity]);
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value * pulse.value }],
+    };
+  });
+
+  const animatedShadowStyle = useAnimatedStyle(() => {
+    const elevation = interpolate(
+      shadowOpacity.value,
+      [0.2, 0.4],
+      [8, 16],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      shadowOpacity: shadowOpacity.value,
+      elevation,
+    };
+  });
+
+  return (
+    <View className='px-4 pb-6'>
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={0.9}
+          className='overflow-hidden rounded-2xl'
+        >
+          <Animated.View
+            className='bg-primary-500 px-8 py-5 flex-row items-center justify-center relative'
+            style={[
+              {
+                backgroundColor: '#9333EA',
+                shadowColor: '#9333EA',
+                shadowOffset: { width: 0, height: 8 },
+                shadowRadius: 20,
+                borderRadius: 16,
+              },
+              animatedShadowStyle,
+            ]}
+          >
+            {/* Animated background overlay for extra glow effect */}
+            <View 
+              className='absolute inset-0'
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: 16,
+              }}
+            />
+            
+            {/* Subtle highlight effect */}
+            <View 
+              className='absolute top-0 left-0 right-0'
+              style={{
+                height: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+              }}
+            />
+
+            <View className='flex-row items-center justify-center'>
+              <View 
+                className='w-8 h-8 rounded-full items-center justify-center mr-4'
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+              >
+                <Ionicons name='location' size={20} color='white' />
+              </View>
+              <View className='flex-col items-center'>
+                <Text className='text-white font-bold text-lg tracking-wide'>Fazer Check-in</Text>
+                <Text 
+                  className='text-sm font-medium mt-1'
+                  style={{ color: 'rgba(255, 255, 255, 0.8)' }}
+                >
+                  Compartilhe sua experiência
+                </Text>
+              </View>
+              <View className='ml-4' style={{ opacity: 0.6 }}>
+                <Ionicons name='chevron-forward' size={20} color='white' />
+              </View>
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+};
 
 // Separate component for photo scrolling to isolate state
 const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  
-  useEffect(() => {
-    console.log('🔵 PhotoScrollComponent - currentIndex changed to:', currentIndex);
-  }, [currentIndex]);
 
   const hasPhotos = photos.length > 0;
 
@@ -46,20 +179,17 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
-          decelerationRate="fast"
+          decelerationRate='fast'
           onScroll={(event) => {
             const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            console.log('🔵 PhotoScrollComponent onScroll - calculated index:', index, 'contentOffset:', event.nativeEvent.contentOffset.x);
-            
+
             if (index >= 0 && index < photos.length && index !== currentIndex) {
-              console.log('🔵 PhotoScrollComponent onScroll - UPDATING INDEX to:', index);
               setCurrentIndex(index);
             }
           }}
           onMomentumScrollEnd={(event) => {
             const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            console.log('🔵 PhotoScrollComponent onMomentumScrollEnd - calculated index:', index);
-            
+
             if (index >= 0 && index < photos.length) {
               setCurrentIndex(index);
             }
@@ -70,8 +200,7 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
               key={index}
               source={{
                 uri:
-                  googlePlacesService.getPhotoUri(photo) ||
-                  'https://via.placeholder.com/64x64/8B4513/FFFFFF?text=🍽️',
+                  googlePlacesService.getPhotoUri(photo) || 'https://via.placeholder.com/64x64/8B4513/FFFFFF?text=🍽️',
               }}
               className='w-full h-72'
               style={{ width }}
@@ -99,65 +228,33 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
 };
 
 const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBottomSheetPortalProps>(
-  ({ place, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
-    const { showPortal, hidePortal } = usePortal();
-    const bottomSheetRef = useRef<BottomSheetRef>(null);
-    const photoScrollViewRef = useRef<ScrollView>(null);
+  ({ place, userLists, reviews, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {    
+    const [isVisible, setIsVisible] = useState(false);    
+    const checkInRef = useRef<CheckInBottomSheetRef>(null);
     const [isSaved, setIsSaved] = useState(false);
+    const [showAllHours, setShowAllHours] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-
-    const snapPoints = useMemo(() => ['100%'], []);
-
+    
     // Automatically show bottom sheet when place is set
     useEffect(() => {
       if (place) {
-        console.log('🔵 Place changed, showing bottom sheet:', place.googleData.name);
-        console.log('🔵 Place data structure:', JSON.stringify(place, null, 2));
         // Reset photo index when place changes
         setCurrentPhotoIndex(0);
         showBottomSheet();
       } else {
-        console.log('🔵 Place cleared, hiding bottom sheet');
         hideBottomSheet();
       }
     }, [place]);
 
-    // Debug effect to track currentPhotoIndex changes
-    useEffect(() => {
-      console.log('🔵 currentPhotoIndex changed to:', currentPhotoIndex);
-    }, [currentPhotoIndex]);
-
-    // Mock reviews data - replace with real data
-    const mockReviews: ReviewData[] = [
-      {
-        id: '1',
-        author: 'Maria Silva',
-        rating: 5,
-        comment:
-          'Hambúrguer incrível! O molho especial é sensacional e a carne no ponto perfeito. Ambiente descontraído e atendimento nota 10.',
-        timeAgo: 'há 2 dias',
-      },
-      {
-        id: '2',
-        author: 'João Santos',
-        rating: 4,
-        comment:
-          'Muito bom! As batatas são crocantes e o hambúrguer bem saboroso. Só achei um pouco demorado para ficar pronto.',
-        timeAgo: 'há 1 semana',
-      },
-      {
-        id: '3',
-        author: 'Ana Costa',
-        rating: 5,
-        comment: 'Melhor hambúrguer da região! Ingredientes frescos e muito sabor. Recomendo o combo com batata doce.',
-        timeAgo: 'há 2 semanas',
-      },
-    ];
-
     // Expose methods to parent component
     React.useImperativeHandle(ref, () => ({
+      present: () => {
+        showBottomSheet();
+      },
+      dismiss: () => {
+        hideBottomSheet();
+      },
       snapToIndex: (index: number) => {
-        console.log('🔵 PlaceDetailsBottomSheetPortal snapToIndex called:', { index, hasPlace: !!place });
         if (index >= 0) {
           showBottomSheet();
         } else {
@@ -165,7 +262,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
         }
       },
       close: () => {
-        console.log('🔵 PlaceDetailsBottomSheetPortal close called');
         hideBottomSheet();
       },
       collapse: () => hideBottomSheet(),
@@ -174,96 +270,21 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       forceClose: () => hideBottomSheet(),
     }));
 
-    const handleSheetChanges = useCallback(
-      (index: number) => {
-        console.log('PlaceDetailsBottomSheet index changed to:', index);
-        if (index === -1) {
-          hideBottomSheet();
-          onClose?.();
-        }
-      },
-      [onClose]
-    );
-
     const showBottomSheet = () => {
-      console.log('🔵 showBottomSheet called:', { hasPlace: !!place, placeName: place?.googleData.name });
       if (!place || !place.googleData) {
-        console.log('🔴 Cannot show bottom sheet: no place data or googleData');
         return;
       }
-
-      const bottomSheetContent = (
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={0}
-          snapPoints={snapPoints}
-          enablePanDownToClose={true}
-          onChange={handleSheetChanges}
-          enableOverDrag={false}
-          keyboardBehavior='interactive'
-          keyboardBlurBehavior='restore'
-          style={{
-            zIndex: 1002,
-            elevation: 1002,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.25,
-            shadowRadius: 16,
-          }}
-          backgroundStyle={{
-            backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-          handleStyle={{
-            display: 'none',
-          }}
-          handleIndicatorStyle={{
-            display: 'none',
-          }}
-        >
-          {/* Header Image - Outside of BottomSheetScrollView to avoid conflicts */}
-          {renderHeaderImage()}
-          
-          <BottomSheetScrollView 
-            style={{ flex: 1, backgroundColor: 'white' }}
-            contentContainerStyle={{ paddingTop: 0 }}
-          >
-            {/* Place Info */}
-            {renderPlaceInfo()}
-
-            {/* Tags */}
-            {renderTags()}
-
-            {/* Info Cards */}
-            {renderInfoCards()}
-
-            {/* Rating Score */}
-            {renderRatingScore()}
-
-            {/* Pinubi Review */}
-            {/* {renderPinubiReview()} */}
-
-            {/* Community Reviews */}
-            {renderCommunityReviews()}
-
-            {/* Fixed Bottom Actions */}
-            {/* {renderBottomActions()} */}
-          </BottomSheetScrollView>
-        </BottomSheet>
-      );
-
-      showPortal(bottomSheetContent, 'place-details-bottom-sheet');
+      
+      setIsVisible(true);
     };
 
     const hideBottomSheet = () => {
-      hidePortal('place-details-bottom-sheet');
+      setIsVisible(false);
+      onClose?.();
     };
 
     const renderHeaderImage = () => {
       const photos = place?.googleData.photos || [];
-
-      console.log('🔵 renderHeaderImage - photos count:', photos.length);
 
       return (
         <View className='relative'>
@@ -306,215 +327,202 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       <View className='px-4 py-4'>
         <Text className='text-2xl font-bold text-gray-900 mb-2'>{place?.googleData.name || 'Local sem nome'}</Text>
 
-        <Text className='text-gray-600 text-base mb-3'>
-          $$ • {getPlaceType()} • {getLocationText()}
-        </Text>
-      </View>
-    );
-
-    const renderTags = () => (
-      <View className='px-4 pb-4'>
-        <View className='flex-row gap-2 space-x-2'>
-          <View className='bg-primary-500 px-3 py-1 rounded-full flex-row items-center'>
-            <Text className='text-white text-sm font-medium'>😋 Prato Especial</Text>
-          </View>
-          <View className='bg-amber-500 px-3 py-1 rounded-full flex-row items-center'>
-            <Text className='text-white text-sm font-medium'>👍 Ótimo Sabor</Text>
-          </View>
+        <View className='flex-row items-center mb-3'>
+          <Text className='text-gray-600 text-base'>{getPriceRangeDisplay()}</Text>
+          {getPriceRangeDisplay() && getMainTypeDisplay() && <Text className='text-gray-600 mx-2'>•</Text>}
+          <Text className='text-gray-600 text-base'>{getMainTypeDisplay()}</Text>
         </View>
-      </View>
-    );
 
-    const renderInfoCards = () => (
-      <View className='px-4 pb-6'>
-        <Text className='text-xl font-bold text-gray-900 mb-4'>Informações</Text>
-
-        <View className='flex-col gap-2 space-y-4'>
-          {/* Address */}
+        {place?.googleData.rating && (
           <View className='flex-row items-center'>
-            <View className='w-8 h-8 bg-gray-100 rounded-full items-center justify-center mr-3'>
-              <Ionicons name='location-outline' size={16} color='#6B7280' />
+            <View className='flex-row items-center bg-primary-50 px-3 py-1 rounded-full'>
+              <Ionicons name='star' size={16} color='#9333EA' />
+              <Text className='text-primary-600 font-semibold ml-1'>{place.googleData.rating.toFixed(1)}</Text>
+              {place.googleData.userRatingsTotal && (
+                <Text className='text-primary-600 ml-1'>({place.googleData.userRatingsTotal})</Text>
+              )}
             </View>
-            <View className='flex-1'>
-              <Text className='text-gray-900 font-medium'>{getAddressString(place?.googleData.address)}</Text>
-              <Text className='text-gray-600 text-sm'>0,5 km de distância</Text>
-            </View>
+            {place?.googleData.openingHours?.openNow !== undefined && (
+              <View
+                className={`ml-3 px-3 py-1 rounded-full ${
+                  place.googleData.openingHours.openNow ? 'bg-green-50' : 'bg-red-50'
+                }`}
+              >
+                <Text
+                  className={`text-sm font-medium ${
+                    place.googleData.openingHours.openNow ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {place.googleData.openingHours.openNow ? 'Aberto' : 'Fechado'}
+                </Text>
+              </View>
+            )}
           </View>
-
-          {/* Opening Hours */}
-          <View className='flex-row items-center'>
-            <View className='w-8 h-8 bg-gray-100 rounded-full items-center justify-center mr-3'>
-              <Ionicons name='time-outline' size={16} color='#6B7280' />
-            </View>
-            <View className='flex-1'>
-              <Text className='text-gray-900 font-medium'>{place?.googleData.openingHours?.openNow ?  'Aberto agora' : 'Fechado'}</Text>
-              <Text className='text-gray-600 text-sm'>{`${place?.googleData.openingHours?.weekdayText?.join(', \n') || 'Horários não disponíveis'}`}</Text>
-            </View>
-          </View>
-
-          {/* Group size */}
-          {/* <View className='flex-row items-center'>
-            <View className='w-8 h-8 bg-gray-100 rounded-full items-center justify-center mr-3'>
-              <Ionicons name='people-outline' size={16} color='#6B7280' />
-            </View>
-            <View className='flex-1'>
-              <Text className='text-gray-900 font-medium'>Grupos bem-vindos</Text>
-              <Text className='text-gray-600 text-sm'>Aceita reservas para até 8 pessoas</Text>
-            </View>
-          </View> */}
-
-          {/* Amenities */}
-          <View className='flex-row gap-2 items-center space-x-4 pt-2'>
-            <View className='flex-row items-center'>
-              <Ionicons name='wifi' size={16} color='#6B7280' />
-              <Text className='text-gray-600 text-sm ml-1'>Wi-Fi</Text>
-            </View>
-            <View className='flex-row items-center'>
-              <Ionicons name='card-outline' size={16} color='#6B7280' />
-              <Text className='text-gray-600 text-sm ml-1'>Cartão</Text>
-            </View>
-          </View>
-        </View>
+        )}
       </View>
     );
 
-    const renderRatingScore = () => (
-      <View className='px-4 pb-6'>
-        <Text className='text-xl font-bold text-gray-900 mb-4'>EXPERIÊNCIA GASTRONÔMICA</Text>
+    const renderPlaceTypes = () => {
+      const types = place?.googleData.types;
+      if (!types || types.length === 0) return null;
 
-        <View className='flex-row items-center'>
-          {/* Overall Score */}
-          <View className='bg-primary-500 rounded-2xl p-4 mr-4 items-center justify-center w-20 h-20'>
-            <Text className='text-white text-2xl font-bold'>{place?.googleData.rating?.toFixed(1) || '4.6'}</Text>
-            {/* <Text className='text-white text-xs'>EXCELENTE</Text> */}
-          </View>
+      const displayTypes = types
+        .filter((type) => !['establishment', 'point_of_interest'].includes(type))
+        .slice(0, 3)
+        .map((type) => getTypeDisplayName(type));
 
-          {/* Category Scores */}
-          <View className='flex-1 flex-row gap-2 space-y-3'>
-            <View className='flex-row items-center justify-between'>
-              <View className='flex-row items-center'>
-                <Text className='text-2xl mr-2'>🍔</Text>
-                <View>
-                  <Text className='text-gray-900 font-medium'>Comida</Text>
-                  <Text className='text-primary-500 text-sm font-medium'>Excelente</Text>
-                </View>
+      if (displayTypes.length === 0) return null;
+
+      return (
+        <View className='px-4 pb-4'>
+          <View className='flex-row flex-wrap gap-2'>
+            {displayTypes.map((type, index) => (
+              <View key={index} className='bg-gray-100 px-3 py-1 rounded-full'>
+                <Text className='text-gray-700 text-sm'>{type}</Text>
               </View>
-            </View>
-
-            <View className='flex-row items-center justify-between'>
-              <View className='flex-row items-center'>
-                <Text className='text-2xl mr-2'>✨</Text>
-                <View>
-                  <Text className='text-gray-900 font-medium'>Ambiente</Text>
-                  <Text className='text-primary-500 text-sm font-medium'>Muito Bom</Text>
-                </View>
-              </View>
-            </View>
-
-            <View className='flex-row items-center justify-between'>
-              <View className='flex-row items-center'>
-                <Text className='text-2xl mr-2'>🎯</Text>
-                <View>
-                  <Text className='text-gray-900 font-medium'>Serviço</Text>
-                  <Text className='text-primary-500 text-sm font-medium'>Excelente</Text>
-                </View>
-              </View>
-            </View>
+            ))}
           </View>
         </View>
+      );
+    };
 
-        <Text className='text-gray-600 text-sm mt-3'>
-          * Pinubi Score baseado em {place?.googleData.userRatingsTotal || 50} avaliações
-        </Text>
-      </View>
-    );
+    const renderContactInfo = () => {
+      const hasPhone = place?.googleData.phone;
+      const hasWebsite = place?.googleData.website;
+      const hasOpeningHours = place?.googleData.openingHours?.weekdayText;
 
-    const renderPinubiReview = () => (
-      <View className='px-4 pb-6'>
-        <Text className='text-xl font-bold text-gray-900 mb-4'>Pinubi Review</Text>
+      if (!hasPhone && !hasWebsite && !hasOpeningHours) return null;
 
-        <Text className='text-gray-700 text-base leading-relaxed mb-4'>
-          O {place?.googleData.name || 'local'} se destaca por seus hambúrgueres artesanais criativos, ambiente
-          descontraído e amigável, e excelente atendimento. No entanto, pode haver algumas limitações quando se trata de
-          acomodar grupos maiores durante horários de pico.
-        </Text>
+      const openingHoursToShow = showAllHours
+        ? place?.googleData.openingHours?.weekdayText || []
+        : place?.googleData.openingHours?.weekdayText?.slice(0, 3) || [];
 
-        <TouchableOpacity className='bg-gray-900 rounded-xl py-3 items-center'>
-          <Text className='text-white font-medium'>Ler review completa do Pinubi</Text>
-        </TouchableOpacity>
-      </View>
-    );
+      return (
+        <View className='px-4 pb-6'>
+          <Text className='text-xl font-bold text-gray-900 mb-4'>Contato e Horários</Text>
 
-    const renderCommunityReviews = () => (
-      <View className='px-4 pb-6'>
-        <View className='flex-row items-center justify-between mb-4'>
-          <Text className='text-xl font-bold text-gray-900'>Avaliações da comunidade</Text>
-          <TouchableOpacity
-            className='bg-primary-500 px-4 py-2 rounded-full flex-row items-center'
-            onPress={handleReview}
-          >
-            <Ionicons name='create-outline' size={16} color='white' />
-            <Text className='text-white font-medium ml-1'>Avaliar</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text className='text-gray-600 text-sm mb-4'>{String(mockReviews.length)} avaliações públicas</Text>
-
-        <View className='space-y-4'>
-          {mockReviews.map((review) => (
-            <View key={review.id} className='mb-2 border-b border-gray-200 pt-4 pb-4 last:border-b-0'>
-              <View className='flex-row items-center mb-2'>
-                <View className='w-10 h-10 bg-gray-200 rounded-full items-center justify-center mr-3'>
-                  <Ionicons name='person' size={20} color='#6B7280' />
+          <View className='flex-col gap-3 space-y-4'>
+            {hasPhone && (
+              <View className='flex-row items-center'>
+                <View className='w-10 h-10 bg-primary-50 rounded-full items-center justify-center mr-3'>
+                  <Ionicons name='call-outline' size={20} color='#9333EA' />
                 </View>
                 <View className='flex-1'>
-                  <Text className='text-gray-900 font-semibold'>{review.author}</Text>
-                  <Text className='text-gray-600 text-sm'>{review.timeAgo}</Text>
+                  <Text className='text-gray-900 font-medium'>Telefone</Text>
+                  <Text className='text-gray-600'>{place.googleData.phone}</Text>
+                </View>
+              </View>
+            )}
+
+            {hasWebsite && (
+              <View className='flex-row items-center'>
+                <View className='w-10 h-10 bg-primary-50 rounded-full items-center justify-center mr-3'>
+                  <Ionicons name='globe-outline' size={20} color='#9333EA' />
+                </View>
+                <View className='flex-1'>
+                  <Text className='text-gray-900 font-medium'>Website</Text>
+                  <Text className='text-gray-600 text-sm' numberOfLines={1}>
+                    {place.googleData.website}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {hasOpeningHours && (
+              <View className='flex-row items-start'>
+                <View className='w-10 h-10 bg-primary-50 rounded-full items-center justify-center mr-3'>
+                  <Ionicons name='time-outline' size={20} color='#9333EA' />
+                </View>
+                <View className='flex-1'>
+                  <Text className='text-gray-900 font-medium mb-2'>Horário de Funcionamento</Text>
+                  {openingHoursToShow.map((hours, index) => (
+                    <Text key={index} className='text-gray-600 text-sm mb-1'>
+                      {hours}
+                    </Text>
+                  ))}
+                  {(place.googleData.openingHours?.weekdayText?.length || 0) > 3 && (
+                    <TouchableOpacity onPress={handleRenderHours}>
+                      <Text className='text-primary-600 text-sm font-medium'>
+                        {showAllHours ? 'Ver menos horários' : 'Ver todos os horários'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      );
+    };
+
+    const renderLocationInfo = () => (
+      <View className='px-4 pb-6'>
+        <Text className='text-xl font-bold text-gray-900 mb-4'>Localização</Text>
+
+        <View className='flex-row items-start'>
+          <View className='w-10 h-10 bg-primary-50 rounded-full items-center justify-center mr-3'>
+            <Ionicons name='location-outline' size={20} color='#9333EA' />
+          </View>
+          <View className='flex-1'>
+            <Text className='text-gray-900 font-medium mb-1'>Endereço</Text>
+            <Text className='text-gray-600 leading-relaxed'>{getAddressString(place?.googleData.address)}</Text>
+            {place?.googleData.coordinates && (
+              <TouchableOpacity
+                className='mt-3 bg-primary-500 px-4 py-2 rounded-full self-start'
+                onPress={() => place && onShowOnMap?.(place)}
+              >
+                <Text className='text-white font-medium text-sm'>Ver no mapa</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+
+    const renderCheckInSection = () => (
+      <AnimatedFloatingCheckInButton onPress={handleCheckIn} />
+    );
+
+    const renderCheckInHistory = () => (
+      <View className='px-2 pb-6'>
+        <CheckInHistory 
+          placeId={place?.id || ''} 
+          onShowAll={handleShowAllCheckIns}
+          checkIns={reviews || []}
+        />
+      </View>
+    );
+
+    const renderRatingInfo = () => {
+      const rating = place?.googleData.rating;
+      const totalRatings = place?.googleData.userRatingsTotal;
+
+      if (!rating && !totalRatings) return null;
+
+      return (
+        <View className='px-4 pb-8'>
+          <Text className='text-xl font-bold text-gray-900 mb-4'>Avaliações</Text>
+
+          {rating && (
+            <View className='bg-gray-50 rounded-xl p-4'>
+              <View className='flex-row items-center justify-center mb-2'>
+                <Text className='text-4xl font-bold text-gray-900 mr-2'>{rating.toFixed(1)}</Text>
+                <View>
+                  <View className='flex-row'>
+                    {[...Array(5)].map((_, i) => (
+                      <Ionicons key={i} name='star' size={20} color={i < Math.floor(rating) ? '#FBBF24' : '#E5E7EB'} />
+                    ))}
+                  </View>
+                  {totalRatings && <Text className='text-gray-600 text-sm mt-1'>{totalRatings} avaliações</Text>}
                 </View>
               </View>
 
-              <View className='flex-row items-center mb-2'>
-                {[...Array(5)].map((_, i) => (
-                  <Ionicons key={i} name='star' size={16} color={i < review.rating ? '#FBBF24' : '#E5E7EB'} />
-                ))}
-              </View>
-
-              <Text className='text-gray-700 leading-relaxed'>{review.comment}</Text>
-
-              <View className='flex-row gap-2 items-center mt-3 space-x-4'>
-                <TouchableOpacity className='flex-row items-center'>
-                  <Ionicons name='thumbs-up-outline' size={16} color='#6B7280' />
-                  <Text className='text-gray-600 text-sm ml-1'>12</Text>
-                </TouchableOpacity>
-                <TouchableOpacity>
-                  <Text className='text-gray-600 text-sm'>Responder</Text>
-                </TouchableOpacity>
-              </View>
+              <Text className='text-center text-gray-600'>Avaliação baseada no Google Places</Text>
             </View>
-          ))}
+          )}
         </View>
-      </View>
-    );
-
-    const renderBottomActions = () => (
-      <View className='absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4'>
-        <View className='flex-row space-x-3'>
-          <TouchableOpacity
-            onPress={handleSave}
-            className='w-12 h-12 bg-gray-100 rounded-full items-center justify-center'
-          >
-            <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? '#DC2626' : '#6B7280'} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleReserveTable}
-            className='flex-1 bg-primary-500 rounded-full py-4 items-center justify-center'
-          >
-            <Text className='text-white font-semibold text-lg'>Reservar Mesa</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+      );
+    };
 
     // Action handlers
     const handleSave = () => {
@@ -536,7 +544,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
           title: placeName,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        // Handle share error silently
       }
     };
 
@@ -548,8 +556,29 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       }
     };
 
-    const handleReview = () => {
-      Alert.alert('Avaliar Local', 'Funcionalidade de avaliação em desenvolvimento.', [{ text: 'Ok' }]);
+    const handleRenderHours = () => {
+      setShowAllHours(prevState => !prevState);
+    };
+
+    // Check-in handlers
+    const handleCheckIn = () => {
+      if (place) {
+        checkInRef.current?.present();
+      }
+    };
+
+    const handleCheckInComplete = (completedPlace: Place) => {
+      console.log('Check-in completed for:', completedPlace.googleData.name);
+      // Could trigger a refresh of check-in history here if needed
+    };
+
+    const handleShowAllCheckIns = () => {
+      // TODO: Navigate to full check-in history screen
+      Alert.alert(
+        'Histórico de Check-ins',
+        'Tela de histórico completo em desenvolvimento.',
+        [{ text: 'OK' }]
+      );
     };
 
     // Helper function to safely extract address string
@@ -566,29 +595,134 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       return 'Endereço não disponível';
     };
 
-    // Helper function to safely get place type
-    const getPlaceType = (): string => {
-      const types = place?.googleData.types;      
-      if (!types || !Array.isArray(types) || types.length === 0) {
-        return 'Estabelecimento';
-      }
-      return types[0] || 'Estabelecimento';
+    // Helper function to get price range display
+    const getPriceRangeDisplay = (): string => {
+      const priceLevel = place?.googleData.priceLevel;
+      if (!priceLevel) return '';
+
+      const priceMap: Record<number, string> = {
+        1: '$',
+        2: '$$',
+        3: '$$$',
+        4: '$$$$',
+      };
+
+      return priceMap[priceLevel] || '';
     };
 
-    const getLocationText = () => {
-      const address = place?.googleData.address;
-      const addressString = getAddressString(address);
+    // Helper function to get main type display
+    const getMainTypeDisplay = (): string => {
+      const types = place?.googleData.types;
+      if (!types || types.length === 0) return '';
 
-      if (addressString === 'Endereço não disponível') {
-        return 'Localização não disponível';
+      const typeMap: Record<string, string> = {
+        restaurant: 'Restaurante',
+        food: 'Alimentação',
+        cafe: 'Café',
+        bar: 'Bar',
+        tourist_attraction: 'Atração Turística',
+        museum: 'Museu',
+        park: 'Parque',
+        shopping_mall: 'Shopping',
+        hospital: 'Hospital',
+        bank: 'Banco',
+        gas_station: 'Posto de Combustível',
+      };
+
+      for (const type of types) {
+        if (typeMap[type]) {
+          return typeMap[type];
+        }
       }
 
-      const parts = addressString.split(',');
-      return parts.length > 1 ? parts[parts.length - 1].trim() : addressString;
+      return 'Estabelecimento';
     };
 
-    // This component doesn't render anything itself - it uses the portal
-    return null;
+    // Helper function to get type display name
+    const getTypeDisplayName = (type: string): string => {
+      const typeMap: Record<string, string> = {
+        restaurant: 'Restaurante',
+        food: 'Alimentação',
+        cafe: 'Café',
+        bar: 'Bar',
+        bakery: 'Padaria',
+        fast_food: 'Fast Food',
+        meal_takeaway: 'Para Viagem',
+        tourist_attraction: 'Atração Turística',
+        museum: 'Museu',
+        park: 'Parque',
+        shopping_mall: 'Shopping',
+        store: 'Loja',
+        hospital: 'Hospital',
+        bank: 'Banco',
+        gas_station: 'Posto',
+        pharmacy: 'Farmácia',
+        lodging: 'Hospedagem',
+        gym: 'Academia',
+        beauty_salon: 'Salão de Beleza',
+        car_repair: 'Oficina',
+        dentist: 'Dentista',
+        doctor: 'Médico',
+        veterinary_care: 'Veterinário',
+      };
+
+      return typeMap[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    };
+
+    // This component now renders a full-screen Modal
+    return (
+      <Modal
+        visible={isVisible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={hideBottomSheet}
+      >
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF', height, width }}>
+          {place && (
+            <>
+              {/* Header Image */}
+              {renderHeaderImage()}
+
+              <ScrollView
+                style={{ flex: 1, backgroundColor: 'white' }}
+                contentContainerStyle={{ paddingTop: 0 }}
+              >
+                {/* Place Info */}
+                {renderPlaceInfo()}
+
+                {/* Place Types and Category */}
+                {renderPlaceTypes()}
+
+                {/* Contact and Opening Hours */}
+                {renderContactInfo()}
+
+                {/* Address and Location */}
+                {renderLocationInfo()}
+
+                {/* Check-in Section */}
+                {renderCheckInSection()}
+
+                {/* Check-in History */}
+                {renderCheckInHistory()}
+
+                {/* Rating and Reviews */}
+                {/* {renderRatingInfo()} */}
+
+                {/* Fixed Bottom Actions */}
+                {/* {renderBottomActions()} */}
+              </ScrollView>
+            </>
+          )}
+
+          {/* Check-in Modal */}
+          <CheckInBottomSheetPortal
+            ref={checkInRef}
+            place={place}
+            onCheckInComplete={handleCheckInComplete}
+          />
+        </View>
+      </Modal>
+    );
   }
 );
 

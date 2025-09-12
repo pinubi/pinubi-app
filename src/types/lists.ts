@@ -3,6 +3,7 @@ export interface List {
   title: string;
   emoji: string;
   description: string;
+  tags: string[];         // Tags associadas à lista
   ownerId: string;
   visibility: 'public' | 'private';
   

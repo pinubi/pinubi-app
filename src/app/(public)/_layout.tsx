@@ -7,7 +7,7 @@ const PublicLayout = () => {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="login" />
+      <Stack.Screen name="signin" />
     </Stack>
   );
 };

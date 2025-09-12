@@ -18,7 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const LoginScreen = () => {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmailAndPassword, loading, error, isSignedIn, isAuthenticated, clearError } =
+  const { signInWithGoogle, signInWithEmailAndPassword, loading, error, isSignedIn, isAuthenticated, clearError, resetPassword } =
     useAuth();
 
   // State for email/password login
@@ -30,16 +30,13 @@ const LoginScreen = () => {
   // Navigate to protected route when user is signed in (including mock)
   useEffect(() => {
     if (isSignedIn || isAuthenticated) {
-      console.log('Navegando para tela protegida - isSignedIn:', isSignedIn, 'isAuthenticated:', isAuthenticated);
       router.replace('/(protected)/(tabs)/social');
     }
   }, [isSignedIn, isAuthenticated, router]);
 
   const handleGoogleSignIn = async () => {
     try {
-      console.log('Iniciando login com Google...');
       await signInWithGoogle();
-      console.log('Login com Google concluído');
     } catch (err) {
       // Error is handled by the auth store and useEffect above
       console.error('Erro de login no componente:', err);
@@ -53,11 +50,23 @@ const LoginScreen = () => {
     }
 
     try {
-      console.log('Iniciando login com email...');
       await signInWithEmailAndPassword(email, password);
-      console.log('Login com email concluído');
     } catch (err) {
       console.error('Erro de login com email:', err);
+      // Error is handled by the auth store and useEffect above
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Email necessário', 'Por favor, insira seu email primeiro para receber as instruções de recuperação.');
+      return;
+    }
+
+    try {
+      await resetPassword(email);
+    } catch (err) {
+      console.error('Erro ao enviar email de recuperação:', err);
       // Error is handled by the auth store and useEffect above
     }
   };
@@ -114,7 +123,7 @@ const LoginScreen = () => {
           {/* Login Form Section */}
           <View className='w-full max-w-sm'>
             {isEmailLogin ? (
-              <View className='space-y-4'>
+              <View className='flex-col gap-2 space-y-4'>
                 {/* Email Input */}
                 <View className='space-y-2'>
                   <Text className='text-neutral-700 font-medium text-sm ml-1'>Email</Text>
@@ -166,11 +175,22 @@ const LoginScreen = () => {
                   </View>
                 </View>
 
+                {/* Forgot Password */}
+                <TouchableOpacity 
+                  onPress={handleForgotPassword}
+                  disabled={loading}
+                  className='self-end'
+                >
+                  <Text className='text-primary-600 font-medium text-sm'>
+                    Esqueceu sua senha?
+                  </Text>
+                </TouchableOpacity>
+
                 {/* Email Sign In Button */}
                 <TouchableOpacity
                   onPress={handleEmailSignIn}
                   disabled={loading}
-                  className='bg-primary-500 rounded-xl px-6 py-4 items-center justify-center shadow-lg mt-4 h-14'
+                  className='bg-primary-500 rounded-xl px-6 py-4 items-center justify-center shadow-lg mt-2 h-14'
                   style={{
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 2 },

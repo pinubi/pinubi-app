@@ -1,5 +1,7 @@
-import React, { createContext, ReactNode, useContext, useState } from 'react';
-import { View } from 'react-native';
+import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { Dimensions, View } from 'react-native';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface PortalContextType {
   showPortal: (content: ReactNode, id?: string) => void;
@@ -24,16 +26,16 @@ interface PortalItem {
 export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [portals, setPortals] = useState<PortalItem[]>([]);
 
-  const showPortal = (content: ReactNode, id: string = 'default') => {
+  const showPortal = useCallback((content: ReactNode, id: string = 'default') => {
     setPortals(prev => {
       const filtered = prev.filter(p => p.id !== id);
       return [...filtered, { id, content }];
     });
-  };
+  }, []);
 
-  const hidePortal = (id: string = 'default') => {
+  const hidePortal = useCallback((id: string = 'default') => {
     setPortals(prev => prev.filter(p => p.id !== id));
-  };
+  }, []);
 
   return (
     <PortalContext.Provider value={{ showPortal, hidePortal }}>
@@ -50,6 +52,8 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
               left: 0,
               right: 0,
               bottom: 0,
+              width: screenWidth,
+              height: screenHeight,
               zIndex: 1000,
               elevation: 1000,
             }}

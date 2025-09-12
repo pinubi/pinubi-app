@@ -38,16 +38,6 @@
           <string>exp+pinubi-app</string>
         </array>
       </dict>
-      <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLName</key>
-        <string>OAuthRedirect</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>com.awmoreira.pinubiapp</string>
-        </array>
-      </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>2</string>
@@ -64,16 +54,12 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
-    <key>NSCameraUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your camera</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Este aplicativo precisa de acesso à sua localização para mostrar lugares próximos a você.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Este aplicativo precisa de acesso à sua localização para mostrar lugares próximos a você.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to save photos.</string>
     <key>NSPhotoLibraryUsageDescription</key>

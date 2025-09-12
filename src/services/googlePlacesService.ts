@@ -38,8 +38,6 @@ class GooglePlacesService {
   private apiKey: string;
 
   constructor() {
-    console.log('🔑 Google Places API Key from env:', GOOGLE_PLACES_API_KEY ? `${GOOGLE_PLACES_API_KEY.substring(0, 10)}...` : 'NOT FOUND');
-    
     if (!GOOGLE_PLACES_API_KEY) {
       throw new Error('Google Places API key não configurada. Verifique EXPO_PUBLIC_GOOGLE_PLACES_API_KEY no .env');
     }
@@ -73,9 +71,6 @@ class GooglePlacesService {
 
       const url = `${GOOGLE_PLACES_BASE_URL}/autocomplete/json?${params.toString()}`;
 
-      console.log('🔍 Google Places Autocomplete request:', { input, language, country });
-      console.log('🌐 Request URL (without key):', url.replace(this.apiKey, '[API_KEY]'));
-
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -83,13 +78,6 @@ class GooglePlacesService {
       }
 
       const data: GooglePlacesAutocompleteResponse = await response.json();
-      console.log("🚀 ~ GooglePlacesService ~ autocomplete ~ data:", data)
-
-      console.log('📋 Google Places API Response:', { 
-        status: data.status, 
-        predictions_count: data.predictions?.length || 0,
-        error_message: data.error_message 
-      });
 
       if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
         throw new Error(data.error_message || `Google Places API error: ${data.status}`);
@@ -98,15 +86,8 @@ class GooglePlacesService {
       // Processar e classificar resultados
       const results = this.processAutocompleteResults(data.predictions);
 
-      console.log('✅ Google Places Autocomplete results:', {
-        total: results.length,
-        restaurants: results.filter(r => r.isRestaurant).length,
-        attractions: results.filter(r => r.isTouristAttraction).length
-      });
-
       return { success: true, results };
     } catch (error) {
-      console.error('❌ Google Places Autocomplete error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido na busca';
       return { success: false, results: [], error: errorMessage };
     }
@@ -129,9 +110,6 @@ class GooglePlacesService {
 
       const url = `${GOOGLE_PLACES_BASE_URL}/details/json?${params.toString()}`;
 
-      console.log('🔍 Google Places Details request:', { placeId, language });
-      console.log('🌐 Request URL (without key):', url.replace(this.apiKey, '[API_KEY]'));
-
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -139,11 +117,6 @@ class GooglePlacesService {
       }
 
       const data: GooglePlaceDetailsResponse = await response.json();
-
-      console.log('📋 Google Places Details API Response:', { 
-        status: data.status, 
-        error_message: data.error_message 
-      });
 
       if (data.status !== 'OK') {
         throw new Error(data.error_message || `Google Places API error: ${data.status}`);
@@ -155,7 +128,6 @@ class GooglePlacesService {
 
       return { success: false, error: 'Nenhum resultado encontrado' };
     } catch (error) {
-      console.error('❌ Google Places Details error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido na busca de detalhes';
       return { success: false, error: errorMessage };
     }
@@ -178,8 +150,6 @@ class GooglePlacesService {
 
       const url = `${GOOGLE_PLACES_BASE_URL}/details/json?${params.toString()}`;
 
-      console.log('🔍 Google Places Details for Collection request:', { placeId });
-
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -198,7 +168,6 @@ class GooglePlacesService {
 
       return null;
     } catch (error) {
-      console.error('❌ Erro ao buscar lugar para coleção:', error);
       return null;
     }
   }
@@ -234,7 +203,6 @@ class GooglePlacesService {
    */
   private transformPrediction(prediction: GooglePlacesPrediction): AutocompleteResult {
     const { structured_formatting, types } = prediction;
-    console.log("🚀 ~ GooglePlacesService ~ transformPrediction ~ structured_formatting, types:", structured_formatting, types)
     
     return {
       place_id: prediction.place_id,

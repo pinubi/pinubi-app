@@ -50,7 +50,7 @@ const PlaceCard: React.FC<{
             <View className="flex-row items-center">
               <Ionicons name="pricetag-outline" size={14} color="#6B7280" />
               <Text className="text-sm text-gray-600 ml-1" numberOfLines={1}>
-                {place.categories.join(', ')}
+                {place.categories.slice(0, 2).join(', ')}
               </Text>
             </View>
           )}

@@ -31,8 +31,7 @@ const PinubiBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
     const handleSheetChanges = useCallback(
-      (sheetIndex: number) => {
-        console.log('BottomSheet index changed to:', sheetIndex);
+      (sheetIndex: number) => {        
         if (sheetIndex === -1 && onClose) {
           onClose();
         }
