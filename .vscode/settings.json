@@ -4,5 +4,6 @@
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
   },
-  "WhiteSource Advise.Diff.BaseBranch": "master"
+  "WhiteSource Advise.Diff.BaseBranch": "master",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

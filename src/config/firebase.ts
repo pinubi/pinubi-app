@@ -27,7 +27,7 @@ const firebaseConfigProd = {
 };
 
 // Escolha o ambiente
-const isDevelopment = __DEV__; // Set to true only when testing with emulators
+const isDevelopment = false; // Set to true only when testing with emulators
 const firebaseConfig = isDevelopment ? firebaseConfigDev : firebaseConfigProd;
 
 console.log('🔧 Firebase Config - Environment:', isDevelopment ? 'DEVELOPMENT (Emulators)' : 'PRODUCTION');
