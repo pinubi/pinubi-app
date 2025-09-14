@@ -2,16 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -41,10 +32,10 @@ const InviteScreen = () => {
   // Handle invite code submission
   const handleSubmitInviteCode = async () => {
     if (!validateInviteCode()) return;
-    
+
     try {
-      setLoading(true);          
-      
+      setLoading(true);
+
       // Store invite code in onboarding store
       updateSignup({
         displayName: data?.signup?.displayName || '',
@@ -57,13 +48,13 @@ const InviteScreen = () => {
         priceRange: [1, 4], // Default price range
         dietaryRestrictions: [], // User will set restrictions later
       };
-      
+
       const defaultLocation = {
         country: 'Brasil',
         state: '', // User will set location later
         city: '', // User will set location later
       };
-      
+
       const defaultPermissions = {
         locationGranted: false, // User will grant permissions later
       };
@@ -75,16 +66,15 @@ const InviteScreen = () => {
         defaultLocation,
         defaultPermissions
       );
-      
-      if (result.success) {        
-        
+
+      if (result.success) {
         // Mark onboarding as completed in store
         completeOnboarding();
-        
+
         // Update user validation status to allow access to protected routes
         // The Cloud Function should have already updated the user in Firestore
-        updateUserValidation(true, true, true);                
-        
+        updateUserValidation(true, true, true);
+
         // Show success message and redirect
         Alert.alert(
           'Bem-vindo ao Pinubi! 🎉',
@@ -94,15 +84,14 @@ const InviteScreen = () => {
               text: 'Começar a explorar',
               onPress: () => {
                 router.replace('/(protected)/(tabs)/social');
-              }
-            }
+              },
+            },
           ]
         );
       } else {
         console.error('Onboarding completion failed:', result.error);
         Alert.alert('Erro', result.error || 'Erro ao validar código de convite. Tente novamente.');
       }
-      
     } catch (error) {
       console.error('Error during onboarding completion:', error);
       Alert.alert('Erro', 'Erro inesperado. Verifique sua conexão e tente novamente.');
@@ -118,21 +107,21 @@ const InviteScreen = () => {
       'Para conseguir um código de convite:\n\n1. Peça para um amigo que já usa o Pinubi\n2. Entre em contato conosco pelo Instagram @pinubi.app\n3. Participe de nossos eventos e promoções',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Abrir Instagram', 
-          onPress: () => Linking.openURL('https://instagram.com/pinubi.app') 
+        {
+          text: 'Abrir Instagram',
+          onPress: () => Linking.openURL('https://instagram.com/pinubi.app'),
         },
       ]
     );
   };
 
   const handleBack = () => {
-    // Since we're skipping onboarding steps, go back to signup
-    router.navigate('/(public)/signin');
+    // Go back to waitlist success screen
+    router.navigate('/(public)/onboarding/waitlist-success');
   };
 
   return (
-    <SafeAreaView className='flex-1'>      
+    <SafeAreaView className='flex-1'>
       {/* Background Gradient */}
       <LinearGradient
         colors={['#f4e6ff', '#ffffff', '#f4e6ff']}
@@ -147,7 +136,7 @@ const InviteScreen = () => {
           <TouchableOpacity onPress={handleBack} className='p-2'>
             <Ionicons name='arrow-back' size={24} color='#6b7280' />
           </TouchableOpacity>
-          
+
           {/* <View className='flex-1 mx-4'>
             <Text className='text-center text-sm text-neutral-600 mb-2'>
               Código de Convite
@@ -159,17 +148,13 @@ const InviteScreen = () => {
               />
             </View>
           </View> */}
-          
+
           <View className='w-10' />
         </View>
 
         <View className='items-center mb-6'>
-          <Text className='text-xl font-bold text-neutral-800 text-center'>
-            Código de Convite
-          </Text>
-          <Text className='text-sm text-neutral-600 mt-2 text-center'>
-            Insira seu código para ativar sua conta
-          </Text>
+          <Text className='text-xl font-bold text-neutral-800 text-center'>Código de Convite</Text>
+          <Text className='text-sm text-neutral-600 mt-2 text-center'>Insira seu código para ativar sua conta</Text>
         </View>
       </View>
 
@@ -180,9 +165,7 @@ const InviteScreen = () => {
             <View className='w-24 h-24 bg-primary-100 rounded-full items-center justify-center mb-4'>
               <Ionicons name='ticket' size={40} color='#b13bff' />
             </View>
-            <Text className='text-lg font-semibold text-neutral-800'>
-              Quase lá! 🎉
-            </Text>
+            <Text className='text-lg font-semibold text-neutral-800'>Quase lá! 🎉</Text>
             <Text className='text-sm text-neutral-600 text-center mt-2 leading-relaxed'>
               O Pinubi está em acesso antecipado. Insira seu código de 6 caracteres para ativar sua conta.
             </Text>
@@ -222,41 +205,6 @@ const InviteScreen = () => {
               Ainda não tem um código? Toque aqui para ver como conseguir seu convite para o Pinubi.
             </Text>
           </TouchableOpacity>
-
-          {/* Benefits */}
-          <View className='bg-gradient-to-r from-primary-50 to-purple-50 rounded-2xl p-6 border border-primary-200 mb-3'>
-            <View className='flex-row items-center mb-4'>
-              <Ionicons name='star' size={20} color='#b13bff' />
-              <Text className='text-primary-800 font-semibold ml-2'>Acesso Antecipado</Text>
-            </View>
-            
-            <Text className='text-primary-700 text-sm leading-relaxed mb-4'>
-              Com o código de convite, você terá acesso a:
-            </Text>
-            
-            <View className='space-y-2'>
-              <View className='flex-row items-center'>
-                <Ionicons name='restaurant' size={16} color='#b13bff' />
-                <Text className='text-primary-700 text-sm ml-2'>Descobrir lugares únicos</Text>
-              </View>
-              <View className='flex-row items-center'>
-                <Ionicons name='list' size={16} color='#b13bff' />
-                <Text className='text-primary-700 text-sm ml-2'>Criar listas personalizadas</Text>
-              </View>
-              <View className='flex-row items-center'>
-                <Ionicons name='people' size={16} color='#b13bff' />
-                <Text className='text-primary-700 text-sm ml-2'>Conectar com outros foodlovers</Text>
-              </View>
-              <View className='flex-row items-center'>
-                <Ionicons name='sparkles' size={16} color='#b13bff' />
-                <Text className='text-primary-700 text-sm ml-2'>Sugestões personalizadas da IA</Text>
-              </View>
-              <View className='flex-row items-center'>
-                <Ionicons name='gift' size={16} color='#b13bff' />
-                <Text className='text-primary-700 text-sm ml-2'>5 créditos grátis para IA</Text>
-              </View>
-            </View>
-          </View>
         </View>
       </ScrollView>
 
@@ -271,25 +219,21 @@ const InviteScreen = () => {
           >
             <Text className='text-neutral-700 font-semibold text-base'>Voltar</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={handleSubmitInviteCode}
             disabled={loading || inviteCode.length !== 6}
             className='flex-1 bg-primary-500 rounded-xl px-6 py-4 items-center justify-center'
-            style={{ opacity: (loading || inviteCode.length !== 6) ? 0.7 : 1 }}
+            style={{ opacity: loading || inviteCode.length !== 6 ? 0.7 : 1 }}
           >
             {loading ? (
               <View className='flex-row items-center'>
                 <ActivityIndicator size='small' color='white' />
-                <Text className='text-white font-semibold text-base ml-2'>
-                  Validando...
-                </Text>
+                <Text className='text-white font-semibold text-base ml-2'>Validando...</Text>
               </View>
             ) : (
               <View className='flex-row items-center'>
-                <Text className='text-white font-semibold text-base mr-2'>
-                  Ativar Conta
-                </Text>
+                <Text className='text-white font-semibold text-base mr-2'>Ativar Conta</Text>
                 <Ionicons name='checkmark-circle' size={16} color='white' />
               </View>
             )}

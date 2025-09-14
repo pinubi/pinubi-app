@@ -19,9 +19,20 @@ export const useAuth = () => {
     resetPassword,
   } = useAuthStore();
 
-  // Initialize auth state check on hook mount
+  // Initialize auth state check on hook mount with error handling
   useEffect(() => {
-    checkAuthState();
+    const initAuth = async () => {
+      try {
+        await checkAuthState();
+      } catch (error) {
+        console.warn('Auth state check failed:', error);
+        // Don't throw the error to avoid breaking the component
+      }
+    };
+    
+    // Add a small delay to ensure navigation context is ready
+    const timer = setTimeout(initAuth, 50);
+    return () => clearTimeout(timer);
   }, [checkAuthState]);
 
   return {

@@ -18,6 +18,8 @@ const LoginScreen = () => {
     error,
     isSignedIn,
     isAuthenticated,
+    canAccessProtected,
+    user,
     clearError,
     resetPassword,
   } = useAuth();
@@ -28,12 +30,18 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isEmailLogin, setIsEmailLogin] = useState(false);
 
-  // Navigate to protected route when user is signed in (including mock)
+  // Navigate based on user validation status
   useEffect(() => {
     if (isSignedIn || isAuthenticated) {
-      router.replace('/(protected)/(tabs)/social');
+      if (canAccessProtected) {
+        // User is validated and active - go to protected routes
+        router.replace('/(protected)/(tabs)/social');
+      } else {
+        // User exists but not validated/active - go to waitlist success
+        router.replace('/(public)/onboarding/waitlist-success');
+      }
     }
-  }, [isSignedIn, isAuthenticated, router]);
+  }, [isSignedIn, isAuthenticated, canAccessProtected, router]);
 
   const handleGoogleSignIn = async () => {
     try {

@@ -30,6 +30,10 @@ const firebaseConfigProd = {
 const isDevelopment = __DEV__; // Set to true only when testing with emulators
 const firebaseConfig = isDevelopment ? firebaseConfigDev : firebaseConfigProd;
 
+console.log('🔧 Firebase Config - Environment:', isDevelopment ? 'DEVELOPMENT (Emulators)' : 'PRODUCTION');
+console.log('🔧 Firebase Config - Project ID:', firebaseConfig.projectId);
+console.log('🔧 Firebase Config - Full config:', firebaseConfig);
+
 const app = initializeApp(firebaseConfig);
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
@@ -39,24 +43,34 @@ const firestore = getFirestore(app);
 
 // Conectar aos emuladores apenas em desenvolvimento
 if (isDevelopment) {
+  console.log('🔧 Connecting to Firebase Emulators...');
+  
   // Conectar ao Functions Emulator
-  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+  try {
+    connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+    console.log('🔧 Functions Emulator connected on 127.0.0.1:5001');
+  } catch (error) {
+    console.log('Functions emulator already connected or failed to connect:', error);
+  }
 
   // Conectar ao Firestore Emulator
   try {
     connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
-    console.log('🔧 Firestore Emulator conectado');
+    console.log('🔧 Firestore Emulator connected on 127.0.0.1:8080');
   } catch (error) {
-    console.log('Firestore emulator já conectado');
+    console.log('Firestore emulator already connected or failed to connect:', error);
   }
   
   import('firebase/auth').then(({ connectAuthEmulator }) => {
     try {
       connectAuthEmulator(auth, 'http://127.0.0.1:9099');      
+      console.log('🔧 Auth Emulator connected on 127.0.0.1:9099');
     } catch (error) {
-      console.log('Auth emulator já conectado');
+      console.log('Auth emulator already connected or failed to connect:', error);
     }
   });  
+} else {
+  console.log('🔧 Using Production Firebase services');
 }
 
 // For more information on how to access Firebase in your project,

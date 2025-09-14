@@ -1,14 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import {
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
-  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInWithCredential,
-  updateProfile,
+    GoogleAuthProvider,
+    createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
+    signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
+    signOut as firebaseSignOut,
+    onAuthStateChanged,
+    sendPasswordResetEmail,
+    signInWithCredential,
+    updateProfile,
 } from 'firebase/auth';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -379,38 +379,45 @@ export const useAuthStore = create<AuthStore>()(
         try {
           // Listen to Firebase auth state changes
           const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (firebaseUser) {
-              // Get user validation status from Firestore
-              const validationStatus = await getUserValidationStatus(firebaseUser.uid);
+            try {
+              if (firebaseUser) {
+                // Get user validation status from Firestore
+                const validationStatus = await getUserValidationStatus(firebaseUser.uid);
 
-              // Map Firebase user with Firestore validation data
-              const user = mapFirebaseUserWithValidation(firebaseUser, validationStatus);
+                // Map Firebase user with Firestore validation data
+                const user = mapFirebaseUserWithValidation(firebaseUser, validationStatus);
 
-              set({
-                user,
-                isAuthenticated: true,
-                loading: false,
-                error: null,
-              });
-            } else {
-              set({
-                user: null,
-                isAuthenticated: false,
-                loading: false,
-                error: null,
-              });
+                set({
+                  user,
+                  isAuthenticated: true,
+                  loading: false,
+                  error: null,
+                });
+              } else {
+                set({
+                  user: null,
+                  isAuthenticated: false,
+                  loading: false,
+                  error: null,
+                });
+              }
+            } catch (innerError: any) {
+              console.warn('Auth state change handling error:', innerError);
+              // Don't update state on error to avoid breaking the app
             }
           });
 
           // Return unsubscribe function for cleanup if needed
           return unsubscribe;
         } catch (error: any) {
+          console.warn('Auth state check setup error:', error);
           set({
             loading: false,
-            error: 'Failed to check authentication state',
+            error: null, // Don't show error to user for auth setup issues
             user: null,
             isAuthenticated: false,
           });
+          return () => {}; // Return empty unsubscribe function
         }
       },
 

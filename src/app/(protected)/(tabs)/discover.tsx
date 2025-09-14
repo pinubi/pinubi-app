@@ -13,9 +13,8 @@ import {
   PlacesList,
   ProfileBottomSheetPortal,
   SearchInput,
-  ViewModeDropdown,
   type BottomSheetRef,
-  type ViewMode,
+  type ViewMode
 } from '@/components/ui';
 import { type BottomSheetRef as PlaceDetailsBottomSheetRef } from '@/components/ui/PlaceDetailsBottomSheetPortal';
 import { useAuth } from '@/hooks/useAuth';
@@ -400,7 +399,7 @@ const DiscoverScreen = () => {
     <View className='flex-1 bg-gray-50'>
       {/* Header */}
       <Header
-        leftElement={<ViewModeDropdown selectedMode={viewMode} onModeChange={setViewMode} />}
+        // leftElement={<ViewModeDropdown selectedMode={viewMode} onModeChange={setViewMode} />}
         userPhoto={userPhoto}
         onRightPress={handleProfilePress}
       />

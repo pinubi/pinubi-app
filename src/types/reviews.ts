@@ -137,13 +137,126 @@ export interface GetUserReviewsRequest {
   userId: string;
   limit?: number;
   offset?: number;
+  reviewType?: ReviewType;
+  minRating?: number;
+  maxRating?: number;
+  startDate?: string;
+  endDate?: string;
+  groupBy?: 'place' | 'category';
+  includePlaceData?: boolean;
+  includeStats?: boolean;
+}
+
+export interface UserReviewsStatistics {
+  totalReviews: number;
+  averageRating: number;
+  placesVisited: number;
+  reviewCountByType: {
+    food?: number;
+    drink?: number;
+    dessert?: number;
+    service?: number;
+    ambiance?: number;
+    overall?: number;
+  };
+  averagesByType: {
+    food?: number;
+    drink?: number;
+    dessert?: number;
+    service?: number;
+    ambiance?: number;
+    overall?: number;
+  };
+  recentActivity: {
+    last30Days: number;
+    averageRatingLast30Days: number;
+  };
+  distribution: {
+    byRating: {
+      excellent: number; // >= 8
+      good: number; // 6-7.9
+      average: number; // 4-5.9
+      poor: number; // < 4
+    };
+  };
+}
+
+export interface ReviewPlace {
+  id: string;
+  name: string;
+  address?: string;
+  photos: string[];
+  mainPhoto?: string;
+  category?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+export interface ReviewWithPlace extends Review {
+  place?: ReviewPlace;
+}
+
+export interface GroupedByPlace {
+  placeId: string;
+  place?: ReviewPlace;
+  reviewsCount: number;
+  averageRating: number;
+  reviews: ReviewWithPlace[];
+  lastVisit: string;
+}
+
+export interface GroupedByCategory {
+  category: ReviewType;
+  reviewsCount: number;
+  averageRating: number;
+  reviews: ReviewWithPlace[];
+  lastReview: string;
 }
 
 export interface GetUserReviewsResponse {
   success: boolean;
-  reviews: Review[];
-  total: number;
-  hasMore: boolean;
+  data?: {
+    reviews: ReviewWithPlace[];
+    statistics?: UserReviewsStatistics;
+    groupedData?: GroupedByPlace[] | GroupedByCategory[];
+    pagination: {
+      total: number;
+      hasMore: boolean;
+      limit: number;
+      offset: number;
+    };
+    filters: {
+      applied: {
+        reviewType?: string;
+        minRating?: number;
+        maxRating?: number;
+        startDate?: string;
+        endDate?: string;
+      };
+    };
+  };
+  reviews?: ReviewWithPlace[]; // For backward compatibility
+  total?: number; // For backward compatibility
+  hasMore?: boolean; // For backward compatibility
+  statistics?: UserReviewsStatistics; // For backward compatibility
+  groupedData?: GroupedByPlace[] | GroupedByCategory[]; // For backward compatibility
+  pagination?: {
+    total: number;
+    hasMore: boolean;
+    limit: number;
+    offset: number;
+  }; // For backward compatibility
+  filters?: {
+    applied: {
+      reviewType?: string;
+      minRating?: number;
+      maxRating?: number;
+      startDate?: string;
+      endDate?: string;
+    };
+  }; // For backward compatibility
   error?: string;
 }
 

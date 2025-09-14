@@ -24,11 +24,7 @@ const ReturnDecisionSection: React.FC<ReturnDecisionSectionProps> = ({
   };
 
   return (
-    <View className='px-4 py-6'>
-      <Text className='text-2xl font-bold text-gray-900 mb-2'>Voltaria aqui?</Text>
-      <Text className='text-gray-600 mb-6'>
-        Sua opinião ajuda outros usuários a descobrirem lugares incríveis
-      </Text>
+    <View className='px-4 py-6'>      
       
       {/* Current Selection Display */}
       <View className='mb-6 p-4 bg-gray-50 rounded-xl'>

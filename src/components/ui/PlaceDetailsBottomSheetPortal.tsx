@@ -1,19 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Image, Modal, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSpring,
-  withTiming
-} from 'react-native-reanimated';
 
 import type { CheckInBottomSheetRef } from '@/components/checkin';
-import { CheckInBottomSheetPortal, CheckInHistory } from '@/components/checkin';
+import { CheckInBottomSheetPortal } from '@/components/checkin';
+import GoogleLogo from '@/components/GoogleLogo';
+import PinubiLogo from '@/components/PinubiLogo';
+import PlaceStatistics from '@/components/ui/PlaceStatistics';
 import { googlePlacesService } from '@/services/googlePlacesService';
+import { reviewService } from '@/services/reviewService';
 import { Place, Reviews, UserPlaceList } from '@/types/places';
 
 export type BottomSheetRef = {
@@ -39,128 +34,43 @@ interface PlaceDetailsBottomSheetPortalProps {
 
 const { width, height } = Dimensions.get('window');
 
-// Animated Floating Check-in Button Component
-const AnimatedFloatingCheckInButton = ({ onPress }: { onPress: () => void }) => {
-  const scale = useSharedValue(1);
-  const pulse = useSharedValue(1);
-  const shadowOpacity = useSharedValue(0.2);
-
-  useEffect(() => {
-    // Create a subtle pulsing animation that repeats
-    pulse.value = withRepeat(
-      withTiming(1.05, { duration: 2000 }),
-      -1, // infinite repeat
-      true // reverse
-    );
-
-    // Create shadow animation that repeats
-    shadowOpacity.value = withRepeat(
-      withTiming(0.4, { duration: 2000 }),
-      -1, // infinite repeat
-      true // reverse
-    );
-  }, [pulse, shadowOpacity]);
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, {
-      damping: 15,
-      stiffness: 300,
-    });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, {
-      damping: 15,
-      stiffness: 300,
-    });
-  };
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value * pulse.value }],
-    };
-  });
-
-  const animatedShadowStyle = useAnimatedStyle(() => {
-    const elevation = interpolate(
-      shadowOpacity.value,
-      [0.2, 0.4],
-      [8, 16],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      shadowOpacity: shadowOpacity.value,
-      elevation,
-    };
-  });
-
+// Floating Action Buttons Component
+const FloatingActionButtons = ({ onCheckIn, onAddToList }: { onCheckIn: () => void; onAddToList: () => void }) => {
   return (
-    <View className='px-4 pb-6'>
-      <Animated.View style={animatedStyle}>
-        <TouchableOpacity
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          activeOpacity={0.9}
-          className='overflow-hidden rounded-2xl'
-        >
-          <Animated.View
-            className='bg-primary-500 px-8 py-5 flex-row items-center justify-center relative'
-            style={[
-              {
-                backgroundColor: '#9333EA',
-                shadowColor: '#9333EA',
-                shadowOffset: { width: 0, height: 8 },
-                shadowRadius: 20,
-                borderRadius: 16,
-              },
-              animatedShadowStyle,
-            ]}
-          >
-            {/* Animated background overlay for extra glow effect */}
-            <View 
-              className='absolute inset-0'
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: 16,
-              }}
-            />
-            
-            {/* Subtle highlight effect */}
-            <View 
-              className='absolute top-0 left-0 right-0'
-              style={{
-                height: '50%',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
-              }}
-            />
+    <View className='absolute bottom-8 left-4 right-4 flex-row gap-3 z-10'>
+      {/* Check-in Floating Button */}
+      <TouchableOpacity
+        onPress={onCheckIn}
+        className='flex-1 bg-primary-500 rounded-full px-6 py-4 flex-row items-center justify-center shadow-lg'
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+        activeOpacity={0.8}
+      >
+        <Ionicons name='location' size={20} color='white' />
+        <Text className='text-white font-semibold ml-2'>Check-in</Text>
+      </TouchableOpacity>
 
-            <View className='flex-row items-center justify-center'>
-              <View 
-                className='w-8 h-8 rounded-full items-center justify-center mr-4'
-                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-              >
-                <Ionicons name='location' size={20} color='white' />
-              </View>
-              <View className='flex-col items-center'>
-                <Text className='text-white font-bold text-lg tracking-wide'>Fazer Check-in</Text>
-                <Text 
-                  className='text-sm font-medium mt-1'
-                  style={{ color: 'rgba(255, 255, 255, 0.8)' }}
-                >
-                  Compartilhe sua experiência
-                </Text>
-              </View>
-              <View className='ml-4' style={{ opacity: 0.6 }}>
-                <Ionicons name='chevron-forward' size={20} color='white' />
-              </View>
-            </View>
-          </Animated.View>
-        </TouchableOpacity>
-      </Animated.View>
+      {/* Add to List Floating Button */}
+      <TouchableOpacity
+        onPress={onAddToList}
+        className='flex-1 bg-white rounded-full px-6 py-4 flex-row items-center justify-center border border-gray-200 shadow-lg'
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+        activeOpacity={0.8}
+      >
+        <Ionicons name='bookmark-outline' size={20} color='#374151' />
+        <Text className='text-gray-700 font-semibold ml-2'>Adicionar</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -228,21 +138,28 @@ const PhotoScrollComponent = ({ photos }: { photos: any[] }) => {
 };
 
 const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBottomSheetPortalProps>(
-  ({ place, userLists, reviews, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {    
-    const [isVisible, setIsVisible] = useState(false);    
+  ({ place, userLists, reviews, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
+    const [isVisible, setIsVisible] = useState(false);
     const checkInRef = useRef<CheckInBottomSheetRef>(null);
     const [isSaved, setIsSaved] = useState(false);
     const [showAllHours, setShowAllHours] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    
+    const [pinubiRating, setPinubiRating] = useState<number | null>(null);
+    const [pinubiReviewsCount, setPinubiReviewsCount] = useState<number>(0);
+
     // Automatically show bottom sheet when place is set
     useEffect(() => {
       if (place) {
         // Reset photo index when place changes
         setCurrentPhotoIndex(0);
         showBottomSheet();
+        // Fetch Pinubi community rating
+        fetchPinubiRating();
       } else {
         hideBottomSheet();
+        // Reset Pinubi rating when no place
+        setPinubiRating(null);
+        setPinubiReviewsCount(0);
       }
     }, [place]);
 
@@ -274,13 +191,45 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       if (!place || !place.googleData) {
         return;
       }
-      
+
       setIsVisible(true);
     };
 
     const hideBottomSheet = () => {
       setIsVisible(false);
       onClose?.();
+    };
+
+    const fetchPinubiRating = async () => {
+      if (!place?.id) {
+        setPinubiRating(null);
+        setPinubiReviewsCount(0);
+        return;
+      }
+
+      try {
+        const response = await reviewService.getPlaceReviews({
+          placeId: place.id,
+          limit: 1, // We only need the statistics, not the actual reviews
+        });
+
+        if (response.success) {
+          const responseData = (response as any).data || response;
+          const statistics = responseData.statistics || {};
+
+          if (statistics.totalReviews > 0) {
+            setPinubiRating(statistics.overallAverage);
+            setPinubiReviewsCount(statistics.totalReviews);
+          } else {
+            setPinubiRating(null);
+            setPinubiReviewsCount(0);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Pinubi rating:', error);
+        setPinubiRating(null);
+        setPinubiReviewsCount(0);
+      }
     };
 
     const renderHeaderImage = () => {
@@ -306,17 +255,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
               >
                 <Ionicons name='share-outline' size={20} color='#1F2937' />
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleSave}
-                className='w-10 h-10 bg-white/90 rounded-full items-center justify-center'
-              >
-                <Ionicons
-                  name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                  size={20}
-                  color={isSaved ? '#9333EA' : '#1F2937'}
-                />
-              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -334,29 +272,51 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
         </View>
 
         {place?.googleData.rating && (
-          <View className='flex-row items-center'>
-            <View className='flex-row items-center bg-primary-50 px-3 py-1 rounded-full'>
-              <Ionicons name='star' size={16} color='#9333EA' />
-              <Text className='text-primary-600 font-semibold ml-1'>{place.googleData.rating.toFixed(1)}</Text>
-              {place.googleData.userRatingsTotal && (
-                <Text className='text-primary-600 ml-1'>({place.googleData.userRatingsTotal})</Text>
+          <View className='flex-col space-y-2'>
+            {/* Ratings Row */}
+            <View className='flex-row items-center flex-wrap gap-2'>
+              {/* Google Rating */}
+              <View className='flex-row items-center bg-primary-50 px-3 py-1 rounded-full'>
+                <Ionicons name='star' size={16} color='#9333EA' />
+                <Text className='text-primary-600 font-semibold ml-1'>{place.googleData.rating.toFixed(1)}</Text>
+                {place.googleData.userRatingsTotal && (
+                  <Text className='text-primary-600 ml-1'>({place.googleData.userRatingsTotal})</Text>
+                )}
+                <View className='ml-2'>
+                  <GoogleLogo size={16} />
+                </View>
+              </View>
+
+              {/* Pinubi Community Rating */}
+              {pinubiRating && pinubiReviewsCount > 0 && (
+                <View className='flex-row items-center bg-primary-50 px-3 py-1 rounded-full'>
+                  <Ionicons name='star' size={16} color='#9333EA' />
+                  <Text className='text-primary-600 font-semibold ml-1'>{pinubiRating.toFixed(1)}</Text>
+                  <Text className='text-primary-600 ml-1'>({pinubiReviewsCount})</Text>
+                  <Text className='text-primary-600 ml-1 text-xs font-medium'>Pinubi</Text>
+                  <View className='ml-2'>
+                    <PinubiLogo size={10} />
+                  </View>
+                </View>
               )}
-            </View>
-            {place?.googleData.openingHours?.openNow !== undefined && (
-              <View
-                className={`ml-3 px-3 py-1 rounded-full ${
-                  place.googleData.openingHours.openNow ? 'bg-green-50' : 'bg-red-50'
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    place.googleData.openingHours.openNow ? 'text-green-600' : 'text-red-600'
+
+              {/* Open/Closed Status */}
+              {place?.googleData.openingHours?.openNow !== undefined && (
+                <View
+                  className={`px-3 py-1 rounded-full ${
+                    place.googleData.openingHours.openNow ? 'bg-green-50' : 'bg-red-50'
                   }`}
                 >
-                  {place.googleData.openingHours.openNow ? 'Aberto' : 'Fechado'}
-                </Text>
-              </View>
-            )}
+                  <Text
+                    className={`text-sm font-medium ${
+                      place.googleData.openingHours.openNow ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {place.googleData.openingHours.openNow ? 'Aberto' : 'Fechado'}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         )}
       </View>
@@ -479,19 +439,16 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       </View>
     );
 
-    const renderCheckInSection = () => (
-      <AnimatedFloatingCheckInButton onPress={handleCheckIn} />
-    );
+    const renderFloatingButtons = () => <FloatingActionButtons onCheckIn={handleCheckIn} onAddToList={handleSave} />;
 
-    const renderCheckInHistory = () => (
-      <View className='px-2 pb-6'>
-        <CheckInHistory 
-          placeId={place?.id || ''} 
-          onShowAll={handleShowAllCheckIns}
-          checkIns={reviews || []}
-        />
-      </View>
-    );
+    const renderPlaceStatistics = () => {
+      console.log('🏗️ Rendering PlaceStatistics with place:', {
+        placeId: place?.id,
+        placeName: place?.googleData?.name,
+      });
+
+      return <PlaceStatistics placeId={place?.id || ''} onShowAllReviews={handleShowAllReviews} />;
+    };
 
     const renderRatingInfo = () => {
       const rating = place?.googleData.rating;
@@ -557,7 +514,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
     };
 
     const handleRenderHours = () => {
-      setShowAllHours(prevState => !prevState);
+      setShowAllHours((prevState) => !prevState);
     };
 
     // Check-in handlers
@@ -572,13 +529,14 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       // Could trigger a refresh of check-in history here if needed
     };
 
+    const handleShowAllReviews = () => {
+      // TODO: Navigate to full reviews screen
+      Alert.alert('Todas as Avaliações', 'Tela de avaliações completa em desenvolvimento.', [{ text: 'OK' }]);
+    };
+
     const handleShowAllCheckIns = () => {
       // TODO: Navigate to full check-in history screen
-      Alert.alert(
-        'Histórico de Check-ins',
-        'Tela de histórico completo em desenvolvimento.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Histórico de Check-ins', 'Tela de histórico completo em desenvolvimento.', [{ text: 'OK' }]);
     };
 
     // Helper function to safely extract address string
@@ -671,12 +629,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
     // This component now renders a full-screen Modal
     return (
-      <Modal
-        visible={isVisible}
-        animationType="slide"
-        presentationStyle="fullScreen"
-        onRequestClose={hideBottomSheet}
-      >
+      <Modal visible={isVisible} animationType='slide' presentationStyle='fullScreen' onRequestClose={hideBottomSheet}>
         <View style={{ flex: 1, backgroundColor: '#FFFFFF', height, width }}>
           {place && (
             <>
@@ -685,7 +638,8 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
               <ScrollView
                 style={{ flex: 1, backgroundColor: 'white' }}
-                contentContainerStyle={{ paddingTop: 0 }}
+                contentContainerStyle={{ paddingTop: 0, paddingBottom: 120 }}
+                showsVerticalScrollIndicator={false}
               >
                 {/* Place Info */}
                 {renderPlaceInfo()}
@@ -699,11 +653,8 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
                 {/* Address and Location */}
                 {renderLocationInfo()}
 
-                {/* Check-in Section */}
-                {renderCheckInSection()}
-
-                {/* Check-in History */}
-                {renderCheckInHistory()}
+                {/* Place Statistics and Reviews */}
+                {renderPlaceStatistics()}
 
                 {/* Rating and Reviews */}
                 {/* {renderRatingInfo()} */}
@@ -711,15 +662,14 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
                 {/* Fixed Bottom Actions */}
                 {/* {renderBottomActions()} */}
               </ScrollView>
+
+              {/* Floating Action Buttons */}
+              {renderFloatingButtons()}
             </>
           )}
 
           {/* Check-in Modal */}
-          <CheckInBottomSheetPortal
-            ref={checkInRef}
-            place={place}
-            onCheckInComplete={handleCheckInComplete}
-          />
+          <CheckInBottomSheetPortal ref={checkInRef} place={place} onCheckInComplete={handleCheckInComplete} />
         </View>
       </Modal>
     );

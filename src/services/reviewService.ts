@@ -124,21 +124,79 @@ class ReviewService {
    */
   async getUserReviews(params: GetUserReviewsRequest): Promise<GetUserReviewsResponse> {
     try {
+      console.log('� ReviewService.getUserReviews - Starting with params:', params);
+      console.log('🔧 Firebase functions object:', this.functions);
+      
       const getUserReviews = httpsCallable<GetUserReviewsRequest, GetUserReviewsResponse>(
         this.functions, 
         'getUserReviews'
       );
       
+      console.log('🔧 Cloud function callable created, making call...');
       const result = await getUserReviews(params);
+      
+      console.log('� Raw function result:', result);
+      console.log('� Function result data:', result.data);
+      
       return result.data;
     } catch (error: any) {
-      console.error('Error fetching user reviews:', error);
+      console.error('❌ Error fetching user reviews - Full error object:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error details:', error.details);
+      console.error('❌ Error stack:', error.stack);
+      
+      // Check for specific Firebase function errors
+      if (error.code === 'functions/not-found') {
+        console.error('❌ Function not found - getUserReviews function does not exist');
+      } else if (error.code === 'functions/unauthenticated') {
+        console.error('❌ Authentication error - user not authenticated');
+      } else if (error.code === 'functions/permission-denied') {
+        console.error('❌ Permission denied - user does not have permission');
+      } else if (error.code === 'functions/internal') {
+        console.error('❌ Internal function error - check function logs');
+      }
+      
       return {
         success: false,
+        data: {
+          reviews: [],
+          pagination: {
+            total: 0,
+            hasMore: false,
+            limit: params.limit || 20,
+            offset: params.offset || 0,
+          },
+          filters: {
+            applied: {
+              reviewType: params.reviewType,
+              minRating: params.minRating,
+              maxRating: params.maxRating,
+              startDate: params.startDate,
+              endDate: params.endDate,
+            },
+          },
+        },
+        // Backward compatibility
         reviews: [],
         total: 0,
         hasMore: false,
-        error: error.message || 'Erro desconhecido'
+        pagination: {
+          total: 0,
+          hasMore: false,
+          limit: params.limit || 20,
+          offset: params.offset || 0,
+        },
+        filters: {
+          applied: {
+            reviewType: params.reviewType,
+            minRating: params.minRating,
+            maxRating: params.maxRating,
+            startDate: params.startDate,
+            endDate: params.endDate,
+          },
+        },
+        error: `${error.code || 'unknown'}: ${error.message || 'Erro desconhecido'}`
       };
     }
   }
@@ -436,7 +494,8 @@ class ReviewService {
       }
 
       // Filter only visited reviews (check-ins)
-      const checkIns = response.reviews.filter(review => review.isVisited);
+      const reviews = response.data?.reviews || response.reviews || [];
+      const checkIns = reviews.filter(review => review.isVisited);
 
       return {
         success: true,

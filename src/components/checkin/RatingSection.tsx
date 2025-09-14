@@ -14,13 +14,13 @@ interface RatingSectionProps {
   onReviewTypeChange: (reviewType: ReviewType) => void;
 }
 
-const RatingSection: React.FC<RatingSectionProps> = ({ 
-  rating, 
-  onRatingChange, 
-  description, 
+const RatingSection: React.FC<RatingSectionProps> = ({
+  rating,
+  onRatingChange,
+  description,
   onDescriptionChange,
   reviewType,
-  onReviewTypeChange
+  onReviewTypeChange,
 }) => {
   // Debug log to check if component is rendering
   console.log('RatingSection rendering with rating:', rating, 'reviewType:', reviewType);
@@ -32,7 +32,7 @@ const RatingSection: React.FC<RatingSectionProps> = ({
       dessert: 'Sobremesa',
       service: 'Atendimento',
       ambiance: 'Ambiente',
-      overall: 'Geral'
+      overall: 'Geral',
     };
     return displayNames[type];
   };
@@ -44,7 +44,7 @@ const RatingSection: React.FC<RatingSectionProps> = ({
       dessert: '🍰',
       service: '👨‍💼',
       ambiance: '🏛️',
-      overall: '⭐'
+      overall: '⭐',
     };
     return emojis[type];
   };
@@ -84,9 +84,22 @@ const RatingSection: React.FC<RatingSectionProps> = ({
 
   return (
     <View className='px-4 py-6'>
-      <Text className='text-2xl font-bold text-gray-900 mb-2'>Sua Avaliação</Text>
-      <Text className='text-gray-600 mb-6'>Como foi sua experiência?</Text>
-
+      {/* Rating Guidelines */}
+      <View className='mb-6 p-4 bg-gray-50 rounded-xl'>
+        <View className='flex-row items-start'>
+          <Ionicons name='information-circle' size={20} color='#6B7280' />
+          <View className='ml-2 flex-1'>
+            <Text className='text-gray-700 font-medium text-sm mb-2'>Como avaliar?</Text>
+            <View className='space-y-1'>
+              <Text className='text-gray-600 text-sm'>• 9-10: Excepcional, superou expectativas</Text>
+              <Text className='text-gray-600 text-sm'>• 7-8: Muito bom, recomendo</Text>
+              <Text className='text-gray-600 text-sm'>• 5-6: OK, atende expectativas</Text>
+              <Text className='text-gray-600 text-sm'>• 0-4: Abaixo das expectativas</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      
       {/* Review Type Selector */}
       <View className='mb-6'>
         <Text className='text-gray-900 font-medium mb-3'>Tipo de avaliação</Text>
@@ -100,9 +113,7 @@ const RatingSection: React.FC<RatingSectionProps> = ({
               }`}
             >
               <Text className='mr-1'>{getReviewTypeEmoji(type)}</Text>
-              <Text className={`font-medium text-sm ${
-                reviewType === type ? 'text-primary-700' : 'text-gray-700'
-              }`}>
+              <Text className={`font-medium text-sm ${reviewType === type ? 'text-primary-700' : 'text-gray-700'}`}>
                 {getReviewTypeDisplayName(type)}
               </Text>
             </TouchableOpacity>
@@ -194,22 +205,6 @@ const RatingSection: React.FC<RatingSectionProps> = ({
           maxLength={500}
         />
         <Text className='text-gray-400 text-sm mt-2 text-right'>{description.length}/500 caracteres</Text>
-      </View>
-
-      {/* Rating Guidelines */}
-      <View className='mt-6 p-4 bg-gray-50 rounded-xl'>
-        <View className='flex-row items-start'>
-          <Ionicons name='information-circle' size={20} color='#6B7280' />
-          <View className='ml-2 flex-1'>
-            <Text className='text-gray-700 font-medium text-sm mb-2'>Como avaliar?</Text>
-            <View className='space-y-1'>
-              <Text className='text-gray-600 text-sm'>• 9-10: Excepcional, superou expectativas</Text>
-              <Text className='text-gray-600 text-sm'>• 7-8: Muito bom, recomendo</Text>
-              <Text className='text-gray-600 text-sm'>• 5-6: OK, atende expectativas</Text>
-              <Text className='text-gray-600 text-sm'>• 0-4: Abaixo das expectativas</Text>
-            </View>
-          </View>
-        </View>
       </View>
     </View>
   );

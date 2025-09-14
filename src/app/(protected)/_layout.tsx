@@ -57,6 +57,7 @@ const ProtectedLayout = () => {
       <Stack.Screen name="viewList" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="followers" />
+      <Stack.Screen name="userReviews" />
     </Stack>
   );
 };

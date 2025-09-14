@@ -178,12 +178,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   };
 
   return (
-    <View className='px-4 py-6'>
-      <Text className='text-2xl font-bold text-gray-900 mb-2'>Adicionar Fotos</Text>
-      <Text className='text-gray-600 mb-6'>
-        Compartilhe como foi sua experiência (opcional)
-      </Text>
-      
+    <View className='px-4 py-6'>      
       {/* Photo Grid */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className='mb-4'>
         {/* Existing Photos */}
