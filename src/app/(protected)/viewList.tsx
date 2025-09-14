@@ -1,17 +1,28 @@
 import Header from '@/components/Header';
 import { AddPlaceBottomSheetPortal, type BottomSheetRef } from '@/components/ui';
-import PlaceDetailsBottomSheetPortal from '@/components/ui/PlaceDetailsBottomSheetPortal';
+import CreateEditListBottomSheetPortal from '@/components/ui/CreateEditListBottomSheetPortal';
+import PlaceDetailsBottomSheetPortal, { type BottomSheetRef as PlaceDetailsBottomSheetRef } from '@/components/ui/PlaceDetailsBottomSheetPortal';
 import { useListPlaces } from '@/hooks/useListPlaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Platform, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { useLists } from '@/hooks/useLists';
 import { googlePlacesService } from '@/services/googlePlacesService';
-import type { AddPlaceToListRequest, ListPlaceWithDetails } from '@/types/lists';
-import type { Place } from '@/types/places';
+import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@/types/lists';
+import type { Place, PlaceDetailsResponse } from '@/types/places';
 
 interface PlaceCardProps {
   place: ListPlaceWithDetails;
@@ -208,26 +219,41 @@ const ListPlacesScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const addPlaceBottomSheetRef = useRef<BottomSheetRef>(null);
-  const placeDetailsBottomSheetRef = useRef<BottomSheetRef>(null);
+  const placeDetailsBottomSheetRef = useRef<PlaceDetailsBottomSheetRef>(null);
+  const editListBottomSheetRef = useRef<BottomSheetRef>(null);
 
   // State for selected place in details view
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  
+  const [selectedPlace, setSelectedPlace] = useState<PlaceDetailsResponse | null>(null);
+
   // State for dropdown menu
   const [showMoreOptionsDropdown, setShowMoreOptionsDropdown] = useState(false);
 
+  // State for current list data (can be updated)
+  const [currentListData, setCurrentListData] = useState<{
+    title: string;
+    emoji: string;
+    description: string;
+    visibility: 'public' | 'private';
+    tags: string[];
+  }>({
+    title: (params.title as string) || 'Lista',
+    emoji: (params.emoji as string) || '🍽️',
+    description: (params.description as string) || '',
+    visibility: (params.isPublic === 'true' ? 'public' : 'private'),
+    tags: [],
+  });
+
   // Get list data from params
   const listId = params.listId as string;
-  const listTitle = (params.title as string) || 'Lista';
-  const listEmoji = (params.emoji as string) || '🍽️';
-  const listDescription = (params.description as string) || '';
+  const canDelete = params.canDelete === 'true';
+  const canRename = params.canRename === 'true';
   const isPublic = params.isPublic === 'true';
 
   // Use the list places hook
   const { places, placesCount, loading, error, addPlace, removePlace, refresh, clearError, hasPlaces, isEmpty } =
     useListPlaces(listId);
 
-  const { refresh: refreshLists, updateList, deleteList } = useLists();
+  const { refresh: refreshLists, updateList, deleteList, getListById } = useLists();
 
   // State for sorting
   const [sortBy, setSortBy] = useState<'recent' | 'rating' | 'distance'>('recent');
@@ -242,12 +268,12 @@ const ListPlacesScreen = () => {
   const handleShare = async () => {
     if (!listId) return;
 
-    try {      
-      const urlPublic = 'https://www.pinubi.com/'
+    try {
+      const urlPublic = 'https://www.pinubi.com/';
 
       await Share.share({
         message: `Confira a minha lista no Pinubi: ${urlPublic}`,
-        title: listTitle,
+        title: currentListData.title,
       });
     } catch (error) {
       console.error('Error sharing:', error);
@@ -260,17 +286,40 @@ const ListPlacesScreen = () => {
 
   const handleEditList = () => {
     setShowMoreOptionsDropdown(false);
-    // TODO: Implement edit list functionality
-    // This would involve opening a modal or navigating to an edit screen
-    console.log('Edit list:', listId);
-    Alert.alert('Editar Lista', 'Funcionalidade de edição será implementada em breve.');
+    editListBottomSheetRef.current?.snapToIndex(0);
+  };
+
+  const handleSaveEditList = async (listData: ListFormData) => {
+    try {
+      const success = await updateList(listId, listData);
+      if (success) {
+        // Update local state immediately for UI responsiveness
+        setCurrentListData({
+          title: listData.title,
+          emoji: listData.emoji,
+          description: listData.description,
+          visibility: listData.visibility,
+          tags: listData.tags || [],
+        });
+        
+        Alert.alert('Sucesso!', 'Lista atualizada com sucesso!');
+        
+        // Refresh lists to ensure consistency
+        await refreshLists();
+      } else {
+        Alert.alert('Erro', 'Não foi possível atualizar a lista. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Error updating list:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar a lista. Tente novamente.');
+    }
   };
 
   const handleDeleteList = () => {
     setShowMoreOptionsDropdown(false);
     Alert.alert(
       'Apagar Lista',
-      `Tem certeza que deseja apagar a lista "${listTitle}"? Esta ação não pode ser desfeita.`,
+      `Tem certeza que deseja apagar a lista "${currentListData.title}"? Esta ação não pode ser desfeita.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -324,13 +373,26 @@ const ListPlacesScreen = () => {
       createdAt: place.addedAt,
     };
 
-    setSelectedPlace(convertedPlace);
+    // Create a PlaceDetailsResponse structure from the Place
+    const placeDetailsResponse: PlaceDetailsResponse = {
+      success: true,
+      place: convertedPlace,
+      fromCache: false,
+      _meta: {
+        fromCache: false,
+        language: 'pt-BR'
+      },
+      userLists: undefined,
+      userInteraction: null,
+      reviews: null
+    };
+
+    setSelectedPlace(placeDetailsResponse);
     placeDetailsBottomSheetRef.current?.snapToIndex(0);
   };
 
   const handlePlaceDetailsClose = () => {
     setSelectedPlace(null);
-    placeDetailsBottomSheetRef.current?.close();
   };
 
   const handleDeletePlace = async (place: ListPlaceWithDetails) => {
@@ -358,8 +420,6 @@ const ListPlacesScreen = () => {
 
   const handleSavePlace = async (placeData: AddPlaceToListRequest) => {
     try {
-      console.log('🏗️ Adding place to list:', placeData);
-
       // Use the addPlace function from useListPlaces hook
       // This handles the complete flow:
       // 1. Check if place exists in Firestore
@@ -411,43 +471,56 @@ const ListPlacesScreen = () => {
     const name = place.place?.name?.toLowerCase() || '';
     const types = place.place?.types?.join(' ').toLowerCase() || '';
     const searchText = `${name} ${types}`;
-    
+
     // Pizza places
     if (searchText.includes('pizza')) return '🍕';
-    
+
     // Coffee/Cafes
     if (searchText.includes('café') || searchText.includes('coffee')) return '☕';
-    
+
     // Sushi/Japanese
     if (searchText.includes('sushi') || searchText.includes('japonês') || searchText.includes('japanese')) return '🍣';
-    
+
     // Italian
     if (searchText.includes('italiano') || searchText.includes('italian')) return '🍝';
-    
+
     // Bakery/Padaria/Dessert
-    if (searchText.includes('padaria') || searchText.includes('bakery') || searchText.includes('bistrô') || searchText.includes('armazém')) return '🥐';
-    
+    if (
+      searchText.includes('padaria') ||
+      searchText.includes('bakery') ||
+      searchText.includes('bistrô') ||
+      searchText.includes('armazém')
+    )
+      return '🥐';
+
     // Fast food/Burger
-    if (searchText.includes('lanche') || searchText.includes('burger') || searchText.includes('hambúrguer') || searchText.includes('fast food')) return '🍔';
-    
+    if (
+      searchText.includes('lanche') ||
+      searchText.includes('burger') ||
+      searchText.includes('hambúrguer') ||
+      searchText.includes('fast food')
+    )
+      return '🍔';
+
     // Ice cream
     if (searchText.includes('sorvete') || searchText.includes('ice cream')) return '🍦';
-    
+
     // Chinese
     if (searchText.includes('chinês') || searchText.includes('chinese')) return '🥡';
-    
+
     // Barbecue/Churrasco
-    if (searchText.includes('churrasco') || searchText.includes('barbecue') || searchText.includes('carne')) return '🥩';
-    
+    if (searchText.includes('churrasco') || searchText.includes('barbecue') || searchText.includes('carne'))
+      return '🥩';
+
     // Mexican
     if (searchText.includes('mexicano') || searchText.includes('mexican')) return '🌮';
-    
+
     // Lebanese/Middle Eastern
     if (searchText.includes('libanês') || searchText.includes('árabe') || searchText.includes('lebanese')) return '🥙';
-    
+
     // Bar/Drinks
     if (searchText.includes('bar')) return '🍺';
-    
+
     // Default food emoji for restaurants
     return '🍽️';
   };
@@ -462,31 +535,32 @@ const ListPlacesScreen = () => {
     if (!places || places.length === 0) {
       // Default to São Paulo if no places
       return {
-        latitude: -23.550520,
+        latitude: -23.55052,
         longitude: -46.633309,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       };
     }
 
-    const validPlaces = places.filter(place => 
-      place.place?.coordinates?.lat && 
-      place.place?.coordinates?.lng &&
-      place.place.coordinates.lat !== 0 &&
-      place.place.coordinates.lng !== 0
+    const validPlaces = places.filter(
+      (place) =>
+        place.place?.coordinates?.lat &&
+        place.place?.coordinates?.lng &&
+        place.place.coordinates.lat !== 0 &&
+        place.place.coordinates.lng !== 0
     );
 
     if (validPlaces.length === 0) {
       return {
-        latitude: -23.550520,
+        latitude: -23.55052,
         longitude: -46.633309,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       };
     }
 
-    const lats = validPlaces.map(place => place.place!.coordinates!.lat);
-    const lngs = validPlaces.map(place => place.place!.coordinates!.lng);
+    const lats = validPlaces.map((place) => place.place!.coordinates!.lat);
+    const lngs = validPlaces.map((place) => place.place!.coordinates!.lng);
 
     const minLat = Math.min(...lats);
     const maxLat = Math.max(...lats);
@@ -510,18 +584,6 @@ const ListPlacesScreen = () => {
 
   const sortedPlaces = getSortedPlaces();
 
-  // Debug logging
-  console.log('🔍 [ViewList] Component state:', {
-    listId,
-    places: places?.length || 0,
-    placesCount,
-    loading,
-    error,
-    hasPlaces,
-    isEmpty,
-    sortedPlaces: sortedPlaces?.length || 0,
-  });
-
   // Clear error when component unmounts or user dismisses
   React.useEffect(() => {
     if (error) {
@@ -532,6 +594,30 @@ const ListPlacesScreen = () => {
       return () => clearTimeout(timer);
     }
   }, [error, clearError]);
+
+  // Fetch complete list data to get tags and other details
+  React.useEffect(() => {
+    const fetchListData = async () => {
+      try {
+        const fullListData = getListById(listId);
+        if (fullListData) {
+          setCurrentListData({
+            title: fullListData.title,
+            emoji: fullListData.emoji,
+            description: fullListData.description,
+            visibility: fullListData.visibility,
+            tags: fullListData.tags || [],
+          });
+        }
+      } catch (error) {
+        console.warn('Error fetching complete list data:', error);
+      }
+    };
+
+    if (listId) {
+      fetchListData();
+    }
+  }, [listId, getListById]);
 
   // Close dropdown when touching outside
   React.useEffect(() => {
@@ -552,7 +638,7 @@ const ListPlacesScreen = () => {
     if (!showMoreOptionsDropdown) return null;
 
     return (
-      <View 
+      <View
         style={{
           position: 'absolute',
           top: 60, // Position below the header
@@ -573,18 +659,22 @@ const ListPlacesScreen = () => {
       >
         <TouchableOpacity
           onPress={handleEditList}
-          className="flex-row items-center px-4 py-3 border-b border-gray-100"
+          className='flex-row items-center px-4 py-3 border-b border-gray-100'
+          disabled={!canRename}
+          style={{ opacity: !canRename ? 0.5 : 1 }}
         >
-          <Ionicons name="pencil-outline" size={18} color="#374151" />
-          <Text className="text-gray-800 font-medium ml-3">Editar</Text>
+          <Ionicons name='pencil-outline' size={18} color='#374151' />
+          <Text className='text-gray-800 font-medium ml-3'>Editar</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           onPress={handleDeleteList}
-          className="flex-row items-center px-4 py-3"
+          className='flex-row items-center px-4 py-3'
+          disabled={!canDelete}
+          style={{ opacity: !canRename ? 0.5 : 1 }}
         >
-          <Ionicons name="trash-outline" size={18} color="#EF4444" />
-          <Text className="text-red-500 font-medium ml-3">Apagar</Text>
+          <Ionicons name='trash-outline' size={18} color='#EF4444' />
+          <Text className='text-red-500 font-medium ml-3'>Apagar</Text>
         </TouchableOpacity>
       </View>
     );
@@ -610,13 +700,13 @@ const ListPlacesScreen = () => {
 
       {/* Header */}
       <Header
+        className='bg-white border-b border-gray-100'
         title=''
         onLeftPress={handleBack}
-        onRightPress={handleShare}
         rightIcon='share-outline'
         secondaryRightIcon='ellipsis-horizontal'
+        onRightPress={handleShare}
         onSecondaryRightPress={handleMoreOptions}
-        className='bg-white border-b border-gray-100'
       />
 
       {/* More Options Dropdown */}
@@ -628,9 +718,9 @@ const ListPlacesScreen = () => {
           {/* List Header */}
           <View className='bg-white px-4 py-6 border-b border-gray-100'>
             <View className='items-center'>
-              <Text className='text-4xl mb-2'>{listEmoji}</Text>
+              <Text className='text-4xl mb-2'>{currentListData.emoji}</Text>
               <Text className='text-2xl font-bold text-gray-900 mb-2'>
-                {listTitle} ({placesCount})
+                {currentListData.title} ({placesCount})
               </Text>
 
               {/* List Meta */}
@@ -644,8 +734,8 @@ const ListPlacesScreen = () => {
               </View>
 
               {/* Description */}
-              {listDescription && (
-                <Text className='text-center text-gray-600 mb-4 leading-relaxed'>{listDescription}</Text>
+              {currentListData.description && (
+                <Text className='text-center text-gray-600 mb-4 leading-relaxed'>{currentListData.description}</Text>
               )}
 
               {/* Add Place Button */}
@@ -670,39 +760,37 @@ const ListPlacesScreen = () => {
                     viewMode === 'list' ? 'bg-white shadow-sm' : ''
                   }`}
                 >
-                  <Ionicons 
-                    name='list-outline' 
-                    size={18} 
-                    color={viewMode === 'list' ? '#b13bff' : '#6B7280'} 
-                  />
-                  <Text className={`ml-2 text-sm font-medium ${
-                    viewMode === 'list' ? 'text-primary-600' : 'text-gray-600'
-                  }`}>
+                  <Ionicons name='list-outline' size={18} color={viewMode === 'list' ? '#b13bff' : '#6B7280'} />
+                  <Text
+                    className={`ml-2 text-sm font-medium ${viewMode === 'list' ? 'text-primary-600' : 'text-gray-600'}`}
+                  >
                     Lista
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   onPress={() => setViewMode('map')}
                   className={`px-4 py-2 rounded-md flex-row items-center ${
                     (viewMode as 'list' | 'map') === 'map' ? 'bg-white shadow-sm' : ''
                   }`}
                 >
-                  <Ionicons 
-                    name='map-outline' 
-                    size={18} 
-                    color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'} 
+                  <Ionicons
+                    name='map-outline'
+                    size={18}
+                    color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'}
                   />
-                  <Text className={`ml-2 text-sm font-medium ${
-                    (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
-                  }`}>
+                  <Text
+                    className={`ml-2 text-sm font-medium ${
+                      (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
+                    }`}
+                  >
                     Mapa
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {/* Sort Options - only show in list view */}
-              {viewMode === 'list' && (
+              {/* {viewMode === 'list' && (
                 <TouchableOpacity
                   onPress={() => {
                     const options = ['recent', 'rating', 'distance'];
@@ -719,7 +807,7 @@ const ListPlacesScreen = () => {
                   </Text>
                   <Ionicons name='chevron-down' size={16} color='#6B7280' style={{ marginLeft: 4 }} />
                 </TouchableOpacity>
-              )}
+              )} */}
             </View>
           </View>
 
@@ -782,10 +870,10 @@ const ListPlacesScreen = () => {
             <View className='flex-row items-center justify-between'>
               {/* Left side - List info */}
               <View className='flex-row items-center flex-1'>
-                <Text className='text-2xl mr-3'>{listEmoji}</Text>
+                <Text className='text-2xl mr-3'>{currentListData.emoji}</Text>
                 <View>
                   <Text className='text-lg font-bold text-gray-900'>
-                    {listTitle} ({placesCount})
+                    {currentListData.title} ({placesCount})
                   </Text>
                   <Text className='text-sm text-gray-600'>
                     {placesCount === 0 ? 'Nenhum lugar' : `${placesCount} ${placesCount === 1 ? 'lugar' : 'lugares'}`}
@@ -811,32 +899,36 @@ const ListPlacesScreen = () => {
                   (viewMode as 'list' | 'map') === 'list' ? 'bg-white shadow-sm' : ''
                 }`}
               >
-                <Ionicons 
-                  name='list-outline' 
-                  size={18} 
-                  color={(viewMode as 'list' | 'map') === 'list' ? '#b13bff' : '#6B7280'} 
+                <Ionicons
+                  name='list-outline'
+                  size={18}
+                  color={(viewMode as 'list' | 'map') === 'list' ? '#b13bff' : '#6B7280'}
                 />
-                <Text className={`ml-2 text-sm font-medium ${
-                  (viewMode as 'list' | 'map') === 'list' ? 'text-primary-600' : 'text-gray-600'
-                }`}>
+                <Text
+                  className={`ml-2 text-sm font-medium ${
+                    (viewMode as 'list' | 'map') === 'list' ? 'text-primary-600' : 'text-gray-600'
+                  }`}
+                >
                   Lista
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 onPress={() => setViewMode('map')}
                 className={`flex-1 px-4 py-2 rounded-md flex-row items-center justify-center ${
                   (viewMode as 'list' | 'map') === 'map' ? 'bg-white shadow-sm' : ''
                 }`}
               >
-                <Ionicons 
-                  name='map-outline' 
-                  size={18} 
-                  color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'} 
+                <Ionicons
+                  name='map-outline'
+                  size={18}
+                  color={(viewMode as 'list' | 'map') === 'map' ? '#b13bff' : '#6B7280'}
                 />
-                <Text className={`ml-2 text-sm font-medium ${
-                  (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
-                }`}>
+                <Text
+                  className={`ml-2 text-sm font-medium ${
+                    (viewMode as 'list' | 'map') === 'map' ? 'text-primary-600' : 'text-gray-600'
+                  }`}
+                >
                   Mapa
                 </Text>
               </TouchableOpacity>
@@ -869,12 +961,12 @@ const ListPlacesScreen = () => {
                   style={{ flex: 1 }}
                   provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
                   initialRegion={getMapRegion()}
-                  userInterfaceStyle="light"
+                  userInterfaceStyle='light'
                   showsUserLocation={false}
                   showsMyLocationButton={false}
                   showsCompass={false}
                   showsScale={false}
-                  mapType="standard"
+                  mapType='standard'
                   showsBuildings={false}
                   showsIndoors={false}
                   showsPointsOfInterest={false}
@@ -884,20 +976,19 @@ const ListPlacesScreen = () => {
                   zoomEnabled={true}
                   pitchEnabled={false}
                   loadingEnabled={true}
-                  loadingIndicatorColor="#b13bff"
-                  loadingBackgroundColor="#fafafa"
+                  loadingIndicatorColor='#b13bff'
+                  loadingBackgroundColor='#fafafa'
                 >
                   {/* Places markers */}
                   {sortedPlaces.map((place) => {
                     // Only render markers with valid coordinates
                     const lat = place.place?.coordinates?.lat;
                     const lng = place.place?.coordinates?.lng;
-                    
+
                     if (!lat || !lng || lat === 0 || lng === 0) {
-                      console.log('Skipping place with invalid coordinates:', place.place?.name, lat, lng);
                       return null;
                     }
-                    
+
                     return (
                       <Marker
                         key={place.id}
@@ -909,11 +1000,11 @@ const ListPlacesScreen = () => {
                         title={place.place?.name || 'Local sem nome'}
                         description={place.place?.address || place.personalNote || 'Endereço não disponível'}
                       >
-                        <View className="relative">
+                        <View className='relative'>
                           {/* Food place marker with emoji */}
-                          <View className="w-12 h-12 bg-primary-500 rounded-full items-center justify-center shadow-lg border-2 border-white">
+                          <View className='w-12 h-12 bg-primary-500 rounded-full items-center justify-center shadow-lg border-2 border-white'>
                             <Text style={{ fontSize: 20 }}>{getFoodEmoji(place)}</Text>
-                          </View>                
+                          </View>
                         </View>
                       </Marker>
                     );
@@ -944,14 +1035,31 @@ const ListPlacesScreen = () => {
         onClose={() => addPlaceBottomSheetRef.current?.close()}
       />
 
+      {/* Edit List Bottom Sheet */}
+      <CreateEditListBottomSheetPortal
+        ref={editListBottomSheetRef}
+        mode="edit"
+        listId={listId}
+        initialData={{
+          title: currentListData.title,
+          emoji: currentListData.emoji,
+          description: currentListData.description,
+          visibility: currentListData.visibility,
+          tags: currentListData.tags,
+        }}
+        onSave={handleSaveEditList}
+        onClose={() => editListBottomSheetRef.current?.close()}
+      />
+
       {/* Place Details Bottom Sheet */}
       <PlaceDetailsBottomSheetPortal
         ref={placeDetailsBottomSheetRef}
-        place={selectedPlace}
+        place={selectedPlace?.place ? selectedPlace.place : null}
+        userLists={selectedPlace?.userLists ? selectedPlace.userLists : null}
+        reviews={selectedPlace?.reviews ? [selectedPlace.reviews] : null}
         onClose={handlePlaceDetailsClose}
         onSavePlace={(place) => {
           // Handle save place action
-          console.log('Save place:', place);
         }}
         onReserveTable={(place) => {
           // Handle reserve table action
@@ -961,8 +1069,7 @@ const ListPlacesScreen = () => {
           ]);
         }}
         onShowOnMap={(place) => {
-          // Handle show on map action
-          console.log('Show on map:', place);
+          // Handle show on map action          
         }}
       />
     </View>

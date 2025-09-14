@@ -12,4 +12,7 @@ export { default as PlacesList } from './PlacesList';
 export { PortalProvider, usePortal } from './PortalProvider';
 export { default as ProfileBottomSheetPortal } from './ProfileBottomSheetPortal';
 export { default as SearchInput } from './SearchInput';
+export { UserReviewCard } from './UserReviewCard';
+export { UserReviewsFilters } from './UserReviewsFilters';
+export { UserReviewsStats } from './UserReviewsStats';
 

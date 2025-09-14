@@ -22,8 +22,7 @@ export const usePlaces = (): UsePlacesReturn => {
     latitude: number,
     longitude: number,
     zoom = 14
-  ) => {
-    console.log('🏁 Starting search with params:', { latitude, longitude, zoom });
+  ) => {    
     setLoading(true);
     setError(null);
 
@@ -31,14 +30,10 @@ export const usePlaces = (): UsePlacesReturn => {
       // Convert zoom level to radius (approximate conversion)
       // Higher zoom = smaller radius, lower zoom = larger radius
       const radius = zoom >= 16 ? 1 : zoom >= 14 ? 3 : zoom >= 12 ? 5 : zoom >= 10 ? 10 : 15;
-      
-      console.log('📍 Calling Firebase function with radius:', radius);
+            
       const result = await firebaseService.findNearbyPlaces(latitude, longitude, radius);
 
-      if (result.success) {
-        console.log('✅ Search results:', result.data);
-        console.log('📊 Number of places found:', result.data.length);
-        
+      if (result.success) {        
         setPlaces(result.data);
         setHasSearched(true);
       } else {

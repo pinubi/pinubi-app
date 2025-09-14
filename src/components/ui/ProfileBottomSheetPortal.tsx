@@ -57,7 +57,6 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
 
   const handleSheetChanges = useCallback(
     (index: number) => {
-      console.log('ProfileBottomSheet index changed to:', index);
       if (index === -1) {
         hideBottomSheet();
         onClose?.();
@@ -132,7 +131,7 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
           {/* Menu Sections */}
           <View className='pt-6'>
             {renderMenuSection('RECURSOS INTELIGENTES', intelligentResources)}
-            {renderMenuSection('CONFIGURAÇÕES', configurations)}
+            {/* {renderMenuSection('CONFIGURAÇÕES', configurations)} */}
           </View>
 
           {/* Footer */}
@@ -182,8 +181,8 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
         router.push({
           pathname: '/(protected)/profile',
           params: {
-            onBack: 'reopenProfileBottomSheet'
-          }
+            onBack: 'reopenProfileBottomSheet',
+          },
         });
       },
     },
@@ -197,26 +196,30 @@ const ProfileBottomSheetPortal = forwardRef<BottomSheetRef, ProfileBottomSheetPo
     //     hideBottomSheet();
     //   },
     // },
-    // {
-    //   id: 'personal-reviews',
-    //   icon: 'star-outline',
-    //   title: 'Avaliações pessoais',
-    //   description: 'Suas avaliações e histórico',
-    //   onPress: () => {
-    //     console.log('Navigate to personal reviews');
-    //     hideBottomSheet();
-    //   },
-    // },
-    // {
-    //   id: 'your-lists',
-    //   icon: 'bookmark-outline',
-    //   title: 'Suas Listas',
-    //   description: 'Gerenciar coleções de lugares',
-    //   onPress: () => {
-    //     console.log('Navigate to your lists');
-    //     hideBottomSheet();
-    //   },
-    // },
+    {
+      id: 'personal-reviews',
+      icon: 'star-outline',
+      title: 'Seus Check-ins',
+      description: 'Suas avaliações e histórico',
+      onPress: () => {
+        hideBottomSheet();
+        router.push({
+          pathname: '/(protected)/userReviews',
+        });
+      },
+    },
+    {
+      id: 'your-lists',
+      icon: 'bookmark-outline',
+      title: 'Suas Listas',
+      description: 'Gerenciar coleções de lugares',
+      onPress: () => {
+        router.push({
+          pathname: '/(protected)/(tabs)/lists',
+        });
+        hideBottomSheet();
+      },
+    },
     // {
     //   id: 'auto-import',
     //   icon: 'download-outline',

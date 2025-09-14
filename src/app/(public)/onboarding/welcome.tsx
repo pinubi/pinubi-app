@@ -2,12 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PinubiLogo from '@/components/PinubiLogo';
@@ -21,15 +16,9 @@ const WelcomeScreen = () => {
 
   // Reset onboarding data when starting the welcome screen for users who aren't validated yet
   useEffect(() => {
-    console.log('WelcomeScreen: User validation status:', { isValidated, isActive });
-    
     // If user is not validated/active, reset onboarding to start fresh
     if (!isValidated || !isActive) {
-      console.log('WelcomeScreen: User is not validated/active - resetting onboarding data for fresh start');
-      console.log('WelcomeScreen: This ensures the user sees empty forms instead of previous data');
       resetOnboarding();
-    } else {
-      console.log('WelcomeScreen: User is already validated/active - keeping existing data');
     }
   }, [isValidated, isActive, resetOnboarding]);
 
@@ -38,7 +27,7 @@ const WelcomeScreen = () => {
   };
 
   return (
-    <SafeAreaView className='flex-1'>      
+    <SafeAreaView className='flex-1'>
       {/* Background Gradient */}
       <LinearGradient
         colors={['#f4e6ff', '#ffffff', '#f4e6ff']}
@@ -56,12 +45,8 @@ const WelcomeScreen = () => {
         {/* Header */}
         <View className='items-center pt-8 pb-6'>
           <PinubiLogo size={48} color='#b13bff' />
-          <Text className='text-2xl font-bold text-primary-800 mt-4'>
-            Bem-vindo ao Pinubi! 🎉
-          </Text>
-          <Text className='text-lg text-neutral-600 mt-2 text-center'>
-            Sua conta foi criada com sucesso
-          </Text>
+          <Text className='text-2xl font-bold text-primary-800 mt-4'>Bem-vindo ao Pinubi! 🎉</Text>
+          <Text className='text-lg text-neutral-600 mt-2 text-center'>Sua conta foi criada com sucesso</Text>
         </View>
 
         {/* Welcome Content */}
@@ -73,12 +58,8 @@ const WelcomeScreen = () => {
                 <Ionicons name='restaurant' size={24} color='#b13bff' />
               </View>
               <View className='flex-1 ml-4'>
-                <Text className='text-lg font-semibold text-neutral-800'>
-                  Descubra lugares incríveis
-                </Text>
-                <Text className='text-sm text-neutral-600 mt-1'>
-                  Encontre restaurantes, bares e cafés únicos
-                </Text>
+                <Text className='text-lg font-semibold text-neutral-800'>Descubra lugares incríveis</Text>
+                <Text className='text-sm text-neutral-600 mt-1'>Encontre restaurantes, bares e cafés únicos</Text>
               </View>
             </View>
           </View>
@@ -89,9 +70,7 @@ const WelcomeScreen = () => {
                 <Ionicons name='list' size={24} color='#b13bff' />
               </View>
               <View className='flex-1 ml-4'>
-                <Text className='text-lg font-semibold text-neutral-800'>
-                  Organize suas descobertas
-                </Text>
+                <Text className='text-lg font-semibold text-neutral-800'>Organize suas descobertas</Text>
                 <Text className='text-sm text-neutral-600 mt-1'>
                   Crie listas personalizadas dos seus lugares favoritos
                 </Text>
@@ -105,12 +84,8 @@ const WelcomeScreen = () => {
                 <Ionicons name='people' size={24} color='#b13bff' />
               </View>
               <View className='flex-1 ml-4'>
-                <Text className='text-lg font-semibold text-neutral-800'>
-                  Compartilhe com amigos
-                </Text>
-                <Text className='text-sm text-neutral-600 mt-1'>
-                  Descubra o que seus amigos estão recomendando
-                </Text>
+                <Text className='text-lg font-semibold text-neutral-800'>Compartilhe com amigos</Text>
+                <Text className='text-sm text-neutral-600 mt-1'>Descubra o que seus amigos estão recomendando</Text>
               </View>
             </View>
           </View>
@@ -121,12 +96,8 @@ const WelcomeScreen = () => {
                 <Ionicons name='sparkles' size={24} color='#b13bff' />
               </View>
               <View className='flex-1 ml-4'>
-                <Text className='text-lg font-semibold text-neutral-800'>
-                  IA personalizada
-                </Text>
-                <Text className='text-sm text-neutral-600 mt-1'>
-                  Receba sugestões baseadas nas suas preferências
-                </Text>
+                <Text className='text-lg font-semibold text-neutral-800'>IA personalizada</Text>
+                <Text className='text-sm text-neutral-600 mt-1'>Receba sugestões baseadas nas suas preferências</Text>
               </View>
             </View>
           </View>
@@ -138,8 +109,8 @@ const WelcomeScreen = () => {
               <Text className='text-primary-800 font-semibold ml-2'>Próximos passos</Text>
             </View>
             <Text className='text-primary-700 text-sm leading-relaxed'>
-              Vamos personalizar sua experiência! Nos próximos passos, você vai configurar suas preferências 
-              de comida, localização e dar as permissões necessárias para o app funcionar perfeitamente.
+              Vamos personalizar sua experiência! Nos próximos passos, você vai configurar suas preferências de comida,
+              localização e dar as permissões necessárias para o app funcionar perfeitamente.
             </Text>
           </View>
         </View>
@@ -152,9 +123,7 @@ const WelcomeScreen = () => {
           className='bg-primary-500 rounded-xl px-6 py-4 items-center justify-center'
         >
           <View className='flex-row items-center'>
-            <Text className='text-white font-semibold text-base mr-2'>
-              Vamos começar
-            </Text>
+            <Text className='text-white font-semibold text-base mr-2'>Vamos começar</Text>
             <Ionicons name='arrow-forward' size={16} color='white' />
           </View>
         </TouchableOpacity>

@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { listsService } from '@/services/listsService';
-import type { List, ListError, ListFormData } from '@/types/lists';
+import type { List, ListError, ListFormData, ListPlaceWithDetails } from '@/types/lists';
 
 interface ListsState {
   lists: List[];
@@ -17,6 +17,7 @@ interface ListsState {
   deleteList: (listId: string) => Promise<boolean>;
   clearError: () => void;
   refreshLists: (userId: string) => Promise<void>;
+  getListPlaces: (listId: string) => Promise<ListPlaceWithDetails[]>;
   
   // UI helpers
   getListById: (listId: string) => List | null;
@@ -80,11 +81,7 @@ export const useListsStore = create<ListsState>()(
         try {
           set({ loading: true, error: null });
           
-          console.log('📋 Fetching user lists for userId:', userId);
-          
           const lists = await listsService.getUserLists(userId);
-          
-          console.log('📋 Successfully fetched lists:', lists.length);
           
           set({ 
             lists,
@@ -92,7 +89,6 @@ export const useListsStore = create<ListsState>()(
             error: null 
           });
         } catch (error: any) {
-          console.error('📋 Error fetching user lists:', error);
           
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao carregar listas';
           
@@ -108,14 +104,11 @@ export const useListsStore = create<ListsState>()(
         try {
           set({ loading: true, error: null });
           
-          console.log('📋 Creating new list with data:', listData, 'for user:', userId);
           
           const createRequest = mapListFormDataToCreateRequest(listData);
           const newList = await listsService.createList(createRequest, userId);
           
-          console.log('📋 Successfully created list:', newList.id);
           
-          // Add the new list to the current lists
           const currentLists = get().lists;
           const updatedLists = [newList, ...currentLists];
           
@@ -127,7 +120,6 @@ export const useListsStore = create<ListsState>()(
           
           return newList;
         } catch (error: any) {
-          console.error('📋 Error creating list:', error);
           
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao criar lista';
           
@@ -144,14 +136,11 @@ export const useListsStore = create<ListsState>()(
         try {
           set({ loading: true, error: null });
           
-          console.log('📋 Updating list:', listId, 'with data:', listData, 'for user:', userId);
           
           const updateRequest = mapListFormDataToUpdateRequest(listId, listData);
           const updatedList = await listsService.updateList(updateRequest, userId);
           
-          console.log('📋 Successfully updated list:', updatedList.id);
           
-          // Update the list in the current lists array
           const currentLists = get().lists;
           const updatedLists = currentLists.map(list => 
             list.id === listId ? updatedList : list
@@ -165,7 +154,6 @@ export const useListsStore = create<ListsState>()(
           
           return updatedList;
         } catch (error: any) {
-          console.error('📋 Error updating list:', error);
           
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao atualizar lista';
           
@@ -182,13 +170,10 @@ export const useListsStore = create<ListsState>()(
         try {
           set({ loading: true, error: null });
           
-          console.log('📋 Deleting list:', listId);
           
           await listsService.deleteList(listId);
           
-          console.log('📋 Successfully deleted list:', listId);
           
-          // Remove the list from the current lists array
           const currentLists = get().lists;
           const updatedLists = currentLists.filter(list => list.id !== listId);
           
@@ -200,7 +185,6 @@ export const useListsStore = create<ListsState>()(
           
           return true;
         } catch (error: any) {
-          console.error('📋 Error deleting list:', error);
           
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao deletar lista';
           
@@ -220,6 +204,17 @@ export const useListsStore = create<ListsState>()(
 
       clearError: () => {
         set({ error: null });
+      },
+
+      getListPlaces: async (listId: string): Promise<ListPlaceWithDetails[]> => {
+        try {
+          const places = await listsService.getListPlaces(listId);
+          return places;
+        } catch (error: any) {
+          console.error('Error fetching list places:', error);
+          // Don't set global error state for this - let caller handle it
+          return [];
+        }
       },
 
       // UI helper methods

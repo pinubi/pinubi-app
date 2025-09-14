@@ -44,7 +44,6 @@ export const useFollowers = (userId?: string): UseFollowersResult => {
     pendingRequestsCount: 0,
   });
 
-  // Load follow stats separately
   const loadFollowStats = async () => {
     try {
       console.log('📊 Loading follow stats...');
@@ -331,13 +330,11 @@ export const useFollowers = (userId?: string): UseFollowersResult => {
         case 'follow':
           const followResult = await userService.followUser(targetUserId);
           if (followResult.success) {
-            // Update following list
             setFollowing(prev => prev.map(user => 
               user.id === targetUserId 
                 ? { ...user, isFollowing: true, hasFollowRequest: false }
                 : user
             ));
-            // Refresh stats to get updated counts
             await loadFollowStats();
           } else {
             throw new Error(followResult.error || 'Erro ao seguir usuário');
@@ -347,15 +344,12 @@ export const useFollowers = (userId?: string): UseFollowersResult => {
         case 'unfollow':
           const unfollowResult = await userService.unfollowUser(targetUserId);
           if (unfollowResult.success) {
-            // Update following list
             setFollowing(prev => prev.map(user => 
               user.id === targetUserId 
                 ? { ...user, isFollowing: false }
                 : user
             ));
-            // Remove from followers if they were following back
             setFollowers(prev => prev.filter(user => user.id !== targetUserId));
-            // Refresh stats to get updated counts
             await loadFollowStats();
           } else {
             throw new Error(unfollowResult.error || 'Erro ao deixar de seguir usuário');
@@ -381,9 +375,7 @@ export const useFollowers = (userId?: string): UseFollowersResult => {
           break;
           
         case 'cancel_request':
-          // Mock implementation - Replace with actual API call when available
           await new Promise(resolve => setTimeout(resolve, 500));
-          // Update UI to show request cancelled
           setFollowing(prev => prev.map(user => 
             user.id === targetUserId 
               ? { ...user, hasFollowRequest: false }
@@ -397,10 +389,8 @@ export const useFollowers = (userId?: string): UseFollowersResult => {
           if (requestToAccept) {
             const acceptResult = await followRequestService.acceptFollowRequest(requestToAccept.id);
             if (acceptResult.success) {
-              // Move from requests to followers
               setFollowRequests(prev => prev.filter(req => req.fromUserId !== targetUserId));
               setFollowers(prev => [...prev, requestToAccept.fromUser]);
-              // Update pending requests count
               setActualStats(prev => ({
                 ...prev,
                 pendingRequestsCount: Math.max(0, prev.pendingRequestsCount - 1),
@@ -413,14 +403,11 @@ export const useFollowers = (userId?: string): UseFollowersResult => {
           break;
           
         case 'reject_request':
-          // Find the request by user ID instead of request ID
           const requestToReject = followRequests.find(req => req.fromUserId === targetUserId);
           if (requestToReject) {
             const rejectResult = await followRequestService.rejectFollowRequest(requestToReject.id);
             if (rejectResult.success) {
-              // Remove from requests
               setFollowRequests(prev => prev.filter(req => req.fromUserId !== targetUserId));
-              // Update pending requests count
               setActualStats(prev => ({
                 ...prev,
                 pendingRequestsCount: Math.max(0, prev.pendingRequestsCount - 1),

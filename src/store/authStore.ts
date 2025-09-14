@@ -1,18 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import {
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
-  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  signInWithCredential,
-  updateProfile
+    GoogleAuthProvider,
+    createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
+    signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
+    signOut as firebaseSignOut,
+    onAuthStateChanged,
+    sendPasswordResetEmail,
+    signInWithCredential,
+    updateProfile,
 } from 'firebase/auth';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { auth } from '@/config/firebase';
+import { userService } from '@/services/userService';
 import type { AuthError, AuthStore, User } from '@/types/auth';
 import { getUserValidationStatus, mapFirebaseUserWithValidation } from '@/utils/firestoreHelpers';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -45,9 +47,7 @@ const mapFirebaseUserToUser = (firebaseUser: any): User => ({
 const mapGoogleSignInErrorToAuthError = (error: any): AuthError => {
   const errorCode = error.code;
   const errorMessage = error.message;
-  
-  console.log('Error details:', { code: errorCode, message: errorMessage });
-  
+
   switch (errorCode) {
     case 'sign_in_cancelled':
     case 'SIGN_IN_CANCELLED':
@@ -75,9 +75,7 @@ const mapGoogleSignInErrorToAuthError = (error: any): AuthError => {
 
 const mapFirebaseAuthErrorToAuthError = (error: any): AuthError => {
   const errorCode = error.code;
-  
-  console.log('Firebase Auth Error:', { code: errorCode, message: error.message });
-  
+
   switch (errorCode) {
     case 'auth/invalid-credential':
     case 'auth/invalid-email':
@@ -118,6 +116,10 @@ const getErrorMessage = (error: AuthError): string => {
       return 'Muitas tentativas. Tente novamente mais tarde';
     case 'user_disabled':
       return 'Conta desabilitada. Entre em contato com o suporte';
+    case 'password_reset_sent':
+      return 'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha';
+    case 'password_reset_failed':
+      return 'Erro ao enviar email de recuperação. Tente novamente';
     case 'unknown_error':
     default:
       return 'Ocorreu um erro inesperado';
@@ -138,9 +140,11 @@ export const useAuthStore = create<AuthStore>()(
 
           // Check if we're in a development build with native modules
           const isExpoGo = Constants.appOwnership === 'expo';
-          
+
           if (isExpoGo) {
-            throw new Error('Google Sign-In não está disponível no Expo Go. Para testar esta funcionalidade, use um development build ou teste em um simulador/dispositivo com o app compilado.');
+            throw new Error(
+              'Google Sign-In não está disponível no Expo Go. Para testar esta funcionalidade, use um development build ou teste em um simulador/dispositivo com o app compilado.'
+            );
           }
 
           // Check if device supports Google Play Services (Android only)
@@ -149,19 +153,15 @@ export const useAuthStore = create<AuthStore>()(
             await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
           } catch (err) {
             // On iOS, this will fail but that's expected - continue with sign in
-            console.log('Play Services check (expected to fail on iOS):', err);
           }
 
-          // Get user info from Google
           const userInfo = await GoogleSignin.signIn();
-          
-          console.log('Google Sign-In userInfo:', userInfo);
-          
+
           // Check if sign-in was successful
           if (userInfo.type !== 'success') {
             throw new Error('Google Sign-In was cancelled or failed');
           }
-          
+
           if (!userInfo.data.idToken) {
             throw new Error('No ID token received from Google Sign-In');
           }
@@ -171,25 +171,11 @@ export const useAuthStore = create<AuthStore>()(
 
           // Sign in to Firebase
           const userCredential = await signInWithCredential(auth, googleCredential);
-          
-          console.log('Firebase sign-in successful:', userCredential.user.uid);
-          
-          // Get user validation status from Firestore
-          console.log('Fetching user validation status from Firestore...');
+
           const validationStatus = await getUserValidationStatus(userCredential.user.uid);
-          
-          // Map Firebase user with Firestore validation data
+
           const user = mapFirebaseUserWithValidation(userCredential.user, validationStatus);
-          
-          console.log('GoogleSignIn: User authentication complete:', {
-            userId: user.id,
-            email: user.email,
-            isValidated: user.isValidated,
-            isActive: user.isActive,
-            onboardingComplete: user.onboardingComplete,
-            canAccessProtected: user.isValidated && user.isActive
-          });
-          
+
           set({
             user,
             isAuthenticated: true,
@@ -197,11 +183,9 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error: any) {
-          console.error('Google Sign-In Error:', error);
-          
           const authError = mapGoogleSignInErrorToAuthError(error);
           const errorMessage = getErrorMessage(authError);
-          
+
           set({
             loading: false,
             error: errorMessage,
@@ -215,29 +199,13 @@ export const useAuthStore = create<AuthStore>()(
         try {
           set({ loading: true, error: null });
 
-          console.log('Firebase email/password sign-in started for:', email);
-
           // Sign in with Firebase
           const userCredential = await firebaseSignInWithEmailAndPassword(auth, email, password);
-          
-          console.log('Firebase email/password sign-in successful:', userCredential.user.uid);
-          
-          // Get user validation status from Firestore
-          console.log('Fetching user validation status from Firestore...');
+
           const validationStatus = await getUserValidationStatus(userCredential.user.uid);
-          
-          // Map Firebase user with Firestore validation data
+
           const user = mapFirebaseUserWithValidation(userCredential.user, validationStatus);
-          
-          console.log('EmailSignIn: User authentication complete:', {
-            userId: user.id,
-            email: user.email,
-            isValidated: user.isValidated,
-            isActive: user.isActive,
-            onboardingComplete: user.onboardingComplete,
-            canAccessProtected: user.isValidated && user.isActive
-          });
-          
+
           set({
             user,
             isAuthenticated: true,
@@ -245,11 +213,9 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error: any) {
-          console.error('Email/Password Sign-In Error:', error);
-          
           const authError = mapFirebaseAuthErrorToAuthError(error);
           const errorMessage = getErrorMessage(authError);
-          
+
           set({
             loading: false,
             error: errorMessage,
@@ -260,8 +226,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       signUpWithEmailAndPassword: async (
-        email: string, 
-        password: string, 
+        email: string,
+        password: string,
         userData: {
           displayName: string;
           inviteCode: string;
@@ -280,48 +246,29 @@ export const useAuthStore = create<AuthStore>()(
         try {
           set({ loading: true, error: null });
 
-          console.log('Firebase email/password signup started for:', email);
-
           // Create user with Firebase Auth
           const userCredential = await firebaseCreateUserWithEmailAndPassword(auth, email, password);
-          
-          console.log('Firebase user created successfully:', userCredential.user.uid);
+
+          await userService.initializeNewUser();
 
           // Update the user's display name
           await updateProfile(userCredential.user, {
             displayName: userData.displayName,
           });
 
-          console.log('User profile updated with display name:', userData.displayName);
-
           // Get user validation status from Firestore (for new users this will be defaults)
-          console.log('Fetching initial user validation status from Firestore...');
           const validationStatus = await getUserValidationStatus(userCredential.user.uid);
-          
+
           // Map Firebase user with Firestore validation data
           const user = mapFirebaseUserWithValidation(userCredential.user, validationStatus);
-          
-          console.log('EmailSignUp: User registration complete:', {
-            userId: user.id,
-            email: user.email,
-            displayName: userData.displayName,
-            isValidated: user.isValidated,
-            isActive: user.isActive,
-            onboardingComplete: user.onboardingComplete,
-            canAccessProtected: user.isValidated && user.isActive
-          });
-          
+
           set({
             user,
             isAuthenticated: true,
             loading: false,
             error: null,
           });
-
-          console.log('User registration completed successfully');
         } catch (error: any) {
-          console.error('Email/Password Sign-Up Error:', error);
-          
           const authError = mapFirebaseAuthErrorToAuthError(error);
           let errorMessage = getErrorMessage(authError);
 
@@ -333,7 +280,7 @@ export const useAuthStore = create<AuthStore>()(
           } else if (error.code === 'auth/invalid-email') {
             errorMessage = 'Email inválido. Verifique o formato do email.';
           }
-          
+
           set({
             loading: false,
             error: errorMessage,
@@ -346,12 +293,11 @@ export const useAuthStore = create<AuthStore>()(
       // Mock sign-in for Expo Go testing
       signInWithMock: async () => {
         try {
-          console.log('Mock sign-in: Iniciando...');
           set({ loading: true, error: null });
 
           // Check if we're in Expo Go
           const isExpoGo = Constants.appOwnership === 'expo';
-          
+
           if (!isExpoGo) {
             throw new Error('Mock sign-in só está disponível no Expo Go');
           }
@@ -371,18 +317,13 @@ export const useAuthStore = create<AuthStore>()(
             onboardingComplete: false,
           };
 
-          console.log('Mock sign-in: Definindo usuário mock:', mockUser);
-
           set({
             user: mockUser,
             isAuthenticated: true,
             loading: false,
             error: null,
           });
-
-          console.log('Mock sign-in: Estado atualizado - isAuthenticated: true, user:', mockUser.name);
         } catch (error: any) {
-          console.error('Mock Sign-In Error:', error);
           set({
             loading: false,
             error: 'Erro no login de teste',
@@ -400,7 +341,6 @@ export const useAuthStore = create<AuthStore>()(
           const currentUser = get().user;
           if (currentUser?.id === 'mock-user-123') {
             // Just clear the mock user
-            console.log('Signing out mock user');
             set({
               user: null,
               isAuthenticated: false,
@@ -416,13 +356,10 @@ export const useAuthStore = create<AuthStore>()(
             await GoogleSignin.signOut();
           } catch (error) {
             // Google sign out might fail if user wasn't signed in via Google
-            console.log('Google sign out not needed or failed:', error);
           }
 
           // Sign out from Firebase
           await firebaseSignOut(auth);
-          
-          console.log('Successfully signed out from Firebase');
 
           set({
             user: null,
@@ -431,7 +368,6 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error: any) {
-          console.error('Sign Out Error:', error);
           set({
             loading: false,
             error: 'Falha ao sair. Tente novamente.',
@@ -443,52 +379,45 @@ export const useAuthStore = create<AuthStore>()(
         try {
           // Listen to Firebase auth state changes
           const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            console.log('Firebase auth state changed:', firebaseUser?.uid || 'no user');
-            
-            if (firebaseUser) {
-              // Get user validation status from Firestore
-              console.log('Fetching user validation status from Firestore for auth state...');
-              const validationStatus = await getUserValidationStatus(firebaseUser.uid);
-              
-              // Map Firebase user with Firestore validation data
-              const user = mapFirebaseUserWithValidation(firebaseUser, validationStatus);
-              
-              console.log('AuthState: Setting authenticated user with validation:', {
-                userId: user.id,
-                email: user.email,
-                isValidated: user.isValidated,
-                isActive: user.isActive,
-                onboardingComplete: user.onboardingComplete,
-                canAccessProtected: user.isValidated && user.isActive
-              });
-              
-              set({
-                user,
-                isAuthenticated: true,
-                loading: false,
-                error: null,
-              });
-            } else {
-              console.log('No Firebase user found, setting unauthenticated state');
-              set({
-                user: null,
-                isAuthenticated: false,
-                loading: false,
-                error: null,
-              });
+            try {
+              if (firebaseUser) {
+                // Get user validation status from Firestore
+                const validationStatus = await getUserValidationStatus(firebaseUser.uid);
+
+                // Map Firebase user with Firestore validation data
+                const user = mapFirebaseUserWithValidation(firebaseUser, validationStatus);
+
+                set({
+                  user,
+                  isAuthenticated: true,
+                  loading: false,
+                  error: null,
+                });
+              } else {
+                set({
+                  user: null,
+                  isAuthenticated: false,
+                  loading: false,
+                  error: null,
+                });
+              }
+            } catch (innerError: any) {
+              console.warn('Auth state change handling error:', innerError);
+              // Don't update state on error to avoid breaking the app
             }
           });
 
           // Return unsubscribe function for cleanup if needed
           return unsubscribe;
         } catch (error: any) {
-          console.error('Auth State Check Error:', error);
+          console.warn('Auth state check setup error:', error);
           set({
             loading: false,
-            error: 'Failed to check authentication state',
+            error: null, // Don't show error to user for auth setup issues
             user: null,
             isAuthenticated: false,
           });
+          return () => {}; // Return empty unsubscribe function
         }
       },
 
@@ -499,19 +428,7 @@ export const useAuthStore = create<AuthStore>()(
       // Update user validation status after completing onboarding
       updateUserValidation: (isValidated: boolean, isActive: boolean, onboardingComplete: boolean = true) => {
         const currentUser = get().user;
-        console.log('AuthStore: updateUserValidation called with:', {
-          isValidated,
-          isActive,
-          onboardingComplete,
-          currentUser: currentUser ? {
-            id: currentUser.id,
-            email: currentUser.email,
-            name: currentUser.name,
-            currentIsValidated: currentUser.isValidated,
-            currentIsActive: currentUser.isActive,
-          } : null
-        });
-        
+
         if (currentUser) {
           const updatedUser: User = {
             ...currentUser,
@@ -519,23 +436,39 @@ export const useAuthStore = create<AuthStore>()(
             isActive,
             onboardingComplete,
           };
-          
+
           set({ user: updatedUser });
-          
-          console.log('AuthStore: User validation status updated:', {
-            isValidated,
-            isActive,
-            onboardingComplete,
-            updatedUser: {
-              id: updatedUser.id,
-              email: updatedUser.email,
-              isValidated: updatedUser.isValidated,
-              isActive: updatedUser.isActive,
-              onboardingComplete: updatedUser.onboardingComplete,
-            }
+        }
+      },
+
+      resetPassword: async (email: string) => {
+        try {
+          set({ loading: true, error: null });
+
+          await sendPasswordResetEmail(auth, email);
+
+          set({
+            loading: false,
+            error: getErrorMessage('password_reset_sent'),
           });
-        } else {
-          console.log('AuthStore: Cannot update validation - no current user');
+        } catch (error: any) {
+          const authError = mapFirebaseAuthErrorToAuthError(error);
+          let errorMessage = getErrorMessage(authError);
+
+          // Handle specific password reset errors
+          if (error.code === 'auth/user-not-found') {
+            // For security, we don't reveal if the email exists
+            errorMessage = getErrorMessage('password_reset_sent');
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email inválido. Verifique o formato do email.';
+          } else {
+            errorMessage = getErrorMessage('password_reset_failed');
+          }
+
+          set({
+            loading: false,
+            error: errorMessage,
+          });
         }
       },
     }),

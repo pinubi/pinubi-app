@@ -1,11 +1,12 @@
 import '@/global.css';
 import {
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
-  useFonts,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    useFonts,
 } from '@expo-google-fonts/poppins';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -65,13 +66,15 @@ const InitialLayout = () => {
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
       <StatusBar hidden />
-      <PortalProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(public)" />
-          <Stack.Screen name="(protected)" />
-        </Stack>
-      </PortalProvider>
+      <BottomSheetModalProvider>
+        <PortalProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(public)" />
+            <Stack.Screen name="(protected)" />
+          </Stack>
+        </PortalProvider>
+      </BottomSheetModalProvider>
     </Animated.View>
   );
 };

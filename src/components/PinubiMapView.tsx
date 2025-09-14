@@ -16,7 +16,6 @@ interface PinubiMapViewProps {
 const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlacePress }) => {
   const { latitude, longitude, error, loading, refreshLocation } = useLocation();
   const { places, loading: placesLoading, error: placesError, searchPlaces, clearError } = usePlaces();
-  console.log("🚀 ~ PinubiMapView ~ places:", places)
   
   const [currentRegion, setCurrentRegion] = useState<MapRegion | null>(null);
   const [showSearchButton, setShowSearchButton] = useState(false);
@@ -29,7 +28,6 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
   // Automatic search when location is available
   useEffect(() => {
     if (latitude && longitude && !hasInitialSearch && !loading) {
-      console.log('🎯 Performing initial search for food places at current location');
       searchPlaces(latitude, longitude, 14);
       setHasInitialSearch(true);
     }
@@ -55,7 +53,6 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
   const handleSearchInArea = useCallback(async () => {
     if (!currentRegion) return;
     
-    console.log('🔍 Searching in area:', currentRegion);
     clearError();
     setShowSearchButton(false);
     
@@ -64,13 +61,6 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
     if (currentRegion.latitudeDelta > 0.1) zoom = 10;
     else if (currentRegion.latitudeDelta > 0.05) zoom = 12;
     else if (currentRegion.latitudeDelta < 0.005) zoom = 16;
-    
-    console.log('🎯 Search params:', {
-      lat: currentRegion.latitude,
-      lng: currentRegion.longitude,
-      zoom,
-      query: 'restaurantes comida'
-    });
     
     await searchPlaces(
       currentRegion.latitude,
@@ -118,13 +108,8 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
     const nearbyPlaces = getNearbyPlaces();
     
     if (nearbyPlaces.length === 1) {
-      // If only one nearby place, open it directly
       onPlacePress?.(nearbyPlaces[0]);
     } else if (nearbyPlaces.length > 1) {
-      // If multiple nearby places, you could show a modal/list
-      // For now, we'll just log them - you can implement a modal later
-      console.log('📍 Lugares próximos:', nearbyPlaces.map(p => p.googleData.name));
-      
       // Optional: Show the first one or implement a selection modal
       // onPlacePress?.(nearbyPlaces[0]);
     }
@@ -278,11 +263,8 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
         loadingEnabled={true}
         loadingIndicatorColor="#b13bff"
         loadingBackgroundColor="#fafafa"
-        // Additional props for better simulator compatibility
         onMapReady={() => {
-          if (isExpoGoSimulator) {
-            console.log('📍 Map ready in iOS Simulator with Expo Go - red tiles are expected');
-          }
+          // Map ready - iOS simulator red tiles are expected with Expo Go
         }}
       >
         {/* Custom marker for user's current location with nearby places indicator */}
@@ -351,7 +333,6 @@ const PinubiMapView: React.FC<PinubiMapViewProps> = ({ onLocationRefresh, onPlac
           const lng = place.coordinates.lng;
           
           if (!lat || !lng || lat === 0 || lng === 0) {
-            console.log('Skipping place with invalid coordinates:', place.googleData.name, lat, lng);
             return null;
           }
           
