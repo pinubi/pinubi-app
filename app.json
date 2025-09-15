@@ -102,7 +102,9 @@
     "owner": "awmoreira",
     "runtimeVersion": "1.0.0",
     "updates": {
-      "url": "https://u.expo.dev/97487242-b533-43e9-a56c-cc27ed7fa846"
+      "enabled": false,
+      "checkAutomatically": "NEVER",
+      "fallbackToCacheTimeout": 0      
     }
   }
 }
