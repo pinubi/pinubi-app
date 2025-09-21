@@ -4,7 +4,6 @@ import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
-
 // Para DESENVOLVIMENTO (emuladores)
 const firebaseConfigDev = {
   projectId: 'demo-pinubi-functions',
