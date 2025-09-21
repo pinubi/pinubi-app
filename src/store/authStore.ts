@@ -1,14 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import {
-    GoogleAuthProvider,
-    createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
-    signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-    signOut as firebaseSignOut,
-    onAuthStateChanged,
-    sendPasswordResetEmail,
-    signInWithCredential,
-    updateProfile,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
+  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithCredential,
+  updateProfile,
 } from 'firebase/auth';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';

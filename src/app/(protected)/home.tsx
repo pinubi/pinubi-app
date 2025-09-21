@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -17,7 +17,7 @@ const HomeScreen = () => {
   // Show loading while redirecting
   return (
     <View style={{ flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" color="#4285F4" />
+      <ActivityIndicator size="large" color="#b13bff" />
     </View>
   );
 };
