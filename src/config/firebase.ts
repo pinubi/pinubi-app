@@ -4,16 +4,6 @@ import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
-// Para DESENVOLVIMENTO (emuladores)
-const firebaseConfigDev = {
-  projectId: 'demo-pinubi-functions',
-  apiKey: 'AIzaSyDemoApiKeyForEmulatorUsage123456789',
-  authDomain: 'demo-pinubi-functions.firebaseapp.com',
-  storageBucket: 'demo-pinubi-functions.appspot.com',
-  messagingSenderId: '123456789',
-  appId: '1:123456789:web:abcdef123456',
-};
-
 // Para PRODUÇÃO (substitua pelos seus valores reais)
 const firebaseConfigProd = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -25,13 +15,19 @@ const firebaseConfigProd = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+// Para DESENVOLVIMENTO (emuladores)
+const firebaseConfigDev = {
+  projectId: 'demo-pinubi-functions',
+  apiKey: 'AIzaSyDemoApiKeyForEmulatorUsage123456789',
+  authDomain: 'demo-pinubi-functions.firebaseapp.com',
+  storageBucket: 'demo-pinubi-functions.appspot.com',
+  messagingSenderId: '123456789',
+  appId: '1:123456789:web:abcdef123456',
+};
+
 // Escolha o ambiente
 const isDevelopment = false; // Set to true only when testing with emulators
 const firebaseConfig = isDevelopment ? firebaseConfigDev : firebaseConfigProd;
-
-console.log('🔧 Firebase Config - Environment:', isDevelopment ? 'DEVELOPMENT (Emulators)' : 'PRODUCTION');
-console.log('🔧 Firebase Config - Project ID:', firebaseConfig.projectId);
-console.log('🔧 Firebase Config - Full config:', firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 const auth = initializeAuth(app, {
