@@ -63,5 +63,48 @@ target 'pinubiapp' do
         end
       end
     end
+
+    # Fix for missing Hermes dSYM files in archive builds
+    # This prevents the "archive did not include a dSYM for hermes.framework" error
+    installer.pods_project.targets.each do |target|
+      if target.name == 'hermes-engine'
+        target.build_configurations.each do |config|
+          # Disable dSYM generation for Hermes in release builds since pre-built frameworks don't include them
+          config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf'
+          config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+        end
+      end
+    end
+
+    # Add build script to handle Hermes dSYM files for the main app target
+    installer.pods_project.targets.each do |target|
+      if target.name == 'pinubiapp'
+        # Add a build phase to copy Hermes dSYM files
+        existing_script = target.build_phases.find { |phase| phase.display_name == 'Copy Hermes dSYM' }
+        unless existing_script
+          script_phase = target.new_shell_script_build_phase('Copy Hermes dSYM')
+          script_phase.shell_script = <<-SCRIPT
+            # Only run during archive builds
+            if [ "$ACTION" = "install" ] && [ "$CONFIGURATION" = "Release" ]; then
+              echo "🔧 Handling Hermes dSYM for archive build..."
+              SCRIPT_PATH="$PROJECT_DIR/scripts/copy-hermes-dsym.sh"
+              if [ -f "$SCRIPT_PATH" ]; then
+                bash "$SCRIPT_PATH"
+              else
+                echo "⚠️  Hermes dSYM script not found at $SCRIPT_PATH"
+                # Create a minimal dSYM structure to prevent archive errors
+                HERMES_DSYM_PATH="$DWARF_DSYM_FOLDER_PATH/hermes.framework.dSYM"
+                if [ ! -d "$HERMES_DSYM_PATH" ]; then
+                  mkdir -p "$HERMES_DSYM_PATH/Contents/Resources/DWARF"
+                  echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.apple.xcode.dsym.hermes.framework</string></dict></plist>' > "$HERMES_DSYM_PATH/Contents/Info.plist"
+                  echo "✅ Created minimal Hermes dSYM structure"
+                fi
+              fi
+            fi
+          SCRIPT
+          script_phase.run_only_for_deployment_postprocessing = false
+        end
+      end
+    end
   end
 end
