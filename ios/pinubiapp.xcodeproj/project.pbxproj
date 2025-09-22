@@ -7,30 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		01CD96595D2C490EB5E638BD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DFEDCF4C823D4C37B9B385EF /* GoogleService-Info.plist */; };
-		0527F75D22637734F3A7CF2C /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3421F163C07785392758702E /* ExpoModulesProvider.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		183724C46C061414CDD0C0C2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B11FEA70D0C741C559FEB13D /* PrivacyInfo.xcprivacy */; };
+		1BFAE02652F20E6D823A0218 /* libPods-pinubiapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E71605C58E646C0791C6740 /* libPods-pinubiapp.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		43DF2493B13FFED188852EA7 /* libPods-pinubiapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3CE6DA1E8578399F1A82674 /* libPods-pinubiapp.a */; };
-		B1ED062EBC25B4698DF8F42E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CF9F80AE9FECB3EA2A0927ED /* PrivacyInfo.xcprivacy */; };
+		5E9D777482BE49B09AA91952 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 282C39CF73544028B85CE0D9 /* GoogleService-Info.plist */; };
+		602E3B9BC9756391934FDB43 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CFABBFD01BBD160B1CDEC4B /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		CFC9F66581004D2FA96C480B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 40000ADA8F934EE5BE9691BB /* GoogleService-Info.plist */; };
-		E3FE7AE0EB4CF60AB7718E02 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B1280B975EDCA90B0B4CC8 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0813D19030722D56D11A1782 /* Pods-pinubiapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-pinubiapp.debug.xcconfig"; path = "Target Support Files/Pods-pinubiapp/Pods-pinubiapp.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* pinubiapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pinubiapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = pinubiapp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = pinubiapp/Info.plist; sourceTree = "<group>"; };
-		40000ADA8F934EE5BE9691BB /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "pinubiapp/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		6BBD8C49E9175D27889C8A76 /* Pods-pinubiapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-pinubiapp.debug.xcconfig"; path = "Target Support Files/Pods-pinubiapp/Pods-pinubiapp.debug.xcconfig"; sourceTree = "<group>"; };
-		A3CE6DA1E8578399F1A82674 /* libPods-pinubiapp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-pinubiapp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		282C39CF73544028B85CE0D9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "pinubiapp/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		4CFABBFD01BBD160B1CDEC4B /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-pinubiapp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		6E71605C58E646C0791C6740 /* libPods-pinubiapp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-pinubiapp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = pinubiapp/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B11FEA70D0C741C559FEB13D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = pinubiapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C380AB642A5219229EE3B0A5 /* Pods-pinubiapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-pinubiapp.release.xcconfig"; path = "Target Support Files/Pods-pinubiapp/Pods-pinubiapp.release.xcconfig"; sourceTree = "<group>"; };
-		CF9F80AE9FECB3EA2A0927ED /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = pinubiapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		D5B1280B975EDCA90B0B4CC8 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-pinubiapp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		C6FCE6F8073BC48B0D27347D /* Pods-pinubiapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-pinubiapp.release.xcconfig"; path = "Target Support Files/Pods-pinubiapp/Pods-pinubiapp.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = pinubiapp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* pinubiapp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "pinubiapp-Bridging-Header.h"; path = "pinubiapp/pinubiapp-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -41,13 +39,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				43DF2493B13FFED188852EA7 /* libPods-pinubiapp.a in Frameworks */,
+				1BFAE02652F20E6D823A0218 /* libPods-pinubiapp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		116CAC885F5612B19CDF1849 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				C356FBDA62E9E006A80B7685 /* pinubiapp */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* pinubiapp */ = {
 			isa = PBXGroup;
 			children = (
@@ -57,8 +63,8 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				40000ADA8F934EE5BE9691BB /* GoogleService-Info.plist */,
-				CF9F80AE9FECB3EA2A0927ED /* PrivacyInfo.xcprivacy */,
+				282C39CF73544028B85CE0D9 /* GoogleService-Info.plist */,
+				B11FEA70D0C741C559FEB13D /* PrivacyInfo.xcprivacy */,
 			);
 			name = pinubiapp;
 			sourceTree = "<group>";
@@ -67,27 +73,9 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				A3CE6DA1E8578399F1A82674 /* libPods-pinubiapp.a */,
+				6E71605C58E646C0791C6740 /* libPods-pinubiapp.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		342E05910CF6AB9FAB1CE37E /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				6BBD8C49E9175D27889C8A76 /* Pods-pinubiapp.debug.xcconfig */,
-				C380AB642A5219229EE3B0A5 /* Pods-pinubiapp.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		4F69AC1250F5CA853B9ADC04 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				D6DC7A51D89A5B037154522C /* pinubiapp */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -104,8 +92,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				342E05910CF6AB9FAB1CE37E /* Pods */,
-				4F69AC1250F5CA853B9ADC04 /* ExpoModulesProviders */,
+				E097105CB7FCA1C22B9E91EA /* Pods */,
+				116CAC885F5612B19CDF1849 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -129,12 +117,21 @@
 			path = pinubiapp/Supporting;
 			sourceTree = "<group>";
 		};
-		D6DC7A51D89A5B037154522C /* pinubiapp */ = {
+		C356FBDA62E9E006A80B7685 /* pinubiapp */ = {
 			isa = PBXGroup;
 			children = (
-				D5B1280B975EDCA90B0B4CC8 /* ExpoModulesProvider.swift */,
+				4CFABBFD01BBD160B1CDEC4B /* ExpoModulesProvider.swift */,
 			);
 			name = pinubiapp;
+			sourceTree = "<group>";
+		};
+		E097105CB7FCA1C22B9E91EA /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				0813D19030722D56D11A1782 /* Pods-pinubiapp.debug.xcconfig */,
+				C6FCE6F8073BC48B0D27347D /* Pods-pinubiapp.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -145,13 +142,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "pinubiapp" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				5480F4A0B31429C126F48B88 /* [Expo] Configure project */,
+				4C35F8D7F1B503726A77B745 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				6D80EE6E5422BF150ADBA12C /* [CP] Embed Pods Frameworks */,
+				22F1526723F5CE86F88E6078 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -201,8 +198,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				CFC9F66581004D2FA96C480B /* GoogleService-Info.plist in Resources */,
-				B1ED062EBC25B4698DF8F42E /* PrivacyInfo.xcprivacy in Resources */,
+				5E9D777482BE49B09AA91952 /* GoogleService-Info.plist in Resources */,
+				183724C46C061414CDD0C0C2 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +243,25 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		5480F4A0B31429C126F48B88 /* [Expo] Configure project */ = {
+		22F1526723F5CE86F88E6078 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-pinubiapp/Pods-pinubiapp-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-pinubiapp/Pods-pinubiapp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4C35F8D7F1B503726A77B745 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -264,24 +279,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-pinubiapp/expo-configure-project.sh\"\n";
-		};
-		6D80EE6E5422BF150ADBA12C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-pinubiapp/Pods-pinubiapp-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-pinubiapp/Pods-pinubiapp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -357,7 +354,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				E3FE7AE0EB4CF60AB7718E02 /* ExpoModulesProvider.swift in Sources */,
+				602E3B9BC9756391934FDB43 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -366,12 +363,13 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6BBD8C49E9175D27889C8A76 /* Pods-pinubiapp.debug.xcconfig */;
+			baseConfigurationReference = 0813D19030722D56D11A1782 /* Pods-pinubiapp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = pinubiapp/pinubiapp.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = 6AB84HLP49;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -383,7 +381,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -402,19 +400,20 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C380AB642A5219229EE3B0A5 /* Pods-pinubiapp.release.xcconfig */;
+			baseConfigurationReference = C6FCE6F8073BC48B0D27347D /* Pods-pinubiapp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = pinubiapp/pinubiapp.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = 6AB84HLP49;
 				INFOPLIST_FILE = pinubiapp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

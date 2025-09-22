@@ -1,18 +1,22 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initializeApp } from "firebase/app";
-import { getReactNativePersistence, initializeAuth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
-import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { initializeApp } from 'firebase/app';
+import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 
-// Para PRODUÇÃO (substitua pelos seus valores reais)
+// Get Firebase configuration from Expo Constants (loaded from app.config.js)
+const firebaseConfigFromConstants = Constants.expoConfig?.extra?.firebaseConfig || {};
+
+// Para PRODUÇÃO (usando configuração do app.config.js)
 const firebaseConfigProd = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: firebaseConfigFromConstants.apiKey || process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',
+  authDomain: firebaseConfigFromConstants.authDomain || process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  projectId: firebaseConfigFromConstants.projectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || '',
+  storageBucket: firebaseConfigFromConstants.storageBucket || process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: firebaseConfigFromConstants.messagingSenderId || process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: firebaseConfigFromConstants.appId || process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '',
+  measurementId: firebaseConfigFromConstants.measurementId || process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
 };
 
 // Para DESENVOLVIMENTO (emuladores)
@@ -29,9 +33,25 @@ const firebaseConfigDev = {
 const isDevelopment = false; // Set to true only when testing with emulators
 const firebaseConfig = isDevelopment ? firebaseConfigDev : firebaseConfigProd;
 
+// Validate that required Firebase config values are present in production
+if (!isDevelopment) {
+  const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+  const missingFields = requiredFields.filter(field => !firebaseConfig[field as keyof typeof firebaseConfig]);
+  
+  if (missingFields.length > 0) {
+    console.error('❌ Missing Firebase configuration fields:', missingFields);
+    console.error('❌ Please check your environment variables.');
+    console.error('❌ firebaseConfig:', firebaseConfig);
+    throw new Error(`Missing Firebase configuration: ${missingFields.join(', ')}`);
+  }
+  
+  console.log('✅ Firebase configuration loaded successfully');
+  console.log('🔧 Project ID:', firebaseConfig.projectId);
+}
+
 const app = initializeApp(firebaseConfig);
 const auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
+  persistence: getReactNativePersistence(AsyncStorage),
 });
 const functions = getFunctions(app);
 const firestore = getFirestore(app);
@@ -39,7 +59,7 @@ const firestore = getFirestore(app);
 // Conectar aos emuladores apenas em desenvolvimento
 if (isDevelopment) {
   console.log('🔧 Connecting to Firebase Emulators...');
-  
+
   // Conectar ao Functions Emulator
   try {
     connectFunctionsEmulator(functions, '127.0.0.1', 5001);
@@ -55,15 +75,15 @@ if (isDevelopment) {
   } catch (error) {
     console.log('Firestore emulator already connected or failed to connect:', error);
   }
-  
+
   import('firebase/auth').then(({ connectAuthEmulator }) => {
     try {
-      connectAuthEmulator(auth, 'http://127.0.0.1:9099');      
+      connectAuthEmulator(auth, 'http://127.0.0.1:9099');
       console.log('🔧 Auth Emulator connected on 127.0.0.1:9099');
     } catch (error) {
       console.log('Auth emulator already connected or failed to connect:', error);
     }
-  });  
+  });
 } else {
   console.log('🔧 Using Production Firebase services');
 }
