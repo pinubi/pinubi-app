@@ -9,6 +9,32 @@ export default {
     icon: "./src/assets/images/icon.png",
     scheme: "pinubiapp",
     userInterfaceStyle: "light",
+    // Deep linking configuration
+    assetBundlePatterns: [
+      "**/*"
+    ],
+    web: {
+      bundler: "metro"
+    },
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [
+          {
+            scheme: "https",
+            host: "www.pinubi.com",
+            pathPrefix: "/share"
+          },
+          {
+            scheme: "https", 
+            host: "pinubi.com",
+            pathPrefix: "/share"
+          }
+        ],
+        category: ["BROWSABLE", "DEFAULT"]
+      }
+    ],
     newArchEnabled: true,
     ios: {
       supportsTablet: true,

@@ -422,7 +422,7 @@ const DiscoverScreen = () => {
         ref={placeDetailsBottomSheetRef}
         place={selectedPlace?.place ? selectedPlace.place : null}
         userLists={selectedPlace?.userLists ? selectedPlace.userLists : null}
-        reviews={selectedPlace?.reviews ? selectedPlace.reviews : null}
+        reviews={selectedPlace?.reviews ? [selectedPlace.reviews] : null}
         onClose={handlePlaceDetailsClose}
         onSavePlace={handleSavePlace}
         onReserveTable={handleReserveTable}

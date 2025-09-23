@@ -42,8 +42,6 @@ const PinubiBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       [onChange, onClose]
     );
 
-    console.log('Rendering BottomSheet with index:', index);
-
     return (
       <BottomSheet
         ref={ref}

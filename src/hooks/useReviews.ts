@@ -35,9 +35,13 @@ export const usePlaceReviews = (placeId: string) => {
       });
 
       if (response.success) {
-        setReviews(prev => append ? [...prev, ...response.reviews] : response.reviews);
-        setHasMore(response.hasMore);
-        setTotal(response.total);
+        const reviews = response.reviews || [];
+        const hasMore = response.hasMore ?? false;
+        const total = response.total ?? 0;
+        
+        setReviews(prev => append ? [...prev, ...reviews] : reviews);
+        setHasMore(hasMore);
+        setTotal(total);
       } else {
         setError(response.error || 'Erro ao carregar avaliações');
       }
@@ -102,9 +106,13 @@ export const useUserReviews = (userId: string) => {
       });
 
       if (response.success) {
-        setReviews(prev => append ? [...prev, ...response.reviews] : response.reviews);
-        setHasMore(response.hasMore);
-        setTotal(response.total);
+        const reviews = response.reviews || [];
+        const hasMore = response.hasMore ?? false;
+        const total = response.total ?? 0;
+        
+        setReviews(prev => append ? [...prev, ...reviews] : reviews);
+        setHasMore(hasMore);
+        setTotal(total);
       } else {
         setError(response.error || 'Erro ao carregar avaliações');
       }

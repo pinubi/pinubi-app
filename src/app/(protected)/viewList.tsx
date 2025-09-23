@@ -12,7 +12,6 @@ import {
   Image,
   Platform,
   ScrollView,
-  Share,
   Text,
   TouchableOpacity,
   View,
@@ -21,6 +20,7 @@ import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native
 
 import { useLists } from '@/hooks/useLists';
 import { googlePlacesService } from '@/services/googlePlacesService';
+import { sharingService } from '@/services/sharingService';
 import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@/types/lists';
 import type { Place, PlaceDetailsResponse } from '@/types/places';
 
@@ -269,14 +269,20 @@ const ListPlacesScreen = () => {
     if (!listId) return;
 
     try {
-      const urlPublic = 'https://www.pinubi.com/';
-
-      await Share.share({
-        message: `Confira a minha lista no Pinubi: ${urlPublic}`,
+      const success = await sharingService.shareList({
+        id: listId,
         title: currentListData.title,
+        description: currentListData.description,
+        placesCount: placesCount,
+        visibility: currentListData.visibility,
       });
+
+      if (!success) {
+        Alert.alert('Erro', 'Não foi possível compartilhar a lista. Tente novamente.');
+      }
     } catch (error) {
       console.error('Error sharing:', error);
+      Alert.alert('Erro', 'Não foi possível compartilhar a lista. Tente novamente.');
     }
   };
 

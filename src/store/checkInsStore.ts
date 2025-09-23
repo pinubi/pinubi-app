@@ -186,14 +186,9 @@ export const useCheckInsStore = create<CheckInsStore>()(
           if (data.visitDate) updateData.visitDate = data.visitDate.toISOString();
           if (data.reviewType) updateData.reviewType = data.reviewType;
           if (data.photos) {
-            updateData.photos = data.photos.map(
-              (url): PhotoData => ({
-                url,
-                size: 0,
-                width: 0,
-                height: 0,
-              })
-            );
+            // For now, we'll skip photo updates in the review service
+            // since RawPhoto needs to be converted to PhotoData properly
+            // updateData.photos = await convertPhotosToPhotoData(data.photos);
           }
 
           // Update review using the review service
@@ -219,9 +214,9 @@ export const useCheckInsStore = create<CheckInsStore>()(
                     ...(data.visitDate && { visitDate: data.visitDate.toISOString() }),
                     ...(data.reviewType && { reviewType: data.reviewType }),
                     ...(data.photos && {
-                      photos: data.photos.map((url, index) => ({
+                      photos: data.photos.map((rawPhoto, index) => ({
                         id: `photo_${index}`,
-                        url,
+                        url: rawPhoto.uri,
                         order: index,
                       })),
                     }),
@@ -309,8 +304,7 @@ export const useCheckInsStore = create<CheckInsStore>()(
             wouldReturn: review.wouldReturn,
             photos: review.photos.map((photo, index) => ({
               id: `photo_${index}`,
-              url: photo.url,
-              thumbnail: photo.thumbnail,
+              url: `data:${photo.mimeType};base64,${photo.base64}`,
               order: index,
             })),
             createdAt: review.createdAt,
@@ -368,8 +362,7 @@ export const useCheckInsStore = create<CheckInsStore>()(
             wouldReturn: review.wouldReturn,
             photos: review.photos.map((photo, index) => ({
               id: `photo_${index}`,
-              url: photo.url,
-              thumbnail: photo.thumbnail,
+              url: `data:${photo.mimeType};base64,${photo.base64}`,
               order: index,
             })),
             createdAt: review.createdAt,

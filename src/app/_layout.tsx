@@ -14,7 +14,8 @@ import { Animated, Easing, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { PortalProvider } from '@/components/ui/PortalProvider';
+import { PortalProvider } from '@/components/ui';
+import { useDeepLinking } from '@/hooks/useDeepLinking';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,6 +31,9 @@ const InitialLayout = () => {
   const [timeoutReached, setTimeoutReached] = useState(false);
   const [appReady, setAppReady] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Initialize deep linking
+  useDeepLinking();
 
   // Timeout de segurança
   useEffect(() => {
