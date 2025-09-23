@@ -9,7 +9,7 @@ interface ListsState {
   lists: List[];
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchUserLists: (userId: string) => Promise<void>;
   createList: (listData: ListFormData, userId: string) => Promise<List | null>;
@@ -18,7 +18,7 @@ interface ListsState {
   clearError: () => void;
   refreshLists: (userId: string) => Promise<void>;
   getListPlaces: (listId: string) => Promise<ListPlaceWithDetails[]>;
-  
+
   // UI helpers
   getListById: (listId: string) => List | null;
   getListsByVisibility: (visibility: 'public' | 'private') => List[];
@@ -80,22 +80,21 @@ export const useListsStore = create<ListsState>()(
       fetchUserLists: async (userId: string) => {
         try {
           set({ loading: true, error: null });
-          
+
           const lists = await listsService.getUserLists(userId);
-          
-          set({ 
+
+          set({
             lists,
             loading: false,
-            error: null 
+            error: null,
           });
         } catch (error: any) {
-          
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao carregar listas';
-          
-          set({ 
-            loading: false, 
+
+          set({
+            loading: false,
             error: errorMessage,
-            lists: [] // Clear lists on error to avoid showing stale data
+            lists: [], // Clear lists on error to avoid showing stale data
           });
         }
       },
@@ -103,31 +102,28 @@ export const useListsStore = create<ListsState>()(
       createList: async (listData: ListFormData, userId: string): Promise<List | null> => {
         try {
           set({ loading: true, error: null });
-          
-          
+
           const createRequest = mapListFormDataToCreateRequest(listData);
           const newList = await listsService.createList(createRequest, userId);
-          
-          
+
           const currentLists = get().lists;
           const updatedLists = [newList, ...currentLists];
-          
-          set({ 
+
+          set({
             lists: updatedLists,
             loading: false,
-            error: null 
+            error: null,
           });
-          
+
           return newList;
         } catch (error: any) {
-          
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao criar lista';
-          
-          set({ 
-            loading: false, 
-            error: errorMessage 
+
+          set({
+            loading: false,
+            error: errorMessage,
           });
-          
+
           return null;
         }
       },
@@ -135,33 +131,28 @@ export const useListsStore = create<ListsState>()(
       updateList: async (listId: string, listData: Partial<ListFormData>, userId: string): Promise<List | null> => {
         try {
           set({ loading: true, error: null });
-          
-          
+
           const updateRequest = mapListFormDataToUpdateRequest(listId, listData);
           const updatedList = await listsService.updateList(updateRequest, userId);
-          
-          
+
           const currentLists = get().lists;
-          const updatedLists = currentLists.map(list => 
-            list.id === listId ? updatedList : list
-          );
-          
-          set({ 
+          const updatedLists = currentLists.map((list) => (list.id === listId ? updatedList : list));
+
+          set({
             lists: updatedLists,
             loading: false,
-            error: null 
+            error: null,
           });
-          
+
           return updatedList;
         } catch (error: any) {
-          
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao atualizar lista';
-          
-          set({ 
-            loading: false, 
-            error: errorMessage 
+
+          set({
+            loading: false,
+            error: errorMessage,
           });
-          
+
           return null;
         }
       },
@@ -169,30 +160,27 @@ export const useListsStore = create<ListsState>()(
       deleteList: async (listId: string): Promise<boolean> => {
         try {
           set({ loading: true, error: null });
-          
-          
+
           await listsService.deleteList(listId);
-          
-          
+
           const currentLists = get().lists;
-          const updatedLists = currentLists.filter(list => list.id !== listId);
-          
-          set({ 
+          const updatedLists = currentLists.filter((list) => list.id !== listId);
+
+          set({
             lists: updatedLists,
             loading: false,
-            error: null 
+            error: null,
           });
-          
+
           return true;
         } catch (error: any) {
-          
           const errorMessage = error.code ? getErrorMessage(error) : 'Erro ao deletar lista';
-          
-          set({ 
-            loading: false, 
-            error: errorMessage 
+
+          set({
+            loading: false,
+            error: errorMessage,
           });
-          
+
           return false;
         }
       },
@@ -220,12 +208,12 @@ export const useListsStore = create<ListsState>()(
       // UI helper methods
       getListById: (listId: string): List | null => {
         const lists = get().lists;
-        return lists.find(list => list.id === listId) || null;
+        return lists.find((list) => list.id === listId) || null;
       },
 
       getListsByVisibility: (visibility: 'public' | 'private'): List[] => {
         const lists = get().lists;
-        return lists.filter(list => list.visibility === visibility);
+        return lists.filter((list) => list.visibility === visibility);
       },
     }),
     {

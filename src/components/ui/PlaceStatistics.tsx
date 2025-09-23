@@ -31,8 +31,7 @@ const PlaceStatistics: React.FC<PlaceStatisticsProps> = ({ placeId, onShowAllRev
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log('🔄 PlaceStatistics useEffect called with placeId:', placeId);
+  useEffect(() => {    
     if (placeId && placeId.trim() !== '') {
       fetchPlaceStatistics();
     } else {

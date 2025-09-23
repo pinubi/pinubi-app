@@ -1,8 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { configureReanimatedLogger } from 'react-native-reanimated';
 
 import { useAuth } from '@/hooks/useAuth';
+
+configureReanimatedLogger({ strict: false });
 
 const Index = () => {
   const router = useRouter();

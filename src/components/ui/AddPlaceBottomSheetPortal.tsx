@@ -162,9 +162,7 @@ const AddPlaceBottomSheetPortal = forwardRef<BottomSheetRef, AddPlaceBottomSheet
 
     // Handle autocomplete selection
     const handleAutocompleteSelect = useCallback(
-      async (result: AutocompleteResult) => {
-        console.log('🎯 Autocomplete result selected:', result);
-
+      async (result: AutocompleteResult) => {        
         try {
           setIsSaving(true);
 

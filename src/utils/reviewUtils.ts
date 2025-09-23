@@ -317,8 +317,9 @@ export const sortReviews = (reviews: Review[], sortBy: 'newest' | 'oldest' | 'hi
  */
 export const validatePhotoData = (photo: PhotoData): boolean => {
   return !!(
-    photo.url &&
-    photo.size > 0 &&
+    photo.base64 &&
+    photo.fileName &&
+    photo.mimeType &&
     photo.width > 0 &&
     photo.height > 0
   );

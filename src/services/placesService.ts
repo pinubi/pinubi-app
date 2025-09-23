@@ -36,9 +36,10 @@ class PlacesService {
    * 4. Retorna o lugar
    */
   async createOrGetPlaceFromGoogle(request: CreatePlaceFromGoogleRequest): Promise<CreatePlaceFromGoogleResponse> {
+    const { placeId, googleData } = request;
+    let placeDetails: any = null;
+    
     try {
-      const { placeId, googleData } = request;
-      
       // 1. Verificar se já existe no Firestore
       const placeRef = doc(firestore, 'places', placeId);
       const existingPlace = await getDoc(placeRef);
@@ -52,7 +53,6 @@ class PlacesService {
       }
       
       // 2. Buscar dados do Google Places API se necessário
-      let placeDetails;
       if (googleData) {
         placeDetails = googleData;
       } else {
@@ -97,10 +97,93 @@ class PlacesService {
       }
       
     } catch (error: any) {
+      // Check for index requirement error
+      if (error.code === 'failed-precondition' && error.message?.includes('index')) {
+        return {
+          success: false,
+          place: null,
+          error: `Índice necessário para consulta de lugares. Erro: ${error.message}`
+        };
+      }
+      
+      // Check for Firebase Functions errors - try fallback
+      if (error.code === 'not-found') {
+        console.warn("⚠️ ~ Firebase function 'processAndSaveGooglePlace' not found, trying direct Firestore fallback...");
+        return await this.createPlaceDirectFirestore(placeId, placeDetails);
+      }
+      
       return {
         success: false,
         place: null,
         error: error.message || 'Erro ao criar lugar'
+      };
+    }
+  }
+
+  /**
+   * Fallback method to create place directly in Firestore when Firebase function is not available
+   */
+  private async createPlaceDirectFirestore(placeId: string, placeDetails: any): Promise<CreatePlaceFromGoogleResponse> {
+    try {
+
+      
+      // Create place data structure similar to what the Firebase function would create
+      const placeData = {
+        googleData: {
+          name: placeDetails.name || 'Nome não disponível',
+          address: placeDetails.formatted_address || placeDetails.vicinity || 'Endereço não disponível',
+          coordinates: {
+            lat: placeDetails.geometry?.location?.lat || 0,
+            lng: placeDetails.geometry?.location?.lng || 0
+          },
+          phone: placeDetails.formatted_phone_number || placeDetails.international_phone_number,
+          website: placeDetails.website,
+          rating: placeDetails.rating,
+          userRatingsTotal: placeDetails.user_ratings_total,
+          photos: placeDetails.photos || [],
+          types: placeDetails.types || [],
+          priceLevel: placeDetails.price_level,
+          openingHours: placeDetails.opening_hours,
+          lastUpdated: new Date().toISOString()
+        },
+        searchableText: this.generateSearchableText(
+          placeDetails.name,
+          placeDetails.formatted_address || placeDetails.vicinity,
+          placeDetails.types
+        ),
+        coordinates: {
+          lat: placeDetails.geometry?.location?.lat || 0,
+          lng: placeDetails.geometry?.location?.lng || 0
+        },
+        addedBy: [],
+        totalAdds: 0,
+        categories: this.extractCategories(placeDetails.types || []),
+        createdAt: serverTimestamp(),
+        lastGoogleSync: serverTimestamp(),
+        isManual: false
+      };
+
+      const placeRef = doc(firestore, 'places', placeId);
+      await setDoc(placeRef, placeData);
+      
+
+      
+      // Return the created place
+      const createdPlace: Place = this.mapFirestorePlaceToPlace(placeId, {
+        ...placeData,
+        createdAt: new Date().toISOString(),
+        lastGoogleSync: new Date().toISOString()
+      });
+      
+      return { success: true, place: createdPlace };
+      
+    } catch (fallbackError: any) {
+      console.error(`❌ [PlacesService] createPlaceDirectFirestore failed`, fallbackError);
+      
+      return {
+        success: false,
+        place: null,
+        error: `Erro ao criar lugar diretamente: ${fallbackError.message}`
       };
     }
   }

@@ -5,10 +5,13 @@ import { Alert, Dimensions, Image, Modal, ScrollView, Share, Text, TouchableOpac
 import type { CheckInBottomSheetRef } from '@/components/checkin';
 import { CheckInBottomSheetPortal } from '@/components/checkin';
 import GoogleLogo from '@/components/GoogleLogo';
+import AddToListBottomSheetPortal, { AddToListBottomSheetRef } from '@/components/lists/AddToListBottomSheetPortal';
 import PinubiLogo from '@/components/PinubiLogo';
 import PlaceStatistics from '@/components/ui/PlaceStatistics';
 import { googlePlacesService } from '@/services/googlePlacesService';
 import { reviewService } from '@/services/reviewService';
+import { sharingService } from '@/services/sharingService';
+import { List } from '@/types/lists';
 import { Place, Reviews, UserPlaceList } from '@/types/places';
 
 export type BottomSheetRef = {
@@ -141,6 +144,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
   ({ place, userLists, reviews, onClose, onSavePlace, onReserveTable, onShowOnMap }, ref) => {
     const [isVisible, setIsVisible] = useState(false);
     const checkInRef = useRef<CheckInBottomSheetRef>(null);
+    const addToListRef = useRef<AddToListBottomSheetRef>(null);
     const [isSaved, setIsSaved] = useState(false);
     const [showAllHours, setShowAllHours] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -442,11 +446,6 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
     const renderFloatingButtons = () => <FloatingActionButtons onCheckIn={handleCheckIn} onAddToList={handleSave} />;
 
     const renderPlaceStatistics = () => {
-      console.log('🏗️ Rendering PlaceStatistics with place:', {
-        placeId: place?.id,
-        placeName: place?.googleData?.name,
-      });
-
       return <PlaceStatistics placeId={place?.id || ''} onShowAllReviews={handleShowAllReviews} />;
     };
 
@@ -483,9 +482,8 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
     // Action handlers
     const handleSave = () => {
-      setIsSaved(!isSaved);
-      if (place && onSavePlace) {
-        onSavePlace(place);
+      if (place) {
+        addToListRef.current?.present();
       }
     };
 
@@ -493,15 +491,23 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
       if (!place) return;
 
       try {
-        const placeName = place.googleData.name || 'Local interessante';
-        const placeAddress = getAddressString(place.googleData.address);
-
-        await Share.share({
-          message: `Confira este lugar no Pinubi: ${placeName} - ${placeAddress}`,
-          title: placeName,
+        const success = await sharingService.sharePlace({
+          id: place.id,
+          name: place.googleData.name || 'Local interessante',
+          address: getAddressString(place.googleData.address),
+          rating: pinubiRating || place.googleData.rating,
         });
+
+        if (!success) {
+          // Fallback to basic sharing if the service fails
+          await Share.share({
+            message: `Confira este lugar no Pinubi: ${place.googleData.name || 'Local interessante'} - ${getAddressString(place.googleData.address)}`,
+            title: place.googleData.name || 'Local interessante',
+          });
+        }
       } catch (error) {
         // Handle share error silently
+        console.error('Error sharing place:', error);
       }
     };
 
@@ -527,6 +533,13 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
     const handleCheckInComplete = (completedPlace: Place) => {
       console.log('Check-in completed for:', completedPlace.googleData.name);
       // Could trigger a refresh of check-in history here if needed
+    };
+
+    const handlePlaceAdded = (addedPlace: Place, list: List) => {
+      console.log('Place added to list:', addedPlace.googleData.name, 'List:', list.title);
+      // Update the isSaved state to reflect that the place has been saved
+      setIsSaved(true);
+      // Could trigger other actions like refreshing lists or showing additional feedback
     };
 
     const handleShowAllReviews = () => {
@@ -670,6 +683,7 @@ const PlaceDetailsBottomSheetPortal = forwardRef<BottomSheetRef, PlaceDetailsBot
 
           {/* Check-in Modal */}
           <CheckInBottomSheetPortal ref={checkInRef} place={place} onCheckInComplete={handleCheckInComplete} />
+          <AddToListBottomSheetPortal ref={addToListRef} place={place} onPlaceAdded={handlePlaceAdded} />
         </View>
       </Modal>
     );
