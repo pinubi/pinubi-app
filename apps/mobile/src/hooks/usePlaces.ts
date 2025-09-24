@@ -1,5 +1,5 @@
 import { firebaseService } from '@/services/firebaseService';
-import { Place } from '@/types/places';
+import { Place } from '@pinubi/types';
 import { useCallback, useState } from 'react';
 
 interface UsePlacesReturn {

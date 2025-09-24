@@ -1,25 +1,9 @@
 import { firestore, functions } from '@/config/firebase';
 import type { AutocompleteResult } from '@/types/googlePlaces';
-import type { Place } from '@/types/places';
+import { CreatePlaceFromGoogleRequest, CreatePlaceFromGoogleResponse, FirebaseFunctionResponse, Place } from '@pinubi/types';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { googlePlacesService } from './googlePlacesService';
-
-export interface CreatePlaceFromGoogleRequest {
-  placeId: string;
-  googleData?: any; // Optional pre-fetched Google data
-}
-
-export interface CreatePlaceFromGoogleResponse {
-  success: boolean;
-  place: Place | null;
-  error?: string;
-}
-
-interface FirebaseFunctionResponse {
-  success: boolean;
-  error?: string;
-}
 
 class PlacesService {
   private functions;

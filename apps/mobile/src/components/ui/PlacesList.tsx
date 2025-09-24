@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Place } from '@pinubi/types';
 import React from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
-import { Place } from '@/types/places';
 
 interface PlacesListProps {
   places: Place[];

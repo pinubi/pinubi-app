@@ -23,7 +23,7 @@ import { useLists } from '@/hooks/useLists';
 import { firebaseService } from '@/services/firebaseService';
 import { AutocompleteResult } from '@/types/googlePlaces';
 import { ListPlaceWithDetails } from '@/types/lists';
-import { Place, PlaceDetailsResponse } from '@/types/places';
+import { Place, PlaceDetailsResponse } from '@pinubi/types';
 
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();

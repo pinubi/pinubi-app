@@ -1,5 +1,5 @@
 import { functions } from '@/config/firebase';
-import { Place, PlaceDetailsResponse } from '@/types/places';
+import { Place, PlaceDetailsResponse } from '@pinubi/types';
 import { httpsCallable } from 'firebase/functions';
 
 interface FindNearbyPlacesResponse {

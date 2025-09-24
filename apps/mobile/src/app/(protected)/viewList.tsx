@@ -22,7 +22,7 @@ import { useLists } from '@/hooks/useLists';
 import { googlePlacesService } from '@/services/googlePlacesService';
 import { sharingService } from '@/services/sharingService';
 import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@/types/lists';
-import type { Place, PlaceDetailsResponse } from '@/types/places';
+import { Place, PlaceDetailsResponse } from '@pinubi/types';
 
 interface PlaceCardProps {
   place: ListPlaceWithDetails;

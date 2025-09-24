@@ -12,7 +12,8 @@ import { googlePlacesService } from '@/services/googlePlacesService';
 import { reviewService } from '@/services/reviewService';
 import { sharingService } from '@/services/sharingService';
 import { List } from '@/types/lists';
-import { Place, Reviews, UserPlaceList } from '@/types/places';
+
+import { Place, Reviews, UserPlaceList } from '@pinubi/types';
 
 export type BottomSheetRef = {
   present: () => void;

@@ -6,7 +6,7 @@ import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE, Region } from 'reac
 
 import { useLocation } from '@/hooks/useLocation';
 import { usePlaces } from '@/hooks/usePlaces';
-import { MapRegion, Place } from '@/types/places';
+import { MapRegion, Place } from '@pinubi/types';
 
 interface PinubiMapViewProps {
   onLocationRefresh?: () => void;

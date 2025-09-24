@@ -1,29 +1,4 @@
-export interface PlaceAverageRatings {
-  overall: number;
-  food?: number;
-  drink?: number;
-  dessert?: number;
-  service?: number;
-  ambiance?: number;
-  totalReviews: number;
-}
-
-export interface MapRegion {
-  latitude: number;
-  longitude: number;
-  latitudeDelta: number;
-  longitudeDelta: number;
-}
-
-export interface PlaceDetailsResponse {
-  success: boolean;
-  place: Place;
-  fromCache: boolean;
-  _meta: ResponseMeta;
-  userLists?: UserPlaceList[];
-  userInteraction?: UserPlaceInteraction | null;
-  reviews?: Reviews | null;
-}
+import { Reviews } from "./review";
 
 export interface Place {
   id: string;
@@ -54,10 +29,36 @@ export interface Place {
   updatedAt?: string;
 }
 
+export interface CreatePlaceFromGoogleRequest {
+  placeId: string;
+  googleData?: any; // Optional pre-fetched Google data
+}
+
+export interface CreatePlaceFromGoogleResponse {
+  success: boolean;
+  place: Place | null;
+  error?: string;
+}
+
+export interface FirebaseFunctionResponse {
+  success: boolean;
+  error?: string;
+}
+
 interface ResponseMeta {
   fromCache: boolean;
   lastUpdate?: string;
   language: string;
+}
+
+export interface PlaceDetailsResponse {
+  success: boolean;
+  place: Place;
+  fromCache: boolean;
+  _meta: ResponseMeta;
+  userLists?: UserPlaceList[];
+  userInteraction?: UserPlaceInteraction | null;
+  reviews?: Reviews | null;
 }
 
 export interface UserPlaceList {
@@ -71,7 +72,15 @@ export interface UserPlaceList {
   priority: number;
 }
 
-export interface UserPlaceInteraction {
+export interface MapRegion {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+}
+
+
+interface UserPlaceInteraction {
   userId: string;
   placeId: string;
   isVisited: boolean;
@@ -79,23 +88,6 @@ export interface UserPlaceInteraction {
   isWantToVisit: boolean;
   totalReviews: number;
   lastInteractionAt: string; // ISO string
-  createdAt: string; // ISO string
-  updatedAt: string; // ISO string
-}
-
-export interface Reviews {
-  id: string;
-  userId: string;
-  userName: string;
-  userPhoto: string;
-  rating: number;
-  reviewType: string;
-  comment?: string;
-  wouldReturn: boolean;
-  isVisited: boolean;
-  photos: string[];
-  tags: string[];
-  visitDate: string; // ISO string
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
 }

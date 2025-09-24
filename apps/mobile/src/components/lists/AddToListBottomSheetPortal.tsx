@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useListPlaces } from '@/hooks/useListPlaces';
 import { useLists } from '@/hooks/useLists';
 import type { List } from '@/types/lists';
-import type { Place } from '@/types/places';
+import { Place } from '@pinubi/types';
 
 export type AddToListBottomSheetRef = {
   present: () => void;

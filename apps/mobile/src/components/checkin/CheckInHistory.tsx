@@ -1,5 +1,6 @@
-import type { Reviews } from '@/types/places';
+
 import { Ionicons } from '@expo/vector-icons';
+import { Reviews } from '@pinubi/types';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import React from 'react';

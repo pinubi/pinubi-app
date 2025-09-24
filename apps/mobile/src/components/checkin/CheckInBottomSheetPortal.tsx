@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCheckInsStore } from '@/store/checkInsStore';
 import type { CheckInFormData } from '@/types/checkins';
-import type { Place } from '@/types/places';
+import { Place } from '@pinubi/types';
 import CheckInStepIndicator from './CheckInStepIndicator';
 import DatePickerSection from './DatePickerSection';
 import PhotoUploadSection from './PhotoUploadSection';
