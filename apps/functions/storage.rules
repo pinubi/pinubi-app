@@ -1,0 +1,67 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ====================
+    // ARQUIVOS DE PERFIL DE USUÁRIO
+    // ====================
+    
+    match /users/{userId}/profile/{allPaths=**} {
+      // Leitura: perfis públicos ou próprio usuário
+      allow read: if request.auth != null;
+      
+      // Escrita: apenas próprio usuário
+      allow write: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      // Validar tipo de arquivo (apenas imagens)
+                      request.resource.contentType.matches('image/.*') &&
+                      // Limite de tamanho: 5MB
+                      request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // ====================
+    // IMAGENS DE LISTAS
+    // ====================
+    
+    match /lists/{listId}/{allPaths=**} {
+      // Leitura: todos os usuários autenticados
+      allow read: if request.auth != null;
+      
+      // Escrita: apenas dono da lista ou editores
+      // (verificação de permissão deve ser feita via Cloud Function)
+      allow write: if false; // Apenas via Cloud Functions
+    }
+
+    // ====================
+    // IMAGENS DE LUGARES
+    // ====================
+    
+    match /places/{placeId}/{allPaths=**} {
+      // Leitura: todos os usuários autenticados
+      allow read: if request.auth != null;
+      
+      // Escrita: apenas via Cloud Functions (para controle de qualidade)
+      allow write: if false;
+    }
+
+    // ====================
+    // ARQUIVOS TEMPORÁRIOS
+    // ====================
+    
+    match /temp/{userId}/{allPaths=**} {
+      // Leitura e escrita: apenas próprio usuário
+      allow read, write: if request.auth != null && 
+                            request.auth.uid == userId &&
+                            // Limite de tamanho: 10MB
+                            request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ====================
+    // TODAS AS OUTRAS REGRAS (NEGAR ACESSO)
+    // ====================
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@pinubi/functions",
+  "scripts": {
+    "build": "bun run tsc",
+    "build:watch": "bun run tsc --watch",
+    "serve": "bun run build && firebase emulators:start --project=demo-pinubi-functions",
+    "serve:prod": "bun run build && firebase emulators:start",
+    "serve:functions": "bun run build && firebase emulators:start --only functions --project=demo-pinubi-functions",
+    "serve:auth": "firebase emulators:start --only auth,functions,firestore --project=demo-pinubi-functions",
+    "seed": "node ./scripts/unified-seed.js",
+    "test": "node ./scripts/unified-tests.js",
+    "test:signup": "node ./scripts/test-user-signup.js",
+    "test:places": "node ./scripts/test-place-functions.js",
+    "dev": "./scripts/start-emulators.sh",
+    "shell": "bun run build && firebase functions:shell",
+    "start": "bun run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "reset": "./scripts/quick-dev.sh reset",
+    "status": "./scripts/quick-dev.sh status"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@pinubi/types": "workspace:*",
+    "@googlemaps/google-maps-services-js": "^3.4.2",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0",
+    "geofirestore": "^5.2.0"
+  },
+  "devDependencies": {},
+  "private": true
+}

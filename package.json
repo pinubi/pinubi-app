@@ -1,0 +1,32 @@
+{
+  "name": "pinubi-app",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "serve": "turbo run serve",
+    "deploy": "turbo run deploy",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "type-check": "turbo run type-check"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "firebase": "^12.3.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "~5.8.3",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.25.0"
+  },
+  "packageManager": "bun@1.0.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  }
+}
