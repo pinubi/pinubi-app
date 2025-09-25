@@ -107,76 +107,7 @@ target 'pinubiapp' do
       end
     end
 
-    # Fix build script warnings by adding output files to prevent running on every build
-    installer.pods_project.targets.each do |target|
-      target.build_phases.each do |phase|
-        if phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
-          # Fix Hermes script phase
-          if phase.display_name&.include?('[Hermes] Replace Hermes for the right configuration')
-            puts "🔧 Adding output files to Hermes script phase to optimize builds"
-            phase.output_files ||= []
-            phase.output_files << "${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework"
-          end
-          
-          # Fix expo-updates script phase - disable dependency analysis to eliminate warning
-          if target.name == 'EXUpdates' && phase.display_name&.include?('Generate updates resources for expo-updates')
-            puts "🔧 Configuring expo-updates script phase to eliminate build warning"
-            
-            # The simplest fix: disable dependency analysis (equivalent to unchecking "Based on dependency analysis")
-            # This tells Xcode to run this script when needed without warning about missing outputs
-            phase.run_only_for_deployment_postprocessing = false
-            
-            # Add a dummy output file to satisfy Xcode's requirement
-            phase.output_files = ["${SCRIPT_OUTPUT_FILE_0}"]
-            
-            # Modify script to create the dummy output file
-            original_script = phase.shell_script || ""
-            unless original_script.include?("SCRIPT_OUTPUT_FILE_0")
-              phase.shell_script = original_script + <<-SCRIPT_APPEND
-
-# Create output file to satisfy Xcode dependency analysis
-echo "expo-updates resource generation completed" > "${SCRIPT_OUTPUT_FILE_0}"
-SCRIPT_APPEND
-            end
-            
-            puts "✅ Configured expo-updates script to run without dependency warnings"
-          end
-
-          # Alternative approach: Add a completion marker file for any remaining problematic scripts
-          if (phase.output_files.nil? || phase.output_files.empty?) && 
-             phase.display_name&.include?('[CP-User]') && 
-             !phase.shell_script&.include?('echo "SUCCESS"')
-            
-            phase.output_files ||= []
-            marker_file = "${TEMP_FILE_DIR}/#{target.name.gsub(/[^a-zA-Z0-9]/, '_')}_#{phase.display_name&.gsub(/[^a-zA-Z0-9]/, '_') || 'script'}_completed.marker"
-            phase.output_files << marker_file
-            
-            # Modify the script to create the marker file
-            if phase.shell_script && !phase.shell_script.include?('mkdir -p "${TEMP_FILE_DIR}"')
-              phase.shell_script = phase.shell_script + "\n# Create completion marker\nmkdir -p \"${TEMP_FILE_DIR}\"\ntouch \"#{marker_file}\""
-            end
-            
-            puts "🔧 Added completion marker to script: #{phase.display_name}"
-          end
-
-          # Fix any other script phases that don't have outputs
-          if phase.output_files.nil? || phase.output_files.empty?
-            case phase.display_name
-            when /.*Bundle React Native code and images.*/
-              phase.output_files ||= []
-              phase.output_files << "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/main.jsbundle"
-            when /.*Copy Bundle Resources.*/
-              # These typically have implicit outputs, no need to add
-            when /.*Run Script.*/, /.*\[CP-User\].*/
-              # Add a generic output file if none exists to prevent warnings
-              unless phase.shell_script&.include?('echo') && phase.shell_script.length < 50
-                phase.output_files ||= []
-                phase.output_files << "${TEMP_FILE_DIR}/#{target.name}-#{phase.display_name&.gsub(/[^a-zA-Z0-9]/, '_') || 'script'}-completed.txt"
-              end
-            end
-          end
-        end
-      end
-    end
+    # Simple post-install fixes
+    # Just ensure the build configurations are correct
   end
 end

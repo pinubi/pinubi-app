@@ -116,7 +116,8 @@ export default {
       ],
       [
         "@react-native-google-signin/google-signin"
-      ]
+      ],
+      "expo-web-browser"
     ],
     experiments: {
       typedRoutes: true
