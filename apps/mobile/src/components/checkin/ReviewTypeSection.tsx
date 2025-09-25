@@ -1,5 +1,5 @@
-import { ReviewType } from '@/types/reviews';
 import { getReviewTypeDisplayName, getReviewTypeEmoji } from '@/utils/reviewUtils';
+import { ReviewType } from '@pinubi/types';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 

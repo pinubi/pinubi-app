@@ -1,3 +1,24 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  photo: string | null;
+  familyName?: string;
+  givenName?: string;
+  createdAt: string;
+  // Onboarding and validation states
+  isValidated?: boolean;  // Has valid invite code
+  isActive?: boolean;     // Has completed onboarding
+  onboardingComplete?: boolean; // Completed all onboarding steps
+}
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+}
+
 export type UserActionType = 'follow' | 'unfollow' | 'remove_follower' | 'cancel_request' | 'accept_request' | 'reject_request';
 
 export type FollowRequestStatus = 'pending' | 'accepted' | 'rejected';
@@ -13,23 +34,23 @@ export interface PublicUser {
     state: string;
     country: string;
   };
-  
+
   // Stats
   listsCount: number;
   placesCount: number;
   followersCount: number;
   followingCount: number;
-  
+
   // Social context
   isFollowing: boolean;
   hasFollowRequest: boolean;
   isFollowedBy: boolean;
   mutualFollowersCount?: number;
-  
+
   // Common interests & places
   commonCategories?: string[];
   commonPlaces?: number;
-  
+
   // Additional metadata
   joinedAt: string;
   lastActiveAt?: string;
@@ -84,3 +105,6 @@ export interface UserStats {
   pendingRequestsCount: number;
   mutualFollowersCount: number;
 }
+
+
+

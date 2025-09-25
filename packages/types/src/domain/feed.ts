@@ -23,13 +23,13 @@ export interface ActivityData {
   };
   placeCategories?: string[];
   placePhotos?: string[];
-  
+
   // Para place_reviewed
   rating?: number;
   reviewComment?: string;
   wouldReturn?: boolean;
   reviewPhotos?: string[];
-  
+
   // Para list_created, list_purchased
   listId?: string;
   listTitle?: string;
@@ -38,12 +38,12 @@ export interface ActivityData {
   listCategory?: string;
   listPlacesCount?: number;
   listPrice?: number;
-  
+
   // Para user_followed
   followedUserId?: string;
   followedUserName?: string;
   followedUserAvatar?: string;
-  
+
   // Campos comuns
   comment?: string;
   photos?: string[];

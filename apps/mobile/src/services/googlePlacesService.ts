@@ -1,38 +1,8 @@
-import {
-  AutocompleteResult,
-  GooglePlaceDetails,
-  GooglePlaceDetailsResponse,
-  GooglePlacesAutocompleteResponse,
-  GooglePlacesPrediction
-} from '@/types/googlePlaces';
+import { AutocompleteOptions, AutocompleteResponse, AutocompleteResult, GooglePlaceDetails, GooglePlaceDetailsResponse, GooglePlacesAutocompleteResponse, GooglePlacesPrediction, PlaceDetailsOptions, PlaceDetailsResponse } from "@pinubi/types";
 
 const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
 const GOOGLE_PLACES_BASE_URL = 'https://maps.googleapis.com/maps/api/place';
 
-interface AutocompleteOptions {
-  input: string;
-  language?: string;
-  country?: string;
-  types?: string;
-}
-
-interface AutocompleteResponse {
-  success: boolean;
-  results: AutocompleteResult[];
-  error?: string;
-}
-
-interface PlaceDetailsOptions {
-  placeId: string;
-  language?: string;
-  fields?: string;
-}
-
-interface PlaceDetailsResponse {
-  success: boolean;
-  result?: any;
-  error?: string;
-}
 
 class GooglePlacesService {
   private apiKey: string;

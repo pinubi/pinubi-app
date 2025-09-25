@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { AutocompleteResult } from '@pinubi/types';
 import React, { useState } from 'react';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
-
-import { AutocompleteResult } from '@/types/googlePlaces';
 
 interface AutocompleteListProps {
   results: AutocompleteResult[];

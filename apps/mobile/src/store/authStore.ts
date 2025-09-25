@@ -15,8 +15,9 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { auth } from '@/config/firebase';
 import { userService } from '@/services/userService';
-import type { AuthError, AuthStore, User } from '@/types/auth';
+import type { AuthError, AuthStore } from '@/types/auth';
 import { getUserValidationStatus, mapFirebaseUserWithValidation } from '@/utils/firestoreHelpers';
+import { User } from '@pinubi/types';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // Note: Using real GoogleSignin - requires development build or production build
@@ -30,19 +31,6 @@ GoogleSignin.configure({
   scopes: ['profile', 'email'], // what API you want to access on behalf of the user, default is email and profile
 });
 
-const mapFirebaseUserToUser = (firebaseUser: any): User => ({
-  id: firebaseUser.uid,
-  email: firebaseUser.email || '',
-  name: firebaseUser.displayName || '',
-  photo: firebaseUser.photoURL,
-  givenName: firebaseUser.displayName?.split(' ')[0],
-  familyName: firebaseUser.displayName?.split(' ').slice(1).join(' '),
-  createdAt: firebaseUser.metadata?.creationTime,
-  // New users start as not validated/active - per PLANEJAMENTO_JORNADAS_USUARIO.md
-  isValidated: false,
-  isActive: false,
-  onboardingComplete: false,
-});
 
 const mapGoogleSignInErrorToAuthError = (error: any): AuthError => {
   const errorCode = error.code;

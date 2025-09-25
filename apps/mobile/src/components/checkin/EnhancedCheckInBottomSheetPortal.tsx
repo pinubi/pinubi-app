@@ -7,7 +7,7 @@ import { useUserPlaceReviews } from '@/hooks/useReviews';
 import { useCheckInsStore } from '@/store/enhancedCheckInsStore';
 import type { CheckInFormData } from '@/types/checkins';
 
-import type { ReviewType } from '@/types/reviews';
+import type { ReviewType } from '@pinubi/types';
 
 import { Place } from '@pinubi/types';
 import CheckInStepIndicator from './CheckInStepIndicator';

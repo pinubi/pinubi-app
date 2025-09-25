@@ -4,15 +4,15 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import React, { useState } from 'react';
 import {
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
-import type { ReviewType } from '@/types/reviews';
+import type { ReviewType } from '@pinubi/types';
 
 interface Filters {
   reviewType?: ReviewType;

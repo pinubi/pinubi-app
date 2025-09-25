@@ -1,18 +1,6 @@
 import { functions } from '@/config/firebase';
-import { Place, PlaceDetailsResponse } from '@pinubi/types';
+import { FindNearbyPlacesResponse, GetPlaceDetailsResponse, Place } from '@pinubi/types';
 import { httpsCallable } from 'firebase/functions';
-
-interface FindNearbyPlacesResponse {
-  success: boolean;
-  data: Place[]; // Always present, empty array if error
-  error?: string;
-}
-
-interface GetPlaceDetailsResponse {
-  success: boolean;
-  data: Partial<PlaceDetailsResponse> | null;
-  error?: string;
-}
 
 class FirebaseService {
   private functions;

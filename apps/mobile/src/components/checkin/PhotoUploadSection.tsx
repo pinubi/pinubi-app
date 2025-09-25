@@ -4,12 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-import type { PhotoData } from '@/types/reviews';
-
-export interface RawPhoto {
-  uri: string;
-  fileName?: string;
-}
+import type { PhotoData, RawPhoto } from '@pinubi/types';
 
 interface PhotoUploadSectionProps {
   photos: RawPhoto[];

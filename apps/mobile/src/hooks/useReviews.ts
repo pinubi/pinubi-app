@@ -1,12 +1,12 @@
 import { reviewService } from '@/services/reviewService';
 import {
-  CreateReviewRequest,
-  GetPlaceReviewsRequest,
-  GetUserReviewsRequest,
-  Review,
-  ReviewType,
-  UpdateReviewRequest
-} from '@/types/reviews';
+    CreateReviewRequest,
+    GetPlaceReviewsRequest,
+    GetUserReviewsRequest,
+    Review,
+    ReviewType,
+    UpdateReviewRequest
+} from '@pinubi/types';
 import { useCallback, useEffect, useState } from 'react';
 
 /**

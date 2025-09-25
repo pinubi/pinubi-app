@@ -1,4 +1,4 @@
-import { ActivityPost, FeedItem } from '@/types/feed';
+import { ActivityPost, FeedItem } from '@pinubi/types';
 
 /**
  * Converte um FeedItem do backend para ActivityPost usado no UI

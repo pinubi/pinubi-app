@@ -1,21 +1,25 @@
-import { RawPhoto } from '@/components/checkin/PhotoUploadSection';
-import { ReviewType } from './reviews';
+import { ReviewType } from "./review";
+
+export interface RawPhoto {
+  uri: string;
+  fileName?: string;
+}
 
 export interface CheckIn {
   id: string;
   userId: string;
   placeId: string;
-  
+
   // Check-in details
   visitDate: string; // ISO string
   rating: number; // 0-10 with decimals (e.g., 7.2)
   reviewType: ReviewType; // What type of review this is
   description?: string;
   wouldReturn: boolean;
-  
+
   // Media
   photos: CheckInPhoto[];
-  
+
   // Metadata
   createdAt: string;
   updatedAt: string;

@@ -5,25 +5,23 @@ import { Alert, Keyboard, Text, View } from 'react-native';
 
 import PinubiMapView from '@/components/PinubiMapView';
 import {
-  AutocompleteList,
-  BottomSheet,
-  FilterTabs,
-  Header,
-  PlaceDetailsBottomSheetPortal,
-  PlacesList,
-  ProfileBottomSheetPortal,
-  SearchInput,
-  type BottomSheetRef,
-  type ViewMode
+    AutocompleteList,
+    BottomSheet,
+    FilterTabs,
+    Header,
+    PlaceDetailsBottomSheetPortal,
+    PlacesList,
+    ProfileBottomSheetPortal,
+    SearchInput,
+    type BottomSheetRef,
+    type ViewMode
 } from '@/components/ui';
 import { type BottomSheetRef as PlaceDetailsBottomSheetRef } from '@/components/ui/PlaceDetailsBottomSheetPortal';
 import { useAuth } from '@/hooks/useAuth';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
 import { useLists } from '@/hooks/useLists';
 import { firebaseService } from '@/services/firebaseService';
-import { AutocompleteResult } from '@/types/googlePlaces';
-import { ListPlaceWithDetails } from '@/types/lists';
-import { Place, PlaceDetailsResponse } from '@pinubi/types';
+import { AutocompleteResult, ListPlaceWithDetails, Place, PlaceDetailsResponse } from '@pinubi/types';
 
 const DiscoverScreen = () => {
   const { userPhoto } = useAuth();

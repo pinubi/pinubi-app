@@ -1,5 +1,5 @@
-import { FollowRequest } from '@/types/users';
 import { Ionicons } from '@expo/vector-icons';
+import { FollowRequest } from '@pinubi/types';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 

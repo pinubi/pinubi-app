@@ -7,21 +7,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { useLists } from '@/hooks/useLists';
 import { googlePlacesService } from '@/services/googlePlacesService';
 import { sharingService } from '@/services/sharingService';
-import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@/types/lists';
+import type { AddPlaceToListRequest, ListFormData, ListPlaceWithDetails } from '@pinubi/types';
 import { Place, PlaceDetailsResponse } from '@pinubi/types';
 
 interface PlaceCardProps {

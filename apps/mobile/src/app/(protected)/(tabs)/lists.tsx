@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useRef } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-import type { ListFormData } from '@/types/lists';
+import type { ListFormData } from '@pinubi/types';
 
 interface ListCardProps {
   emoji: string;

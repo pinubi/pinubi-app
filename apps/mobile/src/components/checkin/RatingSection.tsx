@@ -3,7 +3,7 @@ import Slider from '@react-native-community/slider';
 import React from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import type { ReviewType } from '@/types/reviews';
+import type { ReviewType } from '@pinubi/types';
 
 interface RatingSectionProps {
   rating: number;

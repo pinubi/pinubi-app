@@ -1,4 +1,4 @@
-import { FeedItem } from '@/types/feed';
+import { FeedItem } from '@pinubi/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CACHE_KEY = 'feed_cache';

@@ -1,6 +1,6 @@
 import { firestore, functions } from '@/config/firebase';
 import { userService } from '@/services/userService';
-import type { User } from '@/types/auth';
+import { User } from '@pinubi/types';
 import { doc, getDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 

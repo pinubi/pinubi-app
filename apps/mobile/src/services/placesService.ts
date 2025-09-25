@@ -1,6 +1,5 @@
 import { firestore, functions } from '@/config/firebase';
-import type { AutocompleteResult } from '@/types/googlePlaces';
-import { CreatePlaceFromGoogleRequest, CreatePlaceFromGoogleResponse, FirebaseFunctionResponse, Place } from '@pinubi/types';
+import { AutocompleteResult, CreatePlaceFromGoogleRequest, CreatePlaceFromGoogleResponse, FirebaseFunctionResponse, Place } from '@pinubi/types';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { googlePlacesService } from './googlePlacesService';

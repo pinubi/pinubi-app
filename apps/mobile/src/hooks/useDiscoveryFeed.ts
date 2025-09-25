@@ -1,6 +1,6 @@
 import { feedService } from '@/services/feedService';
-import { DiscoveryFilters, TrendingPlace } from '@/types/feed';
 import { trackFeedEvents } from '@/utils/feedAnalytics';
+import { DiscoveryFilters, TrendingPlace } from '@pinubi/types';
 import { useCallback, useState } from 'react';
 
 interface UseDiscoveryFeedReturn {

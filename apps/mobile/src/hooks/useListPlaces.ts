@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useListPlacesStore } from '@/store/listPlacesStore';
-import type { AddPlaceToListRequest } from '@/types/lists';
+import type { AddPlaceToListRequest } from '@pinubi/types';
 import { useEffect } from 'react';
 
 /**

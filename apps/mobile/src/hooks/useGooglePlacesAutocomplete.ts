@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { googlePlacesService } from '@/services/googlePlacesService';
-import { AutocompleteResult } from '@/types/googlePlaces';
 import { debounceAsync } from '@/utils/debounce';
+import { AutocompleteResult } from '@pinubi/types';
 
 interface UseGooglePlacesAutocompleteOptions {
   /** Delay em ms antes de fazer a busca (default: 300ms) */

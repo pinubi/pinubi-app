@@ -1,7 +1,7 @@
 import { feedService } from '@/services/feedService';
-import { FeedFilters, FeedItem } from '@/types/feed';
 import { trackFeedEvents } from '@/utils/feedAnalytics';
 import { feedCache } from '@/utils/feedCache';
+import { FeedFilters, FeedItem } from '@pinubi/types';
 import { useCallback, useEffect, useState } from 'react';
 
 interface UseFeedReturn {

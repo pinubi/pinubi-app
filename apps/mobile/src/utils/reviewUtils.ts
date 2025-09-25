@@ -1,4 +1,4 @@
-import { PhotoData, PlaceAverageRatings, Review, ReviewType } from '@/types/reviews';
+import { PhotoData, PlaceAverageRatings, Review, ReviewType } from '@pinubi/types';
 
 /**
  * Review System Utilities

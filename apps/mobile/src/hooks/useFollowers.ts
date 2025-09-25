@@ -1,6 +1,6 @@
 import { followRequestService } from '@/services/followRequestService';
 import { userService } from '@/services/userService';
-import type { FollowRequest, PublicUser, UserActionType } from '@/types/users';
+import type { FollowRequest, PublicUser, UserActionType } from '@pinubi/types';
 import { useState } from 'react';
 
 interface UseFollowersResult {

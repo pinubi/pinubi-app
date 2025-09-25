@@ -1,5 +1,5 @@
 import { functions } from '@/config/firebase';
-import type { PublicUser, UserSearchFilters } from '@/types/users';
+import type { PublicUser, UserSearchFilters } from '@pinubi/types';
 import { httpsCallable } from 'firebase/functions';
 
 // Response interfaces for all Firebase Functions

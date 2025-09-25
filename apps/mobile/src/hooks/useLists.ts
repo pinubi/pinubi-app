@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useListsStore } from '@/store/listsStore';
-import type { ListFormData } from '@/types/lists';
+import type { ListFormData } from '@pinubi/types';
 import { useEffect } from 'react';
 
 /**

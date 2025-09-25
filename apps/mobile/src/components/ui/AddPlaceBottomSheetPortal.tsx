@@ -5,8 +5,8 @@ import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
 import { placesService } from '@/services/placesService';
-import type { AutocompleteResult } from '@/types/googlePlaces';
-import type { AddPlaceToListRequest } from '@/types/lists';
+import type { AddPlaceToListRequest } from '@pinubi/types';
+import { AutocompleteResult } from '@pinubi/types';
 import AutocompleteList from './AutocompleteList';
 import { usePortal } from './PortalProvider';
 

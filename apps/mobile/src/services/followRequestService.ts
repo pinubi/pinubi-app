@@ -28,7 +28,7 @@
  */
 
 import { functions } from '@/config/firebase';
-import type { FollowRequest } from '@/types/users';
+import type { FollowRequest } from '@pinubi/types';
 import { httpsCallable } from 'firebase/functions';
 
 interface FirebaseFollowRequest {

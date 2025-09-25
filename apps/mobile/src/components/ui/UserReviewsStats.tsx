@@ -3,7 +3,7 @@ import React from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
 import { reviewService } from '@/services/reviewService';
-import type { UserReviewsStatistics } from '@/types/reviews';
+import type { UserReviewsStatistics } from '@pinubi/types';
 
 interface UserReviewsStatsProps {
   statistics: UserReviewsStatistics;

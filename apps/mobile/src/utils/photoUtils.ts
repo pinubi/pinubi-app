@@ -1,5 +1,5 @@
-import type { PhotoData } from '@/types/reviews';
-import { convertPhotosToPhotoData, RawPhoto } from '../components/checkin/PhotoUploadSection';
+import type { PhotoData, RawPhoto } from '@pinubi/types';
+import { convertPhotosToPhotoData } from '../components/checkin/PhotoUploadSection';
 
 /**
  * Utility function to process photos when finalizing a checkin/review

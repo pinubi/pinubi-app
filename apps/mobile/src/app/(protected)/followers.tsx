@@ -16,7 +16,7 @@ import {
 import { UserCard } from '@/components/users/UserCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useFollowers } from '@/hooks/useFollowers';
-import type { FollowRequest, PublicUser, UserActionType } from '@/types/users';
+import type { FollowRequest, PublicUser, UserActionType } from '@pinubi/types';
 
 type TabType = 'followers' | 'following' | 'requests';
 

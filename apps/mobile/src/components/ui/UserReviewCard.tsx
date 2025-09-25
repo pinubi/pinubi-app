@@ -5,7 +5,7 @@ import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 import { reviewService } from '@/services/reviewService';
-import type { ReviewWithPlace } from '@/types/reviews';
+import type { ReviewWithPlace } from '@pinubi/types';
 
 interface UserReviewCardProps {
   review: ReviewWithPlace;

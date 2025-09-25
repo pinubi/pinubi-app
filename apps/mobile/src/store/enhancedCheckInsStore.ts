@@ -5,7 +5,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { convertPhotosToPhotoData } from '@/components/checkin/PhotoUploadSection';
 import { reviewService } from '@/services/reviewService';
 import type { CheckIn, CheckInFormData, CheckInState } from '@/types/checkins';
-import type { CreateReviewRequest, PhotoData, ReviewType } from '@/types/reviews';
+import type { CreateReviewRequest, PhotoData, ReviewType } from '@pinubi/types';
 
 interface CheckInsStoreState {
   // Data

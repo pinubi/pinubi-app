@@ -1,7 +1,7 @@
-import { ActivityPost } from '@/types/feed';
 import { trackFeedEvents } from '@/utils/feedAnalytics';
 import { getActivityActionText, getActivityBadgeColor, getActivityIcon } from '@/utils/feedUtils';
 import { Ionicons } from '@expo/vector-icons';
+import { ActivityPost } from '@pinubi/types';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 

@@ -5,7 +5,7 @@ import {
   FeedItem,
   GetDiscoveryFeedResponse,
   GetFeedResponse
-} from '@/types/feed';
+} from '@pinubi/types';
 import { httpsCallable } from 'firebase/functions';
 
 class FeedService {

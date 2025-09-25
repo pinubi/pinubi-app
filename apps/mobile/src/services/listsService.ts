@@ -10,7 +10,7 @@ import type {
   ListPlace,
   ListPlaceWithDetails,
   UpdateListRequest,
-} from '@/types/lists';
+} from '@pinubi/types';
 import {
   addDoc,
   arrayUnion,

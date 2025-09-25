@@ -26,6 +26,5 @@ export interface CheckIn {
 
 // Add more shared types as needed
 export * from './api-types';
-export * from './services';
+export * from './domain';
 export * from './ui-types';
-

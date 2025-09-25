@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { listsService } from '@/services/listsService';
-import type { List, ListError, ListFormData, ListPlaceWithDetails } from '@/types/lists';
+import type { List, ListError, ListFormData, ListPlaceWithDetails } from '@pinubi/types';
 
 interface ListsState {
   lists: List[];

@@ -2,27 +2,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import { UserReviewCard, UserReviewsFilters, UserReviewsStats } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { reviewService } from '@/services/reviewService';
 import type {
-  GetUserReviewsRequest,
-  GroupedByCategory,
-  GroupedByPlace,
-  ReviewType,
-  ReviewWithPlace,
-  UserReviewsStatistics,
-} from '@/types/reviews';
+    GetUserReviewsRequest,
+    GroupedByCategory,
+    GroupedByPlace,
+    ReviewType,
+    ReviewWithPlace,
+    UserReviewsStatistics,
+} from '@pinubi/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Filters {

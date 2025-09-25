@@ -11,7 +11,7 @@ import PlaceStatistics from '@/components/ui/PlaceStatistics';
 import { googlePlacesService } from '@/services/googlePlacesService';
 import { reviewService } from '@/services/reviewService';
 import { sharingService } from '@/services/sharingService';
-import { List } from '@/types/lists';
+import { List } from '@pinubi/types';
 
 import { Place, Reviews, UserPlaceList } from '@pinubi/types';
 

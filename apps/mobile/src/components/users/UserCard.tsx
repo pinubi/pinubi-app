@@ -1,5 +1,5 @@
-import { PublicUser, UserActionType } from '@/types/users';
 import { Ionicons } from '@expo/vector-icons';
+import { PublicUser, UserActionType } from '@pinubi/types';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 

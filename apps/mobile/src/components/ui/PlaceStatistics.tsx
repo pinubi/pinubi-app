@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 import { reviewService } from '@/services/reviewService';
-import { Review } from '@/types/reviews';
+import { Review } from '@pinubi/types';
 
 interface PlaceStatisticsData {
   reviews: Review[];

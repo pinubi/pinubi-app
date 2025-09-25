@@ -1,23 +1,4 @@
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  photo: string | null;
-  familyName?: string;
-  givenName?: string;
-  createdAt: string;
-  // Onboarding and validation states
-  isValidated?: boolean;  // Has valid invite code
-  isActive?: boolean;     // Has completed onboarding
-  onboardingComplete?: boolean; // Completed all onboarding steps
-}
-
-export interface AuthState {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  isAuthenticated: boolean;
-}
+import { AuthState } from "@pinubi/types";
 
 export interface AuthStore extends AuthState {
   signInWithGoogle: () => Promise<void>;

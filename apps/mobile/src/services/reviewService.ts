@@ -1,20 +1,20 @@
 import { functions } from '@/config/firebase';
 import {
-  CreateReviewRequest,
-  CreateReviewResponse,
-  DeleteReviewRequest,
-  DeleteReviewResponse,
-  GetPlaceReviewsRequest,
-  GetPlaceReviewsResponse,
-  GetUserReviewsRequest,
-  GetUserReviewsResponse,
-  Review,
-  ReviewData,
-  ToggleReviewLikeRequest,
-  ToggleReviewLikeResponse,
-  UpdateReviewRequest,
-  UpdateReviewResponse
-} from '@/types/reviews';
+    CreateReviewRequest,
+    CreateReviewResponse,
+    DeleteReviewRequest,
+    DeleteReviewResponse,
+    GetPlaceReviewsRequest,
+    GetPlaceReviewsResponse,
+    GetUserReviewsRequest,
+    GetUserReviewsResponse,
+    Review,
+    ReviewData,
+    ToggleReviewLikeRequest,
+    ToggleReviewLikeResponse,
+    UpdateReviewRequest,
+    UpdateReviewResponse
+} from '@pinubi/types';
 import { httpsCallable } from 'firebase/functions';
 
 /**

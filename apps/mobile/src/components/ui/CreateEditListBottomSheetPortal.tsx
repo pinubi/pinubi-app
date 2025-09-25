@@ -4,7 +4,7 @@ import React, { forwardRef, useCallback, useMemo, useRef, useState } from 'react
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
-import type { ListFormData } from '@/types/lists';
+import type { ListFormData } from '@pinubi/types';
 import { MultilineTextInput } from './MultilineTextInput';
 
 export type BottomSheetRef = BottomSheet;
