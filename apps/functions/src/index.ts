@@ -1,47 +1,11 @@
-import * as userFunctions from './functions/user-functions';
-import * as notificationFunctions from './functions/notification-functions';
+export * from './functions/user';
 import * as adminFunctions from './functions/admin-functions';
+import * as feedFunctions from './functions/feed-functions';
+import * as listFunctions from './functions/list-functions';
+import * as notificationFunctions from './functions/notification-functions';
 import * as placeFunctions from './functions/place-functions';
 import * as reviewFunctions from './functions/review-functions';
-import * as listFunctions from './functions/list-functions';
-import * as feedFunctions from './functions/feed-functions';
 
-export const {
-  // Triggers
-  // onUserCreate,
-  onUserUpdate,
-  onUserDelete,
-
-  // Functions callable
-  initializeNewUser,
-  getUserData,
-  updateUserProfile,
-  listUsers,
-  deactivateUser,
-  validateInviteCode,
-  validateInviteAndActivateUser,
-  followUser,
-  unfollowUser,
-  checkFollowStatus,
-  getUserInviteStatus,
-  
-  // New follow system functions
-  getFollowers,
-  getFollowing,
-  getFollowStats,
-  
-  // Follow requests functions
-  getFollowRequests,
-  acceptFollowRequest,
-  rejectFollowRequest,
-  getSentFollowRequests,
-  
-  // User discovery functions
-  searchUsers,
-  findNearbyUsers,
-  getUserSuggestions,
-  exploreUsersByCategory
-} = userFunctions;
 
 export const {
   // Functions callable

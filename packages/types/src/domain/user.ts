@@ -1,19 +1,31 @@
-export interface User {
+export interface UserEntity {
   id: string;
   email: string;
   name: string;
   photo: string | null;
-  familyName?: string;
-  givenName?: string;
   createdAt: string;
+  accountType: 'free' | 'premium',
+  profileVisibility: 'public' | 'private',
+  inviteCode: string,
+  maxInvites: number,
+  invitesUsed: number,
+  invitedBy?: string; // User ID of the inviter
+  invitedUsers: string[]; // List of User IDs invited by this user
   // Onboarding and validation states
-  isValidated?: boolean;  // Has valid invite code
-  isActive?: boolean;     // Has completed onboarding
-  onboardingComplete?: boolean; // Completed all onboarding steps
+  isValidated: boolean;  // Has valid invite code
+  isActive: boolean;     // Has completed onboarding
+  onboardingComplete: boolean; // Completed all onboarding steps
+  validatedAt?: string; // When the user was validated
+
+  listsCount: number;
+  placesCount: number;
+  checkinsCount: number;
 }
 
+export type UserPublicProfile = Pick<UserEntity, 'id' | 'name' | 'photo' | 'listsCount' | 'placesCount' | 'checkinsCount'>;
+
 export interface AuthState {
-  user: User | null;
+  user: UserEntity | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;

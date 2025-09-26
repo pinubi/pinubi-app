@@ -1,11 +1,13 @@
-import { HttpsError } from 'firebase-functions/v2/https';
+import { AuthContext } from '@pinubi/types';
 import * as logger from 'firebase-functions/logger';
-import { db, admin, storage } from '../config/firebase';
-import { AuthContext, PhotoData } from '../types';
+import { HttpsError } from 'firebase-functions/v2/https';
+import { admin, db, storage } from '../config/firebase';
 
-// ======================
-// FUNÇÕES AUXILIARES DE FIRESTORE
-// ======================
+
+export function generateUniqueCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 
 /**
  * Gera timestamp atual - funciona tanto no emulador quanto em produção
