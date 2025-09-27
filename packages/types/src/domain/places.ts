@@ -1,42 +1,40 @@
 import { Reviews } from "./review";
 
-export interface Place {
-  id: string;
-  googleData: {
-    name: string;
-    address: string;
-    coordinates: { lat: number; lng: number };
-    phone?: string;
-    website?: string;
-    rating?: number;
-    userRatingsTotal?: number;
-    photos?: string[];
-    types?: string[];
-    priceLevel?: number;
-    openingHours?: {
-      openNow?: boolean;
-      weekdayText?: string[];
-    };
-    lastUpdated?: string;
-  };
-  searchableText?: string;
+export interface GoogleData {
+  name: string;
+  address: string;
   coordinates: { lat: number; lng: number };
-  addedBy?: string[];
-  totalAdds?: number;
-  categories?: string[];
-  createdAt?: string;
-  lastGoogleSync?: string;
-  updatedAt?: string;
+  phone ?: string;
+  website ?: string;
+  rating ?: number;
+  userRatingsTotal ?: number;
+  photos ?: string[];
+  types ?: string[];
+  priceLevel ?: number;
+  openingHours ?: {
+    weekdayText?: string[];
+  };
+}
+
+export interface PlaceEntity {
+  id: string;
+  googleData: GoogleData;
+  distance?: number; // in meters, optional, only when fetched via geo query
+  totalReviews: number;
+  totalRatings: number;
+  averageRating: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreatePlaceFromGoogleRequest {
   placeId: string;
-  googleData?: any; // Optional pre-fetched Google data
+  googleData?: GoogleData; // Optional pre-fetched Google data
 }
 
 export interface CreatePlaceFromGoogleResponse {
   success: boolean;
-  place: Place | null;
+  place: PlaceEntity | null;
   error?: string;
 }
 
@@ -53,7 +51,7 @@ interface ResponseMeta {
 
 export interface PlaceDetailsResponse {
   success: boolean;
-  place: Place;
+  place: PlaceEntity;
   fromCache: boolean;
   _meta: ResponseMeta;
   userLists?: UserPlaceList[];
@@ -94,7 +92,7 @@ interface UserPlaceInteraction {
 
 export interface FindNearbyPlacesResponse {
   success: boolean;
-  data: Place[]; // Always present, empty array if error
+  data: PlaceEntity[]; // Always present, empty array if error
   error?: string;
 }
 

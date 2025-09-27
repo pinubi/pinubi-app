@@ -8,6 +8,9 @@ import { generateUniqueCode, rateLimiter } from '../utils/helpers';
  * onCall
  */
 
+/**
+ * Inicializar novo usuário no Firestore após criação no Auth
+ */
 export const initializeNewUser = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Usuário não autenticado');
@@ -85,6 +88,10 @@ export const initializeNewUser = onCall(async (request) => {
   }
 });
 
+/**
+ * Buscar dados de um usuário
+ * @param data.userId - ID do usuário a ser buscado
+ */
 export const getUserData = onCall(async (request) => {
   try {
     const identifier = request.auth?.uid || 'anonymous';
@@ -132,6 +139,10 @@ export const getUserData = onCall(async (request) => {
   }
 });
 
+/**
+ * Valida código de convite e ativa usuário
+ * @param data.inviteCode - Código de convite para validação
+ */
 export const validateInviteAndActivateUser = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Usuário não autenticado');
@@ -271,6 +282,11 @@ export const validateInviteAndActivateUser = onCall(async (request) => {
   }
 });
 
+/**
+ * Atualiza perfil do usuário
+ * @param data.name - Nome do usuário
+ * @param data.photo - URL da foto do usuário
+ */
 export const updateUserProfile = onCall(async (request) => {
   // Verificar autenticação
   if (!request.auth) {
@@ -319,7 +335,3 @@ export const updateUserProfile = onCall(async (request) => {
     throw new HttpsError('internal', 'Erro interno ao atualizar perfil');
   }
 });
-
-/*
- * Triggers
- */
